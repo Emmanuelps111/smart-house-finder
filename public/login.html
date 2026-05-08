@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign In / Sign Up — Smart House Finder</title>
+<meta name="description" content="Create an account or sign in as a student or landlord." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div id="header-mount"></div>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h2 style="text-align:center; margin-bottom:.5rem;">Welcome to Smart House Finder</h2>
+    <p style="text-align:center;">Choose your account type to continue.</p>
+
+    <div class="role-toggle" role="tablist">
+      <button class="active" data-role="student"><i class="fas fa-user-graduate"></i> Student / Renter</button>
+      <button data-role="landlord"><i class="fas fa-key"></i> Landlord</button>
+    </div>
+
+    <div class="tabs">
+      <button class="active" data-tab="signin">Sign In</button>
+      <button data-tab="signup">Sign Up</button>
+    </div>
+
+    <form id="authForm" class="form" novalidate>
+      <div class="form-row" id="nameRow" style="display:none;">
+        <label for="au-name">Full name</label>
+        <input id="au-name" type="text" autocomplete="name" />
+        <span class="error"></span>
+      </div>
+      <div class="form-row">
+        <label for="au-email">Email</label>
+        <input id="au-email" type="email" autocomplete="email" required />
+        <span class="error"></span>
+      </div>
+      <div class="form-row">
+        <label for="au-pass">Password</label>
+        <input id="au-pass" type="password" autocomplete="current-password" required />
+        <span class="error"></span>
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%; justify-content:center;" id="submitBtn">Sign In as Student</button>
+      <p style="text-align:center; margin-top:1rem; font-size:.9rem;"><a href="#" id="forgotLink">Forgot password?</a></p>
+    </form>
+  </div>
+</div>
+
+<div id="footer-mount"></div>
+<script src="/partials.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  let role = 'student';
+  let tab = 'signin';
+  const submit = document.getElementById('submitBtn');
+  const nameRow = document.getElementById('nameRow');
+
+  function refresh() {
+    nameRow.style.display = tab === 'signup' ? 'block' : 'none';
+    const action = tab === 'signin' ? 'Sign In' : 'Sign Up';
+    const r = role === 'student' ? 'Student' : 'Landlord';
+    submit.textContent = `${action} as ${r}`;
+  }
+  document.querySelectorAll('.role-toggle button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.role-toggle button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    role = b.dataset.role;
+    refresh();
+  }));
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    tab = b.dataset.tab;
+    refresh();
+  }));
+
+  document.getElementById('authForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('au-email');
+    const pass = document.getElementById('au-pass');
+    const name = document.getElementById('au-name');
+    let ok = true;
+    [email, pass, name].forEach(el => el && (el.parentElement.querySelector('.error').textContent = ''));
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { email.parentElement.querySelector('.error').textContent = 'Enter a valid email.'; ok = false; }
+    if (pass.value.length < 6) { pass.parentElement.querySelector('.error').textContent = 'Password must be at least 6 characters.'; ok = false; }
+    if (tab === 'signup' && name.value.trim().length < 2) { name.parentElement.querySelector('.error').textContent = 'Enter your full name.'; ok = false; }
+    if (!ok) return;
+    localStorage.setItem('shf-user', JSON.stringify({ email: email.value, role, name: name.value || email.value.split('@')[0] }));
+    document.querySelector('.auth-card').innerHTML = `
+      <div style="text-align:center; padding:2rem 0;">
+        <i class="fas fa-circle-check" style="font-size:3.5rem; color:var(--primary); margin-bottom:1rem;"></i>
+        <h2>Welcome${name.value ? ', ' + name.value : ''}!</h2>
+        <p>You're signed in as a <strong>${role}</strong>.</p>
+        <a href="${role === 'landlord' ? '/listings.html' : '/listings.html'}" class="btn btn-primary" style="margin-top:1rem;">${role === 'landlord' ? 'Go to dashboard' : 'Browse listings'} <i class="fas fa-arrow-right"></i></a>
+      </div>`;
+  });
+  refresh();
+</script>
+</body>
+</html>
