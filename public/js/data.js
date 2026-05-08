@@ -1,0 +1,12 @@
+// Sample listings data (would come from API/database in production)
+window.SHF_LISTINGS = [
+  { id:1, title:'Modern Studio near Campus', price:650, beds:1, baths:1, area:'420 sqft', city:'Cambridge', tag:'Student-Friendly', img:'https://picsum.photos/seed/h1/600/400', lat:52.2053, lng:0.1218, desc:'Bright studio 5 min walk from main campus, fully furnished, all bills included.' },
+  { id:2, title:'Shared 4-Bedroom House', price:480, beds:4, baths:2, area:'1400 sqft', city:'Manchester', tag:'Shared', img:'https://picsum.photos/seed/h2/600/520', lat:53.4808, lng:-2.2426, desc:'Spacious house perfect for student groups. Garden, fast WiFi, washing machine.' },
+  { id:3, title:'Luxury 2-Bed Apartment', price:1450, beds:2, baths:2, area:'920 sqft', city:'London', tag:'Premium', img:'https://picsum.photos/seed/h3/600/450', lat:51.5074, lng:-0.1278, desc:'Riverside apartment with concierge, gym and underground parking.' },
+  { id:4, title:'Cozy En-suite Room', price:380, beds:1, baths:1, area:'180 sqft', city:'Leeds', tag:'En-suite', img:'https://picsum.photos/seed/h4/600/600', lat:53.8008, lng:-1.5491, desc:'Private en-suite room in friendly student house, all utilities included.' },
+  { id:5, title:'Renovated Townhouse', price:1100, beds:3, baths:2, area:'1100 sqft', city:'Bristol', tag:'New Build', img:'https://picsum.photos/seed/h5/600/400', lat:51.4545, lng:-2.5879, desc:'Recently renovated 3-bed townhouse, garden, near transport links.' },
+  { id:6, title:'Budget Single Room', price:295, beds:1, baths:1, area:'140 sqft', city:'Sheffield', tag:'Budget', img:'https://picsum.photos/seed/h6/600/500', lat:53.3811, lng:-1.4701, desc:'Affordable single room in a clean shared house, ideal for first-year students.' },
+  { id:7, title:'Penthouse with City View', price:1850, beds:2, baths:2, area:'1050 sqft', city:'Birmingham', tag:'Premium', img:'https://picsum.photos/seed/h7/600/420', lat:52.4862, lng:-1.8904, desc:'Top-floor penthouse with panoramic views, balcony and modern finishes.' },
+  { id:8, title:'Garden Flat near University', price:720, beds:2, baths:1, area:'600 sqft', city:'Edinburgh', tag:'Garden', img:'https://picsum.photos/seed/h8/600/520', lat:55.9533, lng:-3.1883, desc:'Ground-floor flat with private garden, pet-friendly, 10 min to uni.' },
+  { id:9, title:'Affordable Studio', price:520, beds:1, baths:1, area:'320 sqft', city:'Nottingham', tag:'Student-Friendly', img:'https://picsum.photos/seed/h9/600/440', lat:52.9548, lng:-1.1581, desc:'Compact, modern studio with study desk and high-speed internet.' },
+];

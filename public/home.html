@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Smart House Finder — Find Your Next Home</title>
+<meta name="description" content="Smart House Finder helps students and renters discover quality homes while empowering landlords to list properties on an interactive map." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div id="header-mount"></div>
+
+<section class="hero">
+  <div class="container hero-content reveal">
+    <h1>Find your next home, the smart way</h1>
+    <p>Browse verified listings, message landlords, and explore neighborhoods on an interactive map — built for students and renters.</p>
+    <div class="hero-cta">
+      <a href="/listings.html" class="btn btn-primary"><i class="fas fa-search"></i> Browse Listings</a>
+      <a href="/login.html" class="btn btn-outline">List Your Property</a>
+    </div>
+    <form class="search-bar" onsubmit="event.preventDefault(); location.href='/listings.html?q='+encodeURIComponent(this.q.value)">
+      <input name="q" type="text" placeholder="Search by city, neighborhood or postcode…" aria-label="Search" />
+      <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+    </form>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Why Smart House Finder</div>
+      <h2>Everything renters and landlords need</h2>
+      <p>A trusted platform that connects students with verified landlords and quality housing.</p>
+    </div>
+    <div class="grid-3">
+      <div class="feature reveal"><i class="fas fa-shield-halved"></i><h3>Verified Listings</h3><p>Every property is reviewed for accuracy so you avoid scams and surprises.</p></div>
+      <div class="feature reveal"><i class="fas fa-map-location-dot"></i><h3>Interactive Map</h3><p>Find homes by neighborhood, transport links and proximity to your campus.</p></div>
+      <div class="feature reveal"><i class="fas fa-user-graduate"></i><h3>Built for Students</h3><p>Filters tailored to budget, room type, and shared housing preferences.</p></div>
+      <div class="feature reveal"><i class="fas fa-comments"></i><h3>Direct Messaging</h3><p>Talk to landlords without middlemen. No hidden fees, just clarity.</p></div>
+      <div class="feature reveal"><i class="fas fa-bolt"></i><h3>Fast Listings</h3><p>Landlords can post a new property in under three minutes.</p></div>
+      <div class="feature reveal"><i class="fas fa-lock"></i><h3>Secure Accounts</h3><p>Separate logins for students and landlords with role-based protection.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--surface);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Featured Listings</div>
+      <h2>Recently added homes</h2>
+    </div>
+    <div class="masonry" id="featured"></div>
+    <div style="text-align:center; margin-top:2rem;"><a href="/listings.html" class="btn btn-outline">View all listings <i class="fas fa-arrow-right"></i></a></div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Testimonials</div>
+      <h2>Trusted by thousands</h2>
+    </div>
+    <div class="carousel reveal">
+      <div class="carousel-track">
+        <div class="testimonial">
+          <img src="https://i.pravatar.cc/120?img=12" alt="Emily" />
+          <blockquote>"I found my student flat in two days. The map view made comparing neighborhoods so easy."</blockquote>
+          <cite>— Emily R., Cambridge</cite>
+        </div>
+        <div class="testimonial">
+          <img src="https://i.pravatar.cc/120?img=33" alt="James" />
+          <blockquote>"As a landlord, I had three viewings booked within a week. Far better than older platforms."</blockquote>
+          <cite>— James K., Landlord</cite>
+        </div>
+        <div class="testimonial">
+          <img src="https://i.pravatar.cc/120?img=47" alt="Priya" />
+          <blockquote>"Verified badges gave me confidence. No scams, no time wasted, great support."</blockquote>
+          <cite>— Priya M., Manchester</cite>
+        </div>
+      </div>
+      <div class="carousel-dots">
+        <button class="active" aria-label="Slide 1"></button>
+        <button aria-label="Slide 2"></button>
+        <button aria-label="Slide 3"></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="/js/data.js"></script>
+<script src="/partials.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  // Render featured listings
+  const f = document.getElementById('featured');
+  if (f) {
+    f.innerHTML = SHF_LISTINGS.slice(0,6).map(l => `
+      <article class="card reveal">
+        <img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />
+        <div class="card-body">
+          <span class="badge">${l.tag}</span>
+          <h3 style="margin:.6rem 0 .25rem;">${l.title}</h3>
+          <div class="card-price">£${l.price}<small style="color:var(--text-muted);font-weight:400;font-size:.85rem;"> /month</small></div>
+          <div class="card-meta"><span><i class="fas fa-bed"></i> ${l.beds}</span><span><i class="fas fa-bath"></i> ${l.baths}</span><span><i class="fas fa-location-dot"></i> ${l.city}</span></div>
+        </div>
+      </article>`).join('');
+    document.querySelectorAll('#featured .reveal').forEach(el => {
+      new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');o.disconnect();}}),{threshold:.1}).observe(el);
+    });
+  }
+</script>
+</body>
+</html>
