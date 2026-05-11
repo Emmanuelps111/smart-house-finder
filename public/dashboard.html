@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Landlord Dashboard — Smart House Finder</title>
+<meta name="description" content="Manage your property listings, add new houses with photos and details." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .dash-wrap { margin-top: var(--header-h); padding: 2rem 0 4rem; }
+  .dash-hero { background: linear-gradient(135deg,#3B82F6,#1E40AF); color:#fff; padding: 2.5rem 0; border-radius: 0; margin-bottom: 2rem; }
+  .dash-hero h1 { color:#fff; margin:0 0 .35rem; }
+  .dash-hero p { color: rgba(255,255,255,.9); margin:0; }
+  .dash-grid { display:grid; grid-template-columns: 1.1fr 1fr; gap:2rem; }
+  @media (max-width: 980px) { .dash-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem; }
+  .panel h2 { margin:0 0 1rem; font-size:1.2rem; }
+  .stats { display:grid; grid-template-columns: repeat(3,1fr); gap:1rem; margin-bottom:2rem; }
+  .stat { background: var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.1rem; text-align:center; }
+  .stat .num { font-size:1.8rem; font-weight:700; color: var(--primary); }
+  .stat .lbl { font-size:.85rem; color: var(--text-muted); }
+  .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
+  .grid-3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:.75rem; }
+  @media (max-width: 600px) { .grid-2,.grid-3 { grid-template-columns: 1fr; } }
+  .file-input-wrap { border: 2px dashed var(--border); border-radius:10px; padding:1rem; text-align:center; cursor:pointer; transition: border-color .2s, background .2s; }
+  .file-input-wrap:hover { border-color: var(--primary); background: rgba(59,130,246,.05); }
+  .file-input-wrap input[type="file"] { display:none; }
+  .preview-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr)); gap:.5rem; margin-top:.75rem; }
+  .preview-grid .ph { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+  .preview-grid img { width:100%; height:100%; object-fit:cover; }
+  .preview-grid button { position:absolute; top:3px; right:3px; background:rgba(0,0,0,.6); color:#fff; border:none; width:22px; height:22px; border-radius:50%; cursor:pointer; font-size:.7rem; }
+  .my-listing { display:flex; gap:.75rem; padding:.75rem; border:1px solid var(--border); border-radius:10px; margin-bottom:.75rem; align-items:center; }
+  .my-listing img { width:80px; height:80px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+  .my-listing .info { flex:1; min-width:0; }
+  .my-listing .info h4 { margin:0 0 .2rem; font-size:.95rem; }
+  .my-listing .info .meta { font-size:.8rem; color: var(--text-muted); }
+  .my-listing .actions { display:flex; gap:.4rem; }
+  .my-listing button { background:none; border:1px solid var(--border); padding:.4rem .6rem; border-radius:6px; cursor:pointer; color: var(--text); font-size:.8rem; }
+  .my-listing button:hover { border-color: var(--primary); color: var(--primary); }
+  .my-listing button.del:hover { border-color:#ef4444; color:#ef4444; }
+  .empty-state { text-align:center; padding:2rem 1rem; color: var(--text-muted); }
+  .empty-state i { font-size:2.5rem; color: var(--primary); opacity:.5; margin-bottom:.5rem; }
+  .amenity-chips { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .amenity-chips label { display:inline-flex; align-items:center; gap:.35rem; padding:.4rem .75rem; border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:.85rem; transition: all .2s; }
+  .amenity-chips input { display:none; }
+  .amenity-chips input:checked + span { color: var(--primary); font-weight:600; }
+  .amenity-chips label:has(input:checked) { border-color: var(--primary); background: rgba(59,130,246,.08); }
+  .access-denied { text-align:center; padding:5rem 1rem; }
+  .access-denied i { font-size:3.5rem; color: var(--primary); margin-bottom:1rem; }
+</style>
+</head>
+<body>
+<div id="header-mount"></div>
+
+<div id="appRoot"></div>
+
+<div id="footer-mount"></div>
+<script src="/js/data.js"></script>
+<script src="/partials.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  const root = document.getElementById('appRoot');
+  let user = null;
+  try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
+
+  if (!user || user.role !== 'landlord') {
+    root.innerHTML = `
+      <div class="dash-wrap"><div class="container access-denied">
+        <i class="fas fa-lock"></i>
+        <h1>Landlords only</h1>
+        <p>You need to be signed in as a landlord to manage listings.</p>
+        <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Go to sign in <i class="fas fa-arrow-right"></i></a>
+      </div></div>`;
+  } else {
+    renderDashboard();
+  }
+
+  function getMine() {
+    try { return JSON.parse(localStorage.getItem('shf-user-listings') || '[]'); }
+    catch (e) { return []; }
+  }
+  function saveMine(arr) {
+    localStorage.setItem('shf-user-listings', JSON.stringify(arr));
+  }
+
+  function renderDashboard() {
+    const mine = getMine();
+    const totalViews = mine.length * 47; // mock
+    const activeCount = mine.length;
+    root.innerHTML = `
+      <div class="dash-hero">
+        <div class="container">
+          <h1>Welcome back, ${user.name || 'Landlord'} <i class="fas fa-circle-check" style="font-size:1.1rem; color:#10b981;" title="Verified"></i></h1>
+          <p>Manage your properties, add new listings and reach thousands of renters.</p>
+        </div>
+      </div>
+      <div class="container">
+        <div class="stats">
+          <div class="stat"><div class="num">${activeCount}</div><div class="lbl"><i class="fas fa-house"></i> Active listings</div></div>
+          <div class="stat"><div class="num">${totalViews}</div><div class="lbl"><i class="fas fa-eye"></i> Total views (30d)</div></div>
+          <div class="stat"><div class="num">${Math.floor(totalViews*0.08)}</div><div class="lbl"><i class="fas fa-envelope"></i> Enquiries</div></div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="panel">
+            <h2><i class="fas fa-plus-circle" style="color:var(--primary);"></i> Add a new property</h2>
+            <form id="propForm" novalidate>
+              <div class="form-row">
+                <label for="p-title">Property title *</label>
+                <input id="p-title" type="text" placeholder="e.g. Modern 2-Bed Apartment near UDSM" required />
+                <span class="error"></span>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-row">
+                  <label for="p-city">City *</label>
+                  <input id="p-city" type="text" placeholder="Dar es Salaam" required />
+                  <span class="error"></span>
+                </div>
+                <div class="form-row">
+                  <label for="p-area">Neighbourhood</label>
+                  <input id="p-area" type="text" placeholder="Mwenge" />
+                </div>
+              </div>
+
+              <div class="grid-3">
+                <div class="form-row">
+                  <label for="p-price">Rent / month (TSh) *</label>
+                  <input id="p-price" type="number" min="10000" step="10000" placeholder="500000" required />
+                  <span class="error"></span>
+                </div>
+                <div class="form-row">
+                  <label for="p-beds">Bedrooms *</label>
+                  <input id="p-beds" type="number" min="0" max="20" value="1" required />
+                </div>
+                <div class="form-row">
+                  <label for="p-baths">Bathrooms *</label>
+                  <input id="p-baths" type="number" min="0" max="20" value="1" required />
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-row">
+                  <label for="p-size">Size (sqm)</label>
+                  <input id="p-size" type="number" min="5" placeholder="60" />
+                </div>
+                <div class="form-row">
+                  <label for="p-type">Property type</label>
+                  <select id="p-type">
+                    <option>Apartment</option>
+                    <option>Studio</option>
+                    <option>Single room</option>
+                    <option>Shared house</option>
+                    <option>Townhouse</option>
+                    <option>Bungalow</option>
+                    <option>Penthouse</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-row">
+                  <label for="p-furn">Furnishing</label>
+                  <select id="p-furn">
+                    <option>Furnished</option>
+                    <option>Semi-furnished</option>
+                    <option>Unfurnished</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label for="p-avail">Available from</label>
+                  <input id="p-avail" type="date" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label>Amenities</label>
+                <div class="amenity-chips">
+                  ${['Wi-Fi','Parking','Security','Water tank','Generator','Air conditioning','Kitchen','Laundry','Pet friendly','Garden','Balcony','Furnished'].map(a =>
+                    `<label><input type="checkbox" name="amenity" value="${a}"><span>${a}</span></label>`
+                  ).join('')}
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-row">
+                  <label for="p-lat">Latitude</label>
+                  <input id="p-lat" type="number" step="any" placeholder="-6.7741" />
+                </div>
+                <div class="form-row">
+                  <label for="p-lng">Longitude</label>
+                  <input id="p-lng" type="number" step="any" placeholder="39.2417" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label for="p-desc">Description *</label>
+                <textarea id="p-desc" rows="4" maxlength="800" placeholder="Describe the property, nearby amenities, transport, rules..." required></textarea>
+                <span class="error"></span>
+              </div>
+
+              <div class="form-row">
+                <label>Property photos * (at least 1, up to 8)</label>
+                <label class="file-input-wrap" for="p-photos">
+                  <i class="fas fa-camera-retro" style="font-size:1.5rem; color:var(--primary);"></i>
+                  <div>Click to upload photos — JPG or PNG</div>
+                  <input id="p-photos" type="file" accept="image/*" multiple />
+                </label>
+                <div class="preview-grid" id="photoPreview"></div>
+                <span class="error"></span>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-row">
+                  <label for="p-contact">Contact phone</label>
+                  <input id="p-contact" type="tel" placeholder="+255 ..." />
+                </div>
+                <div class="form-row">
+                  <label for="p-deposit">Deposit (months)</label>
+                  <input id="p-deposit" type="number" min="0" max="12" value="2" />
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;">
+                <i class="fas fa-cloud-arrow-up"></i> Publish listing
+              </button>
+            </form>
+          </div>
+
+          <div class="panel">
+            <h2><i class="fas fa-list" style="color:var(--primary);"></i> My listings (${mine.length})</h2>
+            <div id="myList"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    bindForm();
+    renderMine();
+  }
+
+  let pendingPhotos = []; // {name, dataUrl}
+
+  function bindForm() {
+    const photosInput = document.getElementById('p-photos');
+    const preview = document.getElementById('photoPreview');
+
+    photosInput.addEventListener('change', async () => {
+      const files = Array.from(photosInput.files || []);
+      for (const f of files) {
+        if (pendingPhotos.length >= 8) break;
+        if (f.size > 3 * 1024 * 1024) { alert(`${f.name} is over 3MB and was skipped.`); continue; }
+        const dataUrl = await new Promise(res => {
+          const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f);
+        });
+        pendingPhotos.push({ name: f.name, dataUrl });
+      }
+      photosInput.value = '';
+      drawPreviews();
+    });
+
+    function drawPreviews() {
+      preview.innerHTML = pendingPhotos.map((p, i) =>
+        `<div class="ph"><img src="${p.dataUrl}" alt=""><button type="button" data-rm="${i}" aria-label="Remove">✕</button></div>`
+      ).join('');
+      preview.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => {
+        pendingPhotos.splice(+b.dataset.rm, 1); drawPreviews();
+      }));
+    }
+
+    document.getElementById('propForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('#propForm .error').forEach(el => el.textContent = '');
+      const get = id => document.getElementById(id).value.trim();
+      const setErr = (id, m) => { const f = document.getElementById(id); const er = f.parentElement.querySelector('.error'); if (er) er.textContent = m; };
+      let ok = true;
+      if (!get('p-title')) { setErr('p-title','Title is required'); ok = false; }
+      if (!get('p-city')) { setErr('p-city','City is required'); ok = false; }
+      if (!get('p-price') || +get('p-price') < 10000) { setErr('p-price','Enter a valid rent'); ok = false; }
+      if (!get('p-desc') || get('p-desc').length < 20) { setErr('p-desc','Description must be at least 20 characters'); ok = false; }
+      if (!pendingPhotos.length) { setErr('p-photos','Please add at least one photo'); ok = false; }
+      if (!ok) return;
+
+      const amenities = Array.from(document.querySelectorAll('input[name="amenity"]:checked')).map(c => c.value);
+      const lat = parseFloat(get('p-lat')); const lng = parseFloat(get('p-lng'));
+      const newListing = {
+        id: Date.now(),
+        title: get('p-title'),
+        price: +get('p-price'),
+        beds: +get('p-beds') || 1,
+        baths: +get('p-baths') || 1,
+        area: get('p-size') ? `${get('p-size')} sqm` : '—',
+        city: get('p-city'),
+        neighborhood: get('p-area') || '',
+        tag: document.getElementById('p-type').value,
+        img: pendingPhotos[0].dataUrl,
+        gallery: pendingPhotos.map(p => p.dataUrl),
+        lat: isNaN(lat) ? -6.8 : lat,
+        lng: isNaN(lng) ? 39.28 : lng,
+        desc: get('p-desc'),
+        furnishing: document.getElementById('p-furn').value,
+        availableFrom: get('p-avail'),
+        amenities,
+        contact: get('p-contact'),
+        deposit: +get('p-deposit') || 0,
+        owner: user.email,
+        ownerName: user.name,
+        createdAt: new Date().toISOString(),
+      };
+
+      const mine = getMine();
+      mine.unshift(newListing);
+      saveMine(mine);
+      pendingPhotos = [];
+      alert('Listing published! It is now live on the listings page.');
+      renderDashboard();
+    });
+  }
+
+  function renderMine() {
+    const mine = getMine();
+    const list = document.getElementById('myList');
+    if (!mine.length) {
+      list.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No listings yet. Add your first property using the form.</p></div>`;
+      return;
+    }
+    list.innerHTML = mine.map(l => `
+      <div class="my-listing">
+        <img src="${l.img}" alt="${l.title}">
+        <div class="info">
+          <h4>${l.title}</h4>
+          <div class="meta">${SHF.formatPrice(l.price)} / month · ${l.beds} bd · ${l.city}</div>
+        </div>
+        <div class="actions">
+          <a href="/detail.html?id=${l.id}" target="_blank"><button title="View"><i class="fas fa-eye"></i></button></a>
+          <button class="del" data-del="${l.id}" title="Delete"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`).join('');
+    list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+      if (!confirm('Delete this listing?')) return;
+      const id = +b.dataset.del;
+      saveMine(getMine().filter(x => x.id !== id));
+      renderDashboard();
+    }));
+  }
+</script>
+</body>
+</html>
