@@ -17,3 +17,11 @@ window.SHF.formatPrice = function (n) {
   try { return 'TSh ' + Number(n).toLocaleString('en-TZ'); }
   catch (e) { return 'TSh ' + n; }
 };
+
+// Merge in landlord-added listings from localStorage
+try {
+  const extra = JSON.parse(localStorage.getItem('shf-user-listings') || '[]');
+  if (Array.isArray(extra) && extra.length) {
+    window.SHF_LISTINGS = window.SHF_LISTINGS.concat(extra);
+  }
+} catch (e) { /* ignore */ }
