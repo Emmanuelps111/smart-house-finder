@@ -100,12 +100,12 @@
   const f = document.getElementById('featured');
   if (f) {
     f.innerHTML = SHF_LISTINGS.slice(0,6).map(l => `
-      <article class="card reveal">
+      <article class="card reveal" onclick="if(!event.target.closest('[data-lightbox]')) location.href='/detail.html?id=${l.id}'" style="cursor:pointer;">
         <img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />
         <div class="card-body">
           <span class="badge">${l.tag}</span>
           <h3 style="margin:.6rem 0 .25rem;">${l.title}</h3>
-          <div class="card-price">£${l.price}<small style="color:var(--text-muted);font-weight:400;font-size:.85rem;"> /month</small></div>
+          <div class="card-price">${SHF.formatPrice(l.price)}<small style="color:var(--text-muted);font-weight:400;font-size:.85rem;"> /month</small></div>
           <div class="card-meta"><span><i class="fas fa-bed"></i> ${l.beds}</span><span><i class="fas fa-bath"></i> ${l.baths}</span><span><i class="fas fa-location-dot"></i> ${l.city}</span></div>
         </div>
       </article>`).join('');
