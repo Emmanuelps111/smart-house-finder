@@ -8,6 +8,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .landlord-only { display: none; }
+  body.is-landlord.is-signup .landlord-only { display: block; }
+  .file-input-wrap {
+    border: 2px dashed var(--border, #d1d5db);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .file-input-wrap:hover { border-color: var(--primary, #3B82F6); background: rgba(59,130,246,.05); }
+  .file-input-wrap input[type="file"] { display: none; }
+  .file-input-wrap .file-name { display:block; margin-top:.5rem; font-size:.85rem; color: var(--muted, #6b7280); }
+  .checkbox-row { display:flex; align-items:flex-start; gap:.5rem; font-size:.9rem; }
+  .checkbox-row input { margin-top:.25rem; }
+  .section-title {
+    font-size:.8rem; text-transform:uppercase; letter-spacing:.08em;
+    color: var(--muted, #6b7280); margin: 1rem 0 .5rem; font-weight:600;
+  }
+  .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
+  @media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 <div id="header-mount"></div>
@@ -28,6 +51,7 @@
     </div>
 
     <form id="authForm" class="form" novalidate>
+      <!-- Common -->
       <div class="form-row" id="nameRow" style="display:none;">
         <label for="au-name">Full name</label>
         <input id="au-name" type="text" autocomplete="name" />
@@ -43,6 +67,125 @@
         <input id="au-pass" type="password" autocomplete="current-password" required />
         <span class="error"></span>
       </div>
+
+      <!-- Landlord-only signup fields -->
+      <div class="landlord-only">
+        <div class="section-title"><i class="fas fa-id-card"></i> Identity verification</div>
+
+        <div class="grid-2">
+          <div class="form-row">
+            <label for="ll-phone">Phone number</label>
+            <input id="ll-phone" type="tel" autocomplete="tel" placeholder="+1 555 000 0000" />
+            <span class="error"></span>
+          </div>
+          <div class="form-row">
+            <label for="ll-dob">Date of birth</label>
+            <input id="ll-dob" type="date" />
+            <span class="error"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="ll-nid">National ID number</label>
+          <input id="ll-nid" type="text" placeholder="e.g. 1234567890" />
+          <span class="error"></span>
+        </div>
+
+        <div class="form-row">
+          <label>Upload copy of National ID (front & back)</label>
+          <label class="file-input-wrap" for="ll-nid-file">
+            <i class="fas fa-cloud-arrow-up" style="font-size:1.5rem; color:var(--primary,#3B82F6);"></i>
+            <div>Click to upload — JPG, PNG or PDF (max 5MB)</div>
+            <span class="file-name" id="ll-nid-file-name">No file selected</span>
+            <input id="ll-nid-file" type="file" accept="image/*,.pdf" multiple />
+          </label>
+          <span class="error"></span>
+        </div>
+
+        <div class="form-row">
+          <label>Selfie holding your ID (recommended)</label>
+          <label class="file-input-wrap" for="ll-selfie">
+            <i class="fas fa-camera" style="font-size:1.5rem; color:var(--primary,#3B82F6);"></i>
+            <div>Click to upload selfie — JPG or PNG</div>
+            <span class="file-name" id="ll-selfie-name">No file selected</span>
+            <input id="ll-selfie" type="file" accept="image/*" />
+          </label>
+          <span class="error"></span>
+        </div>
+
+        <div class="section-title"><i class="fas fa-building"></i> Property ownership</div>
+
+        <div class="form-row">
+          <label for="ll-address">Residential address</label>
+          <input id="ll-address" type="text" placeholder="Street, city, country" autocomplete="street-address" />
+          <span class="error"></span>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-row">
+            <label for="ll-properties">Number of properties</label>
+            <input id="ll-properties" type="number" min="1" max="500" placeholder="1" />
+            <span class="error"></span>
+          </div>
+          <div class="form-row">
+            <label for="ll-experience">Years as a landlord</label>
+            <input id="ll-experience" type="number" min="0" max="80" placeholder="0" />
+            <span class="error"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Proof of property ownership (title deed / utility bill)</label>
+          <label class="file-input-wrap" for="ll-deed">
+            <i class="fas fa-file-contract" style="font-size:1.5rem; color:var(--primary,#3B82F6);"></i>
+            <div>Click to upload — PDF, JPG or PNG (max 10MB)</div>
+            <span class="file-name" id="ll-deed-name">No file selected</span>
+            <input id="ll-deed" type="file" accept="image/*,.pdf" />
+          </label>
+          <span class="error"></span>
+        </div>
+
+        <div class="section-title"><i class="fas fa-money-check-dollar"></i> Payout & business</div>
+
+        <div class="grid-2">
+          <div class="form-row">
+            <label for="ll-bank">Bank name</label>
+            <input id="ll-bank" type="text" placeholder="e.g. Chase Bank" />
+            <span class="error"></span>
+          </div>
+          <div class="form-row">
+            <label for="ll-account">Account / IBAN (last 4)</label>
+            <input id="ll-account" type="text" maxlength="34" placeholder="****1234" />
+            <span class="error"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="ll-tax">Tax ID / VAT number (optional)</label>
+          <input id="ll-tax" type="text" placeholder="Optional but speeds up verification" />
+          <span class="error"></span>
+        </div>
+
+        <div class="form-row">
+          <label for="ll-bio">Short bio (shown on listings)</label>
+          <textarea id="ll-bio" rows="3" maxlength="500" placeholder="Tell renters about yourself and your properties..."></textarea>
+          <span class="error"></span>
+        </div>
+
+        <div class="form-row">
+          <label class="checkbox-row">
+            <input id="ll-agree" type="checkbox" />
+            <span>I confirm the information above is accurate, and I agree to background &amp; ID verification under the <a href="#" style="color:var(--primary,#3B82F6);">Landlord Terms</a> and <a href="#" style="color:var(--primary,#3B82F6);">Privacy Policy</a>.</span>
+          </label>
+          <span class="error"></span>
+        </div>
+
+        <div style="background: rgba(59,130,246,.08); border-left:3px solid var(--primary,#3B82F6); padding:.75rem 1rem; border-radius:6px; font-size:.85rem; margin: .5rem 0 1rem;">
+          <i class="fas fa-shield-halved" style="color:var(--primary,#3B82F6);"></i>
+          Your documents are encrypted and reviewed by our verification team within 24–48 hours. You can list properties once approved.
+        </div>
+      </div>
+
       <button class="btn btn-primary" type="submit" style="width:100%; justify-content:center;" id="submitBtn">Sign In as Student</button>
       <p style="text-align:center; margin-top:1rem; font-size:.9rem;"><a href="#" id="forgotLink">Forgot password?</a></p>
     </form>
@@ -60,10 +203,13 @@
 
   function refresh() {
     nameRow.style.display = tab === 'signup' ? 'block' : 'none';
-    const action = tab === 'signin' ? 'Sign In' : 'Sign Up';
+    document.body.classList.toggle('is-landlord', role === 'landlord');
+    document.body.classList.toggle('is-signup', tab === 'signup');
+    const action = tab === 'signin' ? 'Sign In' : (role === 'landlord' ? 'Submit for Verification' : 'Sign Up');
     const r = role === 'student' ? 'Student' : 'Landlord';
-    submit.textContent = `${action} as ${r}`;
+    submit.textContent = tab === 'signin' ? `${action} as ${r}` : action;
   }
+
   document.querySelectorAll('.role-toggle button').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.role-toggle button').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
@@ -77,24 +223,85 @@
     refresh();
   }));
 
+  // File input previews
+  function bindFile(inputId, labelId) {
+    const inp = document.getElementById(inputId);
+    const lbl = document.getElementById(labelId);
+    inp.addEventListener('change', () => {
+      if (!inp.files || !inp.files.length) { lbl.textContent = 'No file selected'; return; }
+      lbl.textContent = Array.from(inp.files).map(f => f.name).join(', ');
+    });
+  }
+  bindFile('ll-nid-file', 'll-nid-file-name');
+  bindFile('ll-selfie', 'll-selfie-name');
+  bindFile('ll-deed', 'll-deed-name');
+
+  function setError(id, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.parentElement.querySelector('.error').textContent = msg || '';
+  }
+
   document.getElementById('authForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('au-email');
     const pass = document.getElementById('au-pass');
     const name = document.getElementById('au-name');
+
     let ok = true;
-    [email, pass, name].forEach(el => el && (el.parentElement.querySelector('.error').textContent = ''));
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { email.parentElement.querySelector('.error').textContent = 'Enter a valid email.'; ok = false; }
-    if (pass.value.length < 6) { pass.parentElement.querySelector('.error').textContent = 'Password must be at least 6 characters.'; ok = false; }
-    if (tab === 'signup' && name.value.trim().length < 2) { name.parentElement.querySelector('.error').textContent = 'Enter your full name.'; ok = false; }
-    if (!ok) return;
+    document.querySelectorAll('.error').forEach(el => el.textContent = '');
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { setError('au-email','Enter a valid email.'); ok = false; }
+    if (pass.value.length < 6) { setError('au-pass','Password must be at least 6 characters.'); ok = false; }
+    if (tab === 'signup' && name.value.trim().length < 2) { setError('au-name','Enter your full name.'); ok = false; }
+
+    if (tab === 'signup' && role === 'landlord') {
+      const phone = document.getElementById('ll-phone').value.trim();
+      const dob = document.getElementById('ll-dob').value;
+      const nid = document.getElementById('ll-nid').value.trim();
+      const nidFile = document.getElementById('ll-nid-file').files;
+      const address = document.getElementById('ll-address').value.trim();
+      const properties = document.getElementById('ll-properties').value;
+      const deed = document.getElementById('ll-deed').files;
+      const bank = document.getElementById('ll-bank').value.trim();
+      const account = document.getElementById('ll-account').value.trim();
+      const agree = document.getElementById('ll-agree').checked;
+
+      if (!/^[+\d\s\-()]{7,}$/.test(phone)) { setError('ll-phone','Enter a valid phone number.'); ok = false; }
+      if (!dob) { setError('ll-dob','Date of birth is required.'); ok = false; }
+      else {
+        const age = (Date.now() - new Date(dob).getTime()) / (365.25*24*3600*1000);
+        if (age < 18) { setError('ll-dob','You must be at least 18 years old.'); ok = false; }
+      }
+      if (nid.length < 5) { setError('ll-nid','Enter your National ID number.'); ok = false; }
+      if (!nidFile || !nidFile.length) { setError('ll-nid-file','Please upload a copy of your National ID.'); ok = false; }
+      else if (Array.from(nidFile).some(f => f.size > 5*1024*1024)) { setError('ll-nid-file','Each file must be under 5MB.'); ok = false; }
+      if (address.length < 5) { setError('ll-address','Enter your residential address.'); ok = false; }
+      if (!properties || +properties < 1) { setError('ll-properties','Enter at least 1 property.'); ok = false; }
+      if (!deed || !deed.length) { setError('ll-deed','Please upload proof of property ownership.'); ok = false; }
+      else if (deed[0].size > 10*1024*1024) { setError('ll-deed','File must be under 10MB.'); ok = false; }
+      if (bank.length < 2) { setError('ll-bank','Enter your bank name.'); ok = false; }
+      if (account.length < 4) { setError('ll-account','Enter your account number.'); ok = false; }
+      if (!agree) { setError('ll-agree','You must accept the terms to continue.'); ok = false; }
+    }
+
+    if (!ok) {
+      const firstErr = Array.from(document.querySelectorAll('.error')).find(el => el.textContent);
+      if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
+
     localStorage.setItem('shf-user', JSON.stringify({ email: email.value, role, name: name.value || email.value.split('@')[0] }));
+
+    const isLandlordSignup = tab === 'signup' && role === 'landlord';
     document.querySelector('.auth-card').innerHTML = `
       <div style="text-align:center; padding:2rem 0;">
-        <i class="fas fa-circle-check" style="font-size:3.5rem; color:var(--primary); margin-bottom:1rem;"></i>
-        <h2>Welcome${name.value ? ', ' + name.value : ''}!</h2>
-        <p>You're signed in as a <strong>${role}</strong>.</p>
-        <a href="${role === 'landlord' ? '/listings.html' : '/listings.html'}" class="btn btn-primary" style="margin-top:1rem;">${role === 'landlord' ? 'Go to dashboard' : 'Browse listings'} <i class="fas fa-arrow-right"></i></a>
+        <i class="fas fa-${isLandlordSignup ? 'hourglass-half' : 'circle-check'}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
+        <h2>${isLandlordSignup ? 'Application received!' : `Welcome${name.value ? ', ' + name.value : ''}!`}</h2>
+        <p>${isLandlordSignup
+          ? 'Our team will verify your documents within 24–48 hours. We\'ll email you once approved.'
+          : `You're signed in as a <strong>${role}</strong>.`}</p>
+        <a href="/listings.html" class="btn btn-primary" style="margin-top:1rem;">${role === 'landlord' ? 'Explore the platform' : 'Browse listings'} <i class="fas fa-arrow-right"></i></a>
       </div>`;
   });
   refresh();
