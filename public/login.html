@@ -296,6 +296,10 @@
     const isLandlordSignup = tab === 'signup' && role === 'landlord';
     const isLandlordSignin = tab === 'signin' && role === 'landlord';
 
+    // Honor ?next= redirect (e.g. coming from a gated listing detail page)
+    const nextParam = new URLSearchParams(location.search).get('next');
+    if (nextParam && !isLandlordSignup) { location.href = nextParam; return; }
+
     // Landlord sign-in goes straight to dashboard
     if (isLandlordSignin) { location.href = '/dashboard.html'; return; }
 
