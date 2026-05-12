@@ -3,6 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+  (function(){
+    try {
+      if (!JSON.parse(localStorage.getItem('shf-user') || 'null')) {
+        var next = encodeURIComponent(location.pathname + location.search);
+        location.replace('/login.html?next=' + next);
+      }
+    } catch(e){
+      location.replace('/login.html');
+    }
+  })();
+</script>
 <title>Listing Details — Smart House Finder</title>
 <meta name="description" content="View full details, photos and location for this rental property." />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
