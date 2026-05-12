@@ -25,3 +25,10 @@ try {
     window.SHF_LISTINGS = window.SHF_LISTINGS.concat(extra);
   }
 } catch (e) { /* ignore */ }
+
+// Prefer Dar es Salaam listings — sort them to the top
+window.SHF_LISTINGS.sort((a, b) => {
+  const aDsm = /dar es salaam/i.test(a.city) ? 0 : 1;
+  const bDsm = /dar es salaam/i.test(b.city) ? 0 : 1;
+  return aDsm - bDsm;
+});
