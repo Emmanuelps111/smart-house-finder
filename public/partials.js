@@ -35,7 +35,7 @@
       <li><a href="/listings.html" class="${path==='listings.html'?'active':''}">Listings</a></li>
       <li><a href="/map.html" class="${path==='map.html'?'active':''}">Map</a></li>
       <li><a href="/pricing.html" class="${path==='pricing.html'?'active':''}">Pricing</a></li>
-      <li><a href="/about.html" class="${path==='about.html'?'active':''}">About</a></li>
+      <li><a href="/home.html#about" class="${path==='about.html'?'active':''}">About</a></li>
       <li><a href="/contact.html" class="${path==='contact.html'?'active':''}">Contact</a></li>
     </ul>
     <div class="nav-actions">
