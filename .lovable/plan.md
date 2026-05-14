@@ -1,23 +1,32 @@
 ## Goal
-Merge the About page content into the bottom of the Home page (after the Testimonials section), so visitors see the About story as a continuation of the home page.
+Replace the mock localStorage "auth" with real Lovable Cloud authentication: email/password + Google sign-in, role-based accounts (student / landlord), and gated landlord pages.
 
-## Changes
+## Database (migration)
 
-**1. `public/home.html`** — append three new sections directly after the Testimonials `<section>` and before `<div id="footer-mount">`:
-- **Our story** — two-column layout: eyebrow "Our story", heading "Built by students, for students", the two paragraphs from About, plus the team image (`picsum.photos/seed/about1`).
-- **Trusted nationwide** — stats grid (50k+ renters, 4,200 landlords, 98% satisfaction) on the `--surface` background.
-- **Inside our community** — masonry gallery with the 6 `picsum.photos/seed/g1…g6` images.
+1. **`profiles` table** — `id` (PK = `auth.users.id`), `full_name`, `phone`, `national_id`, `created_at`, `updated_at`. RLS: each user can read/update only their own row. Trigger on `auth.users` insert auto-creates a profile row.
+2. **`app_role` enum** — `student`, `landlord`, `admin`.
+3. **`user_roles` table** — `(user_id, role)` unique. RLS: users can read their own roles only; inserts handled by signup trigger.
+4. **`has_role(user_id, role)` SECURITY DEFINER function** — to be used in future RLS for listings/messages without recursion.
+5. Signup trigger reads `raw_user_meta_data.role` and inserts the matching `user_roles` row (defaults to `student`).
 
-Content is copied verbatim from `public/about.html` (Tanzania-friendly text already matches). Reveal animations use the existing `.reveal` class which `app.js` already wires up.
+## Auth wiring
 
-**2. Header nav (`public/partials.js`)** — handle the now-redundant About link. Two options:
-- **A.** Keep "About" in the nav but point it to `/home.html#about` (anchor scroll to the new section). Add `id="about"` to the Our story section.
-- **B.** Remove the About link entirely from the nav.
+6. **`public/login.html`** — replace the mock submit handler with:
+   - Sign in: `supabase.auth.signInWithPassword({ email, password })`
+   - Sign up: `supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin, data: { full_name, role, phone, national_id } } })`
+   - Google button (new): `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`
+   - Email **verification ON** (default, more secure). After signup, show "Check your email to confirm" message.
+   - On success, redirect: students → `/listings.html`, landlords → `/dashboard.html`.
+7. **`supabase--configure_social_auth`** — enable Google provider so the OAuth call doesn't fail.
+8. **`public/partials.js`** — header shows "Sign in" when logged out, and email + "Sign out" when logged in (uses `supabase.auth.getSession()` + `onAuthStateChange`).
+9. **`public/dashboard.html`** — guard at top of script: if no session or role ≠ landlord, redirect to `/login.html`.
+10. **`/reset-password` page** (`public/reset-password.html`) + a "Forgot password?" link on login that calls `resetPasswordForEmail` with `redirectTo: origin + '/reset-password.html'`.
 
-I'll go with **A** (keep the link, anchor-scroll to the merged section) so existing inbound links/menus still work.
+## Out of scope (kept for a follow-up)
 
-**3. `public/about.html`** — leave the file in place so old bookmarks still resolve; no edits needed. (If you'd prefer it deleted or redirected to `/home.html#about`, say so.)
+- National ID **file upload** to Storage — for now we only collect the ID number text field. I'll add a `landlord-ids` private bucket + upload flow when you ask.
+- Wiring listings / messages / favorites to real DB rows — current mock data in `data.js` stays for now.
 
 ## Notes
-- No changes to `data.js`, `detail.html`, auth flow, or any backend.
-- Pure HTML/CSS edit using existing design tokens and classes — no new styles needed.
+- The static HTML pages already include the Supabase client via the existing scripts; I'll add `<script type="module">` blocks that import from `/src/integrations/supabase/client.ts` via a small bridge file, or use the CDN UMD build directly in the HTML — I'll pick the simplest that fits the current setup.
+- Existing `localStorage 'shf-user'` reads elsewhere will be replaced with a small helper that returns the live Supabase session/role.
