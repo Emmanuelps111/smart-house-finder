@@ -187,6 +187,16 @@
       </div>
 
       <button class="btn btn-primary" type="submit" style="width:100%; justify-content:center;" id="submitBtn">Sign In as Student</button>
+
+      <div style="display:flex; align-items:center; gap:.75rem; margin: 1rem 0; color: var(--text-muted); font-size:.85rem;">
+        <span style="flex:1; height:1px; background: var(--border);"></span>
+        <span>or</span>
+        <span style="flex:1; height:1px; background: var(--border);"></span>
+      </div>
+      <button type="button" id="googleBtn" class="btn btn-outline" style="width:100%; justify-content:center; gap:.6rem;">
+        <i class="fab fa-google" style="color:#ea4335;"></i> Continue with Google
+      </button>
+
       <p style="text-align:center; margin-top:1rem; font-size:.9rem;"><a href="#" id="forgotLink">Forgot password?</a></p>
     </form>
   </div>
@@ -205,7 +215,7 @@
     nameRow.style.display = tab === 'signup' ? 'block' : 'none';
     document.body.classList.toggle('is-landlord', role === 'landlord');
     document.body.classList.toggle('is-signup', tab === 'signup');
-    const action = tab === 'signin' ? 'Sign In' : (role === 'landlord' ? 'Submit for Verification' : 'Sign Up');
+    const action = tab === 'signin' ? 'Sign In' : (role === 'landlord' ? 'Create Landlord Account' : 'Sign Up');
     const r = role === 'student' ? 'Student' : 'Landlord';
     submit.textContent = tab === 'signin' ? `${action} as ${r}` : action;
   }
@@ -223,10 +233,11 @@
     refresh();
   }));
 
-  // File input previews
+  // File input previews (uploads are optional for now — wired up later)
   function bindFile(inputId, labelId) {
     const inp = document.getElementById(inputId);
     const lbl = document.getElementById(labelId);
+    if (!inp || !lbl) return;
     inp.addEventListener('change', () => {
       if (!inp.files || !inp.files.length) { lbl.textContent = 'No file selected'; return; }
       lbl.textContent = Array.from(inp.files).map(f => f.name).join(', ');
@@ -242,7 +253,47 @@
     el.parentElement.querySelector('.error').textContent = msg || '';
   }
 
-  document.getElementById('authForm').addEventListener('submit', (e) => {
+  function waitForAuth() {
+    return new Promise((resolve) => {
+      if (window.SHF_AUTH?.ready || window.SHF_AUTH?.supabase) return resolve(window.SHF_AUTH);
+      window.addEventListener('shf-auth-ready', () => resolve(window.SHF_AUTH), { once: true });
+      // Fallback: poll briefly in case the module is still importing
+      let tries = 0;
+      const t = setInterval(() => {
+        if (window.SHF_AUTH?.supabase || ++tries > 50) { clearInterval(t); resolve(window.SHF_AUTH); }
+      }, 100);
+    });
+  }
+
+  function showSuccess(html) {
+    document.querySelector('.auth-card').innerHTML = html;
+  }
+
+  document.getElementById('googleBtn').addEventListener('click', async () => {
+    const a = await waitForAuth();
+    if (!a?.lovable) { alert('Auth not ready, please try again.'); return; }
+    const result = await a.lovable.auth.signInWithOAuth('google', { redirect_uri: window.location.origin + '/home.html' });
+    if (result.error) { alert('Google sign-in failed: ' + (result.error.message || result.error)); return; }
+    if (result.redirected) return;
+    location.href = '/home.html';
+  });
+
+  document.getElementById('forgotLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('au-email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('au-email', 'Enter your email above first, then click Forgot password.');
+      return;
+    }
+    const a = await waitForAuth();
+    const { error } = await a.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password.html',
+    });
+    if (error) { alert('Could not send reset email: ' + error.message); return; }
+    alert('Password reset link sent to ' + email + '. Check your inbox.');
+  });
+
+  document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('au-email');
     const pass = document.getElementById('au-pass');
@@ -255,16 +306,12 @@
     if (pass.value.length < 6) { setError('au-pass','Password must be at least 6 characters.'); ok = false; }
     if (tab === 'signup' && name.value.trim().length < 2) { setError('au-name','Enter your full name.'); ok = false; }
 
+    let landlordMeta = {};
     if (tab === 'signup' && role === 'landlord') {
       const phone = document.getElementById('ll-phone').value.trim();
       const dob = document.getElementById('ll-dob').value;
       const nid = document.getElementById('ll-nid').value.trim();
-      const nidFile = document.getElementById('ll-nid-file').files;
       const address = document.getElementById('ll-address').value.trim();
-      const properties = document.getElementById('ll-properties').value;
-      const deed = document.getElementById('ll-deed').files;
-      const bank = document.getElementById('ll-bank').value.trim();
-      const account = document.getElementById('ll-account').value.trim();
       const agree = document.getElementById('ll-agree').checked;
 
       if (!/^[+\d\s\-()]{7,}$/.test(phone)) { setError('ll-phone','Enter a valid phone number.'); ok = false; }
@@ -274,15 +321,10 @@
         if (age < 18) { setError('ll-dob','You must be at least 18 years old.'); ok = false; }
       }
       if (nid.length < 5) { setError('ll-nid','Enter your National ID number.'); ok = false; }
-      if (!nidFile || !nidFile.length) { setError('ll-nid-file','Please upload a copy of your National ID.'); ok = false; }
-      else if (Array.from(nidFile).some(f => f.size > 5*1024*1024)) { setError('ll-nid-file','Each file must be under 5MB.'); ok = false; }
       if (address.length < 5) { setError('ll-address','Enter your residential address.'); ok = false; }
-      if (!properties || +properties < 1) { setError('ll-properties','Enter at least 1 property.'); ok = false; }
-      if (!deed || !deed.length) { setError('ll-deed','Please upload proof of property ownership.'); ok = false; }
-      else if (deed[0].size > 10*1024*1024) { setError('ll-deed','File must be under 10MB.'); ok = false; }
-      if (bank.length < 2) { setError('ll-bank','Enter your bank name.'); ok = false; }
-      if (account.length < 4) { setError('ll-account','Enter your account number.'); ok = false; }
       if (!agree) { setError('ll-agree','You must accept the terms to continue.'); ok = false; }
+
+      landlordMeta = { phone, national_id: nid };
     }
 
     if (!ok) {
@@ -291,30 +333,67 @@
       return;
     }
 
-    localStorage.setItem('shf-user', JSON.stringify({ email: email.value, role, name: name.value || email.value.split('@')[0] }));
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Please wait…';
 
-    const isLandlordSignup = tab === 'signup' && role === 'landlord';
-    const isLandlordSignin = tab === 'signin' && role === 'landlord';
+    const a = await waitForAuth();
 
-    // Honor ?next= redirect (e.g. coming from a gated listing detail page)
-    const nextParam = new URLSearchParams(location.search).get('next');
-    if (nextParam && !isLandlordSignup) { location.href = nextParam; return; }
+    try {
+      if (tab === 'signin') {
+        const { error } = await a.supabase.auth.signInWithPassword({
+          email: email.value,
+          password: pass.value,
+        });
+        if (error) {
+          setError('au-pass', error.message);
+          return;
+        }
+        const nextParam = new URLSearchParams(location.search).get('next');
+        if (nextParam) { location.href = nextParam; return; }
+        // Wait a tick for role to load
+        await new Promise(r => setTimeout(r, 300));
+        const newRole = window.SHF_AUTH?.role;
+        location.href = newRole === 'landlord' ? '/dashboard.html' : '/listings.html';
+        return;
+      }
 
-    // Landlord sign-in goes straight to dashboard
-    if (isLandlordSignin) { location.href = '/dashboard.html'; return; }
+      // Sign up
+      const { data, error } = await a.supabase.auth.signUp({
+        email: email.value,
+        password: pass.value,
+        options: {
+          emailRedirectTo: window.location.origin + '/home.html',
+          data: {
+            full_name: name.value.trim(),
+            role,
+            ...landlordMeta,
+          },
+        },
+      });
+      if (error) {
+        setError('au-email', error.message);
+        return;
+      }
 
-    const ctaHref = role === 'landlord' ? '/dashboard.html' : '/listings.html';
-    const ctaText = role === 'landlord' ? 'Go to my dashboard' : 'Browse listings';
-
-    document.querySelector('.auth-card').innerHTML = `
-      <div style="text-align:center; padding:2rem 0;">
-        <i class="fas fa-${isLandlordSignup ? 'hourglass-half' : 'circle-check'}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
-        <h2>${isLandlordSignup ? 'Application received!' : `Welcome${name.value ? ', ' + name.value : ''}!`}</h2>
-        <p>${isLandlordSignup
-          ? 'Our team will verify your documents within 24–48 hours. Meanwhile, you can preview your dashboard and prepare your first listing.'
-          : `You're signed in as a <strong>${role}</strong>.`}</p>
-        <a href="${ctaHref}" class="btn btn-primary" style="margin-top:1rem;">${ctaText} <i class="fas fa-arrow-right"></i></a>
-      </div>`;
+      // If email confirmation is required, no session is returned
+      const needsConfirm = !data.session;
+      showSuccess(`
+        <div style="text-align:center; padding:2rem 0;">
+          <i class="fas fa-${needsConfirm ? 'envelope-open-text' : 'circle-check'}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
+          <h2>${needsConfirm ? 'Check your email' : `Welcome, ${name.value}!`}</h2>
+          <p>${needsConfirm
+            ? `We sent a confirmation link to <strong>${email.value}</strong>. Click the link to activate your ${role} account.`
+            : `You're signed in as a <strong>${role}</strong>.`}</p>
+          ${needsConfirm
+            ? `<a href="/home.html" class="btn btn-outline" style="margin-top:1rem;">Back to home</a>`
+            : `<a href="${role === 'landlord' ? '/dashboard.html' : '/listings.html'}" class="btn btn-primary" style="margin-top:1rem;">${role === 'landlord' ? 'Go to my dashboard' : 'Browse listings'} <i class="fas fa-arrow-right"></i></a>`}
+        </div>`);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
   });
   refresh();
 </script>
