@@ -1,32 +1,12 @@
-## Goal
-Replace the mock localStorage "auth" with real Lovable Cloud authentication: email/password + Google sign-in, role-based accounts (student / landlord), and gated landlord pages.
+## Problem
+On `map.html`, clicking the user profile button opens a dropdown that appears behind the Leaflet map. Leaflet's map panes and controls use z-index values up to ~700, but the dropdown in `public/partials.js` is set to `z-index: 1000` on the dropdown itself — however its parent `.user-menu` / `.site-header` stacking context isn't high enough relative to the Leaflet map container, so the dropdown gets clipped behind map tiles/controls.
 
-## Database (migration)
+## Fix
+Raise the stacking of the site header (and therefore its descendants, including the dropdown) above Leaflet's panes.
 
-1. **`profiles` table** — `id` (PK = `auth.users.id`), `full_name`, `phone`, `national_id`, `created_at`, `updated_at`. RLS: each user can read/update only their own row. Trigger on `auth.users` insert auto-creates a profile row.
-2. **`app_role` enum** — `student`, `landlord`, `admin`.
-3. **`user_roles` table** — `(user_id, role)` unique. RLS: users can read their own roles only; inserts handled by signup trigger.
-4. **`has_role(user_id, role)` SECURITY DEFINER function** — to be used in future RLS for listings/messages without recursion.
-5. Signup trigger reads `raw_user_meta_data.role` and inserts the matching `user_roles` row (defaults to `student`).
+### Change
+In `public/css/styles.css`, ensure `.site-header` has `z-index: 1000` (above Leaflet's max ~700) and `position: fixed/sticky` so it establishes a stacking context. If already set, bump to `z-index: 1001`.
 
-## Auth wiring
+As a belt-and-suspenders fix, also bump the inline `.user-dropdown` `z-index` in `public/partials.js` from `1000` to `1001`.
 
-6. **`public/login.html`** — replace the mock submit handler with:
-   - Sign in: `supabase.auth.signInWithPassword({ email, password })`
-   - Sign up: `supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin, data: { full_name, role, phone, national_id } } })`
-   - Google button (new): `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`
-   - Email **verification ON** (default, more secure). After signup, show "Check your email to confirm" message.
-   - On success, redirect: students → `/listings.html`, landlords → `/dashboard.html`.
-7. **`supabase--configure_social_auth`** — enable Google provider so the OAuth call doesn't fail.
-8. **`public/partials.js`** — header shows "Sign in" when logged out, and email + "Sign out" when logged in (uses `supabase.auth.getSession()` + `onAuthStateChange`).
-9. **`public/dashboard.html`** — guard at top of script: if no session or role ≠ landlord, redirect to `/login.html`.
-10. **`/reset-password` page** (`public/reset-password.html`) + a "Forgot password?" link on login that calls `resetPasswordForEmail` with `redirectTo: origin + '/reset-password.html'`.
-
-## Out of scope (kept for a follow-up)
-
-- National ID **file upload** to Storage — for now we only collect the ID number text field. I'll add a `landlord-ids` private bucket + upload flow when you ask.
-- Wiring listings / messages / favorites to real DB rows — current mock data in `data.js` stays for now.
-
-## Notes
-- The static HTML pages already include the Supabase client via the existing scripts; I'll add `<script type="module">` blocks that import from `/src/integrations/supabase/client.ts` via a small bridge file, or use the CDN UMD build directly in the HTML — I'll pick the simplest that fits the current setup.
-- Existing `localStorage 'shf-user'` reads elsewhere will be replaced with a small helper that returns the live Supabase session/role.
+No other files touched. No logic changes.
