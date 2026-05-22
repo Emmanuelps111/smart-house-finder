@@ -1,23 +1,12 @@
-## Goal
-Merge the About page content into the bottom of the Home page (after the Testimonials section), so visitors see the About story as a continuation of the home page.
+## Problem
 
-## Changes
+On `/map.html`, opening the profile dropdown shows it behind the map. Leaflet creates internal panes with `z-index` up to 700 (tiles 200, markers 600, popups 700, controls 1000). The `.site-header` is only `z-index: 100`, and `#map` has no `z-index`, so its children stack against the document root and end up above the header — taking the dropdown with them.
 
-**1. `public/home.html`** — append three new sections directly after the Testimonials `<section>` and before `<div id="footer-mount">`:
-- **Our story** — two-column layout: eyebrow "Our story", heading "Built by students, for students", the two paragraphs from About, plus the team image (`picsum.photos/seed/about1`).
-- **Trusted nationwide** — stats grid (50k+ renters, 4,200 landlords, 98% satisfaction) on the `--surface` background.
-- **Inside our community** — masonry gallery with the 6 `picsum.photos/seed/g1…g6` images.
+## Fix
 
-Content is copied verbatim from `public/about.html` (Tanzania-friendly text already matches). Reveal animations use the existing `.reveal` class which `app.js` already wires up.
+In `public/css/styles.css`:
 
-**2. Header nav (`public/partials.js`)** — handle the now-redundant About link. Two options:
-- **A.** Keep "About" in the nav but point it to `/home.html#about` (anchor scroll to the new section). Add `id="about"` to the Our story section.
-- **B.** Remove the About link entirely from the nav.
+1. Raise `.site-header` to `z-index: 1000` so the header (and its dropdown) sits above all Leaflet panes.
+2. Give `#map` `position: relative; z-index: 0;` to contain Leaflet's internal stacking inside its own context, so map panes can never escape above the header.
 
-I'll go with **A** (keep the link, anchor-scroll to the merged section) so existing inbound links/menus still work.
-
-**3. `public/about.html`** — leave the file in place so old bookmarks still resolve; no edits needed. (If you'd prefer it deleted or redirected to `/home.html#about`, say so.)
-
-## Notes
-- No changes to `data.js`, `detail.html`, auth flow, or any backend.
-- Pure HTML/CSS edit using existing design tokens and classes — no new styles needed.
+No HTML/JS changes; the inline `z-index: 1000` on `.user-dropdown` already works once the parent header outranks the map.
