@@ -81,7 +81,7 @@ p { margin: 0 0 1em; color: var(--text-muted); }
 .site-header {
   position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
   background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border); z-index: 1001;
+  border-bottom: 1px solid var(--border); z-index: 100;
   transition: background var(--transition), box-shadow var(--transition);
 }
 [data-theme="dark"] .site-header { background: rgba(11,18,32,0.85); }

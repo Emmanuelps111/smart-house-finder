@@ -63,8 +63,9 @@
 <script>
   const root = document.getElementById('appRoot');
   let user = null;
+  try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
 
-  function showDenied() {
+  if (!user || user.role !== 'landlord') {
     root.innerHTML = `
       <div class="dash-wrap"><div class="container access-denied">
         <i class="fas fa-lock"></i>
@@ -72,23 +73,9 @@
         <p>You need to be signed in as a landlord to manage listings.</p>
         <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Go to sign in <i class="fas fa-arrow-right"></i></a>
       </div></div>`;
-  }
-
-  function showLoading() {
-    root.innerHTML = `<div class="dash-wrap"><div class="container" style="text-align:center; padding:5rem 1rem; color:var(--text-muted);"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i><p style="margin-top:1rem;">Loading…</p></div></div>`;
-  }
-
-  function applyAuthGate() {
-    const a = window.SHF_AUTH;
-    if (!a || !a.ready) { showLoading(); return; }
-    if (!a.session || a.role !== 'landlord') { showDenied(); return; }
-    user = { email: a.session.user.email, name: a.profile?.full_name || a.session.user.email, role: a.role };
+  } else {
     renderDashboard();
   }
-
-  showLoading();
-  window.addEventListener('shf-auth-ready', applyAuthGate);
-  applyAuthGate();
 
   function getMine() {
     try { return JSON.parse(localStorage.getItem('shf-user-listings') || '[]'); }

@@ -4,23 +4,16 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>
-  // Quick check: if no Supabase session is in storage, redirect immediately to avoid flash
   (function(){
     try {
-      var hasSession = !!localStorage.getItem('shf-auth');
-      if (!hasSession) {
+      if (!JSON.parse(localStorage.getItem('shf-user') || 'null')) {
         var next = encodeURIComponent(location.pathname + location.search);
         location.replace('/login.html?next=' + next);
       }
-    } catch(e) { location.replace('/login.html'); }
-  })();
-  // Confirm with the live session once auth module loads
-  window.addEventListener('shf-auth-ready', function(){
-    if (!window.SHF_AUTH?.session) {
-      var next = encodeURIComponent(location.pathname + location.search);
-      location.replace('/login.html?next=' + next);
+    } catch(e){
+      location.replace('/login.html');
     }
-  });
+  })();
 </script>
 <title>Listing Details — Smart House Finder</title>
 <meta name="description" content="View full details, photos and location for this rental property." />
