@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string
+          id: string
+          property_id: string
+          renter_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string
+          id?: string
+          property_id: string
+          renter_id: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          id?: string
+          property_id?: string
+          renter_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -21,6 +69,7 @@ export type Database = {
           id: string
           national_id: string | null
           phone: string | null
+          role: Database["public"]["Enums"]["profile_role"]
           updated_at: string
         }
         Insert: {
@@ -29,6 +78,7 @@ export type Database = {
           id: string
           national_id?: string | null
           phone?: string | null
+          role?: Database["public"]["Enums"]["profile_role"]
           updated_at?: string
         }
         Update: {
@@ -37,9 +87,54 @@ export type Database = {
           id?: string
           national_id?: string | null
           phone?: string | null
+          role?: Database["public"]["Enums"]["profile_role"]
           updated_at?: string
         }
         Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string
+          created_at: string
+          description: string | null
+          id: string
+          landlord_id: string
+          price: number
+          status: Database["public"]["Enums"]["property_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          landlord_id: string
+          price: number
+          status?: Database["public"]["Enums"]["property_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          landlord_id?: string
+          price?: number
+          status?: Database["public"]["Enums"]["property_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -74,9 +169,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "student" | "landlord" | "admin"
+      booking_status: "pending" | "confirmed" | "cancelled"
+      profile_role: "renter" | "landlord" | "admin"
+      property_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,6 +304,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["student", "landlord", "admin"],
+      booking_status: ["pending", "confirmed", "cancelled"],
+      profile_role: ["renter", "landlord", "admin"],
+      property_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
