@@ -19,6 +19,7 @@
              <div style="font-size:.75rem; color:var(--primary); margin-top:.2rem; text-transform:capitalize;"><i class="fas fa-circle-check"></i> ${user.role}</div>
            </div>
            ${user.role === 'landlord' ? `<a href="/dashboard.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-gauge-high"></i> Landlord dashboard</a>` : ''}
+           ${user.role === 'admin' ? `<a href="/admin" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-shield-halved"></i> Admin dashboard</a>` : ''}
            <a href="/listings.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-house"></i> Browse listings</a>
            <button data-logout style="display:block; width:100%; text-align:left; padding:.6rem 1rem; background:none; border:none; color:var(--text); cursor:pointer; font:inherit;"><i class="fas fa-sign-out-alt"></i> Log out</button>
          </div>
@@ -37,6 +38,7 @@
       <li><a href="/pricing.html" class="${path==='pricing.html'?'active':''}">Pricing</a></li>
       <li><a href="/home.html#about" class="${path==='about.html'?'active':''}">About</a></li>
       <li><a href="/contact.html" class="${path==='contact.html'?'active':''}">Contact</a></li>
+      ${user && user.role === 'admin' ? `<li><a href="/admin" style="color:var(--primary); font-weight:600;"><i class="fas fa-shield-halved"></i> Admin</a></li>` : ''}
     </ul>
     <div class="nav-actions">
       <button class="icon-btn" data-theme-toggle aria-label="Toggle theme"><i data-theme-icon class="fas fa-moon"></i></button>
