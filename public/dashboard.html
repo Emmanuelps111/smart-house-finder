@@ -58,37 +58,56 @@
 
 <div id="footer-mount"></div>
 <script src="/js/data.js"></script>
+<script src="/js/cloud.js"></script>
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
   const root = document.getElementById('appRoot');
+  let sb = null;
   let user = null;
-  try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
+  let myListings = [];
+  let pendingPhotos = []; // {name, file}
 
-  if (!user || user.role !== 'landlord') {
+  (async function init() {
+    sb = await window.SHFCloud.ready;
+    const { data: { user: authUser }, error } = await sb.auth.getUser();
+    if (error || !authUser) {
+      renderDenied('Please sign in to manage listings.');
+      return;
+    }
+    await window.SHFCloud.syncLocalUser(sb, (await sb.auth.getSession()).data.session);
+    user = JSON.parse(localStorage.getItem('shf-user') || 'null');
+    if (!user || (user.role !== 'landlord' && user.role !== 'admin')) {
+      renderDenied('You need a landlord account to manage listings.');
+      return;
+    }
+    await loadMine();
+    renderDashboard();
+  })();
+
+  function renderDenied(msg) {
     root.innerHTML = `
       <div class="dash-wrap"><div class="container access-denied">
         <i class="fas fa-lock"></i>
         <h1>Landlords only</h1>
-        <p>You need to be signed in as a landlord to manage listings.</p>
+        <p>${msg}</p>
         <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Go to sign in <i class="fas fa-arrow-right"></i></a>
       </div></div>`;
-  } else {
-    renderDashboard();
   }
 
-  function getMine() {
-    try { return JSON.parse(localStorage.getItem('shf-user-listings') || '[]'); }
-    catch (e) { return []; }
-  }
-  function saveMine(arr) {
-    localStorage.setItem('shf-user-listings', JSON.stringify(arr));
+  async function loadMine() {
+    const { data, error } = await sb
+      .from('properties')
+      .select('*')
+      .eq('landlord_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error) { window.toast.error('Could not load your listings: ' + error.message); myListings = []; return; }
+    myListings = data || [];
   }
 
   function renderDashboard() {
-    const mine = getMine();
-    const totalViews = mine.length * 47; // mock
-    const activeCount = mine.length;
+    const activeCount = myListings.filter(l => l.status === 'approved').length;
+    const pendingCount = myListings.filter(l => l.status === 'pending').length;
     root.innerHTML = `
       <div class="dash-hero">
         <div class="container">
@@ -98,9 +117,9 @@
       </div>
       <div class="container">
         <div class="stats">
-          <div class="stat"><div class="num">${activeCount}</div><div class="lbl"><i class="fas fa-house"></i> Active listings</div></div>
-          <div class="stat"><div class="num">${totalViews}</div><div class="lbl"><i class="fas fa-eye"></i> Total views (30d)</div></div>
-          <div class="stat"><div class="num">${Math.floor(totalViews*0.08)}</div><div class="lbl"><i class="fas fa-envelope"></i> Enquiries</div></div>
+          <div class="stat"><div class="num">${activeCount}</div><div class="lbl"><i class="fas fa-house"></i> Approved</div></div>
+          <div class="stat"><div class="num">${pendingCount}</div><div class="lbl"><i class="fas fa-hourglass-half"></i> Pending review</div></div>
+          <div class="stat"><div class="num">${myListings.length}</div><div class="lbl"><i class="fas fa-list"></i> Total</div></div>
         </div>
 
         <div class="dash-grid">
@@ -223,14 +242,14 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;">
+              <button type="submit" id="publishBtn" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;">
                 <i class="fas fa-cloud-arrow-up"></i> Publish listing
               </button>
             </form>
           </div>
 
           <div class="panel">
-            <h2><i class="fas fa-list" style="color:var(--primary);"></i> My listings (${mine.length})</h2>
+            <h2><i class="fas fa-list" style="color:var(--primary);"></i> My listings (${myListings.length})</h2>
             <div id="myList"></div>
           </div>
         </div>
@@ -240,21 +259,20 @@
     renderMine();
   }
 
-  let pendingPhotos = []; // {name, dataUrl}
-
   function bindForm() {
     const photosInput = document.getElementById('p-photos');
     const preview = document.getElementById('photoPreview');
+    pendingPhotos = [];
 
     photosInput.addEventListener('change', async () => {
       const files = Array.from(photosInput.files || []);
       for (const f of files) {
         if (pendingPhotos.length >= 8) break;
-        if (f.size > 3 * 1024 * 1024) { alert(`${f.name} is over 3MB and was skipped.`); continue; }
+        if (f.size > 3 * 1024 * 1024) { window.toast.error(`${f.name} is over 3MB and was skipped.`); continue; }
         const dataUrl = await new Promise(res => {
           const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f);
         });
-        pendingPhotos.push({ name: f.name, dataUrl });
+        pendingPhotos.push({ name: f.name, file: f, dataUrl });
       }
       photosInput.value = '';
       drawPreviews();
@@ -269,7 +287,7 @@
       }));
     }
 
-    document.getElementById('propForm').addEventListener('submit', (e) => {
+    document.getElementById('propForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       document.querySelectorAll('#propForm .error').forEach(el => el.textContent = '');
       const get = id => document.getElementById(id).value.trim();
@@ -282,65 +300,102 @@
       if (!pendingPhotos.length) { setErr('p-photos','Please add at least one photo'); ok = false; }
       if (!ok) return;
 
-      const amenities = Array.from(document.querySelectorAll('input[name="amenity"]:checked')).map(c => c.value);
-      const lat = parseFloat(get('p-lat')); const lng = parseFloat(get('p-lng'));
-      const newListing = {
-        id: Date.now(),
-        title: get('p-title'),
-        price: +get('p-price'),
-        beds: +get('p-beds') || 1,
-        baths: +get('p-baths') || 1,
-        area: get('p-size') ? `${get('p-size')} sqm` : '—',
-        city: get('p-city'),
-        neighborhood: get('p-area') || '',
-        tag: document.getElementById('p-type').value,
-        img: pendingPhotos[0].dataUrl,
-        gallery: pendingPhotos.map(p => p.dataUrl),
-        lat: isNaN(lat) ? -6.8 : lat,
-        lng: isNaN(lng) ? 39.28 : lng,
-        desc: get('p-desc'),
-        furnishing: document.getElementById('p-furn').value,
-        availableFrom: get('p-avail'),
-        amenities,
-        contact: get('p-contact'),
-        deposit: +get('p-deposit') || 0,
-        owner: user.email,
-        ownerName: user.name,
-        createdAt: new Date().toISOString(),
-      };
+      const btn = document.getElementById('publishBtn');
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing…';
 
-      const mine = getMine();
-      mine.unshift(newListing);
-      saveMine(mine);
-      pendingPhotos = [];
-      alert('Listing published! It is now live on the listings page.');
-      renderDashboard();
+      try {
+        const amenities = Array.from(document.querySelectorAll('input[name="amenity"]:checked')).map(c => c.value);
+        const city = get('p-city');
+        const area = get('p-area');
+        const address = area ? `${area}, ${city}` : city;
+        const latRaw = parseFloat(get('p-lat'));
+        const lngRaw = parseFloat(get('p-lng'));
+
+        // Upload photos to property-photos/{user.id}/{ts}-{name}
+        const ts = Date.now();
+        const urls = [];
+        for (let i = 0; i < pendingPhotos.length; i++) {
+          const p = pendingPhotos[i];
+          const safeName = p.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const path = `${user.id}/${ts}-${i}-${safeName}`;
+          const { error: upErr } = await sb.storage.from('property-photos').upload(path, p.file, {
+            contentType: p.file.type || 'image/jpeg',
+            upsert: false,
+          });
+          if (upErr) throw upErr;
+          const { data: pub } = sb.storage.from('property-photos').getPublicUrl(path);
+          urls.push(pub.publicUrl);
+        }
+
+        const payload = {
+          landlord_id: user.id,
+          title: get('p-title'),
+          description: get('p-desc'),
+          address,
+          price: +get('p-price'),
+          city,
+          neighbourhood: area || null,
+          furnishing: document.getElementById('p-furn').value,
+          beds: +get('p-beds') || 1,
+          baths: +get('p-baths') || 1,
+          size_sqm: get('p-size') ? +get('p-size') : null,
+          deposit_months: +get('p-deposit') || 0,
+          available_from: get('p-avail') || null,
+          contact_phone: get('p-contact') || null,
+          lat: isNaN(latRaw) ? null : latRaw,
+          lng: isNaN(lngRaw) ? null : lngRaw,
+          amenities,
+          image_urls: urls,
+          property_type: document.getElementById('p-type').value,
+          status: 'pending',
+        };
+
+        const { error: insErr } = await sb.from('properties').insert(payload);
+        if (insErr) throw insErr;
+
+        window.toast.success('Listing submitted for review!');
+        pendingPhotos = [];
+        await loadMine();
+        renderDashboard();
+      } catch (err) {
+        window.toast.error(err.message || 'Could not publish listing.');
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
     });
   }
 
   function renderMine() {
-    const mine = getMine();
     const list = document.getElementById('myList');
-    if (!mine.length) {
+    if (!myListings.length) {
       list.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No listings yet. Add your first property using the form.</p></div>`;
       return;
     }
-    list.innerHTML = mine.map(l => `
+    const fmt = (n) => (window.SHF && SHF.formatPrice) ? SHF.formatPrice(n) : `TSh ${Number(n).toLocaleString()}`;
+    const statusBadge = (s) => {
+      const color = s === 'approved' ? '#10b981' : s === 'rejected' ? '#ef4444' : '#f59e0b';
+      return `<span style="font-size:.7rem;padding:.15rem .5rem;border-radius:10px;background:${color}22;color:${color};font-weight:600;text-transform:uppercase;">${s}</span>`;
+    };
+    list.innerHTML = myListings.map(l => `
       <div class="my-listing">
-        <img src="${l.img}" alt="${l.title}">
+        <img src="${(l.image_urls && l.image_urls[0]) || 'https://placehold.co/160?text=No+photo'}" alt="${l.title}">
         <div class="info">
-          <h4>${l.title}</h4>
-          <div class="meta">${SHF.formatPrice(l.price)} / month · ${l.beds} bd · ${l.city}</div>
+          <h4>${l.title} ${statusBadge(l.status)}</h4>
+          <div class="meta">${fmt(l.price)} / month · ${l.beds || '-'} bd · ${l.city || l.address || ''}</div>
         </div>
         <div class="actions">
-          <a href="/detail.html?id=${l.id}" target="_blank"><button title="View"><i class="fas fa-eye"></i></button></a>
           <button class="del" data-del="${l.id}" title="Delete"><i class="fas fa-trash"></i></button>
         </div>
       </div>`).join('');
-    list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+    list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Delete this listing?')) return;
-      const id = +b.dataset.del;
-      saveMine(getMine().filter(x => x.id !== id));
+      const id = b.dataset.del;
+      const { error } = await sb.from('properties').delete().eq('id', id);
+      if (error) { window.toast.error(error.message); return; }
+      window.toast.success('Listing deleted.');
+      await loadMine();
       renderDashboard();
     }));
   }
