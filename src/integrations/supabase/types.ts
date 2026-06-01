@@ -95,33 +95,75 @@ export type Database = {
       properties: {
         Row: {
           address: string
+          amenities: string[] | null
+          available_from: string | null
+          baths: number | null
+          beds: number | null
+          city: string | null
+          contact_phone: string | null
           created_at: string
+          deposit_months: number | null
           description: string | null
+          furnishing: string | null
           id: string
+          image_urls: string[] | null
           landlord_id: string
+          lat: number | null
+          lng: number | null
+          neighbourhood: string | null
           price: number
+          property_type: string | null
+          size_sqm: number | null
           status: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at: string
         }
         Insert: {
           address: string
+          amenities?: string[] | null
+          available_from?: string | null
+          baths?: number | null
+          beds?: number | null
+          city?: string | null
+          contact_phone?: string | null
           created_at?: string
+          deposit_months?: number | null
           description?: string | null
+          furnishing?: string | null
           id?: string
+          image_urls?: string[] | null
           landlord_id: string
+          lat?: number | null
+          lng?: number | null
+          neighbourhood?: string | null
           price: number
+          property_type?: string | null
+          size_sqm?: number | null
           status?: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at?: string
         }
         Update: {
           address?: string
+          amenities?: string[] | null
+          available_from?: string | null
+          baths?: number | null
+          beds?: number | null
+          city?: string | null
+          contact_phone?: string | null
           created_at?: string
+          deposit_months?: number | null
           description?: string | null
+          furnishing?: string | null
           id?: string
+          image_urls?: string[] | null
           landlord_id?: string
+          lat?: number | null
+          lng?: number | null
+          neighbourhood?: string | null
           price?: number
+          property_type?: string | null
+          size_sqm?: number | null
           status?: Database["public"]["Enums"]["property_status"]
           title?: string
           updated_at?: string
