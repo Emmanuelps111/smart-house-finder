@@ -80,8 +80,16 @@
         return;
       }
       if (e.target.closest('[data-logout]')) {
-        localStorage.removeItem('shf-user');
-        location.reload();
+        (async () => {
+          try {
+            if (window.SHFCloud) {
+              const sb = await window.SHFCloud.ready;
+              await sb.auth.signOut();
+            }
+          } catch (_) {}
+          localStorage.removeItem('shf-user');
+          location.href = '/home.html';
+        })();
         return;
       }
       if (dd && !e.target.closest('.user-menu')) dd.style.display = 'none';

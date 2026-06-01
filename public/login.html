@@ -193,6 +193,7 @@
 </div>
 
 <div id="footer-mount"></div>
+<script src="/js/cloud.js"></script>
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
@@ -242,19 +243,20 @@
     el.parentElement.querySelector('.error').textContent = msg || '';
   }
 
-  document.getElementById('authForm').addEventListener('submit', (e) => {
+  document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('au-email');
-    const pass = document.getElementById('au-pass');
-    const name = document.getElementById('au-name');
+    const emailEl = document.getElementById('au-email');
+    const passEl = document.getElementById('au-pass');
+    const nameEl = document.getElementById('au-name');
 
     let ok = true;
     document.querySelectorAll('.error').forEach(el => el.textContent = '');
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { setError('au-email','Enter a valid email.'); ok = false; }
-    if (pass.value.length < 6) { setError('au-pass','Password must be at least 6 characters.'); ok = false; }
-    if (tab === 'signup' && name.value.trim().length < 2) { setError('au-name','Enter your full name.'); ok = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) { setError('au-email','Enter a valid email.'); ok = false; }
+    if (passEl.value.length < 6) { setError('au-pass','Password must be at least 6 characters.'); ok = false; }
+    if (tab === 'signup' && nameEl.value.trim().length < 2) { setError('au-name','Enter your full name.'); ok = false; }
 
+    let landlordMeta = {};
     if (tab === 'signup' && role === 'landlord') {
       const phone = document.getElementById('ll-phone').value.trim();
       const dob = document.getElementById('ll-dob').value;
@@ -283,6 +285,8 @@
       if (bank.length < 2) { setError('ll-bank','Enter your bank name.'); ok = false; }
       if (account.length < 4) { setError('ll-account','Enter your account number.'); ok = false; }
       if (!agree) { setError('ll-agree','You must accept the terms to continue.'); ok = false; }
+
+      landlordMeta = { phone, national_id: nid };
     }
 
     if (!ok) {
@@ -291,30 +295,67 @@
       return;
     }
 
-    localStorage.setItem('shf-user', JSON.stringify({ email: email.value, role, name: name.value || email.value.split('@')[0] }));
+    const btn = document.getElementById('submitBtn');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Please wait…';
 
-    const isLandlordSignup = tab === 'signup' && role === 'landlord';
-    const isLandlordSignin = tab === 'signin' && role === 'landlord';
+    try {
+      const sb = await window.SHFCloud.ready;
+      const supabaseRole = role === 'student' ? 'renter' : 'landlord';
 
-    // Honor ?next= redirect (e.g. coming from a gated listing detail page)
-    const nextParam = new URLSearchParams(location.search).get('next');
-    if (nextParam && !isLandlordSignup) { location.href = nextParam; return; }
+      if (tab === 'signup') {
+        const { error } = await sb.auth.signUp({
+          email: emailEl.value.trim(),
+          password: passEl.value,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+              full_name: nameEl.value.trim(),
+              role: supabaseRole,
+              ...landlordMeta,
+            },
+          },
+        });
+        if (error) throw error;
 
-    // Landlord sign-in goes straight to dashboard
-    if (isLandlordSignin) { location.href = '/dashboard.html'; return; }
+        const isLandlordSignup = role === 'landlord';
+        window.toast.success(isLandlordSignup
+          ? 'Application received! Check your email to verify your account.'
+          : 'Account created! Check your email to verify your account.');
 
-    const ctaHref = role === 'landlord' ? '/dashboard.html' : '/listings.html';
-    const ctaText = role === 'landlord' ? 'Go to my dashboard' : 'Browse listings';
+        document.querySelector('.auth-card').innerHTML = `
+          <div style="text-align:center; padding:2rem 0;">
+            <i class="fas fa-${isLandlordSignup ? 'hourglass-half' : 'envelope-circle-check'}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
+            <h2>${isLandlordSignup ? 'Application received!' : 'Verify your email'}</h2>
+            <p>We sent a confirmation link to <strong>${emailEl.value}</strong>. Click it to activate your account, then sign in.</p>
+            <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Back to sign in</a>
+          </div>`;
+        return;
+      }
 
-    document.querySelector('.auth-card').innerHTML = `
-      <div style="text-align:center; padding:2rem 0;">
-        <i class="fas fa-${isLandlordSignup ? 'hourglass-half' : 'circle-check'}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
-        <h2>${isLandlordSignup ? 'Application received!' : `Welcome${name.value ? ', ' + name.value : ''}!`}</h2>
-        <p>${isLandlordSignup
-          ? 'Our team will verify your documents within 24–48 hours. Meanwhile, you can preview your dashboard and prepare your first listing.'
-          : `You're signed in as a <strong>${role}</strong>.`}</p>
-        <a href="${ctaHref}" class="btn btn-primary" style="margin-top:1rem;">${ctaText} <i class="fas fa-arrow-right"></i></a>
-      </div>`;
+      // Sign in
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: emailEl.value.trim(),
+        password: passEl.value,
+      });
+      if (error) throw error;
+
+      await window.SHFCloud.syncLocalUser(sb, data.session);
+      const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
+      window.toast.success(`Welcome back${cached.name ? ', ' + cached.name : ''}!`);
+
+      const nextParam = new URLSearchParams(location.search).get('next');
+      const target = nextParam
+        || (cached.role === 'admin' ? '/admin'
+          : cached.role === 'landlord' ? '/dashboard.html'
+          : '/listings.html');
+      setTimeout(() => { location.href = target; }, 600);
+    } catch (err) {
+      window.toast.error(err.message || 'Something went wrong. Please try again.');
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
   });
   refresh();
 </script>
