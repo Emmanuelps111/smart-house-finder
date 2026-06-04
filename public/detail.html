@@ -93,6 +93,16 @@
             </ul>
             <div id="detailMap"></div>
           </div>
+          <div class="info-card" id="roommateSection" style="margin-top:1.5rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+              <h3 style="margin:0;">🤝 Roommate Requests</h3>
+              <button id="findRoommateBtn" class="btn btn-primary"><i class="fas fa-hand"></i> 🙋‍♂️ Find a Roommate to Split Cost</button>
+            </div>
+            <p style="color:var(--text-muted); margin:.5rem 0 1rem;">Students looking to co-tenant this property.</p>
+            <div id="roommateList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:.85rem;">
+              <div style="color:var(--text-muted); font-size:.9rem;">Loading…</div>
+            </div>
+          </div>
         </div>
         <aside>
           <div class="info-card">
