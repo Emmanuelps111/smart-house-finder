@@ -64,30 +64,51 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
+          cleanliness_preference:
+            | Database["public"]["Enums"]["cleanliness_pref"]
+            | null
           created_at: string
           full_name: string | null
           id: string
           national_id: string | null
           phone: string | null
           role: Database["public"]["Enums"]["profile_role"]
+          sleep_schedule:
+            | Database["public"]["Enums"]["sleep_schedule_pref"]
+            | null
           updated_at: string
         }
         Insert: {
+          bio?: string | null
+          cleanliness_preference?:
+            | Database["public"]["Enums"]["cleanliness_pref"]
+            | null
           created_at?: string
           full_name?: string | null
           id: string
           national_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
+          sleep_schedule?:
+            | Database["public"]["Enums"]["sleep_schedule_pref"]
+            | null
           updated_at?: string
         }
         Update: {
+          bio?: string | null
+          cleanliness_preference?:
+            | Database["public"]["Enums"]["cleanliness_pref"]
+            | null
           created_at?: string
           full_name?: string | null
           id?: string
           national_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
+          sleep_schedule?:
+            | Database["public"]["Enums"]["sleep_schedule_pref"]
+            | null
           updated_at?: string
         }
         Relationships: []
@@ -178,6 +199,48 @@ export type Database = {
           },
         ]
       }
+      roommate_requests: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          status: Database["public"]["Enums"]["roommate_request_status"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          status?: Database["public"]["Enums"]["roommate_request_status"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          status?: Database["public"]["Enums"]["roommate_request_status"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roommate_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roommate_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -216,8 +279,11 @@ export type Database = {
     Enums: {
       app_role: "student" | "landlord" | "admin"
       booking_status: "pending" | "confirmed" | "cancelled"
+      cleanliness_pref: "High" | "Medium" | "Flexible"
       profile_role: "renter" | "landlord" | "admin"
       property_status: "pending" | "approved" | "rejected"
+      roommate_request_status: "searching" | "matched"
+      sleep_schedule_pref: "Early Bird" | "Night Owl" | "Flexible"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -347,8 +413,11 @@ export const Constants = {
     Enums: {
       app_role: ["student", "landlord", "admin"],
       booking_status: ["pending", "confirmed", "cancelled"],
+      cleanliness_pref: ["High", "Medium", "Flexible"],
       profile_role: ["renter", "landlord", "admin"],
       property_status: ["pending", "approved", "rejected"],
+      roommate_request_status: ["searching", "matched"],
+      sleep_schedule_pref: ["Early Bird", "Night Owl", "Flexible"],
     },
   },
 } as const
