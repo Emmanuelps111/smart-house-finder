@@ -105,6 +105,7 @@
           <h3 style="margin:.6rem 0 .25rem;">${l.title}</h3>
           <div class="card-price">${SHF.formatPrice(l.price)}<small style="color:var(--text-muted);font-weight:400;font-size:.85rem;"> /month</small></div>
           <div class="card-meta"><span><i class="fas fa-bed"></i> ${l.beds}</span><span><i class="fas fa-bath"></i> ${l.baths}</span><span><i class="fas fa-location-dot"></i> ${l.city}</span></div>
+          ${SHF.proximityBadges(l.lat, l.lng)}
         </div>
       </article>`).join('');
     document.querySelectorAll('#featured .reveal').forEach(el => {
