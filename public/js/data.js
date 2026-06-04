@@ -18,6 +18,50 @@ window.SHF.formatPrice = function (n) {
   catch (e) { return 'TSh ' + n; }
 };
 
+// === Proximity & Commute Cost Calculator ===
+// Reference: University of Dar es Salaam (UDSM) Main Campus gate
+window.SHF.CAMPUS = { name: 'UDSM Main Campus', lat: -6.7741, lng: 39.2417 };
+
+// Haversine distance in kilometers
+window.SHF.haversineKm = function (lat1, lng1, lat2, lng2) {
+  if ([lat1, lng1, lat2, lng2].some(v => v == null || isNaN(v))) return null;
+  const toRad = d => d * Math.PI / 180;
+  const R = 6371; // km
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+};
+
+// Estimated daily transport cost (round-trip) — ~TSh 1,000 per 2 km one-way via Bajaj/Bodaboda
+window.SHF.commuteCostTZS = function (km) {
+  if (km == null) return null;
+  const oneWay = Math.max(1000, Math.ceil((km / 2) * 1000));
+  return oneWay * 2; // round trip
+};
+
+// Walking time estimate at ~5 km/h
+window.SHF.walkingTime = function (km) {
+  if (km == null) return null;
+  const mins = Math.round((km / 5) * 60);
+  if (mins < 60) return mins + ' min walk';
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return h + 'h ' + m + 'm walk';
+};
+
+// Render an HTML badge cluster for a listing's distance/cost/walk
+window.SHF.proximityBadges = function (lat, lng) {
+  const km = window.SHF.haversineKm(lat, lng, window.SHF.CAMPUS.lat, window.SHF.CAMPUS.lng);
+  if (km == null) return '';
+  const cost = window.SHF.commuteCostTZS(km);
+  const walk = window.SHF.walkingTime(km);
+  return `<div class="proximity-badges" style="display:flex;flex-wrap:wrap;gap:.35rem;margin:.5rem 0;">
+    <span class="badge" style="background:#E0F2FE;color:#0369A1;border:none;">📍 ${km.toFixed(1)} km to Campus</span>
+    <span class="badge" style="background:#FEF3C7;color:#92400E;border:none;">🛵 ~TSh ${cost.toLocaleString('en-TZ')}/day</span>
+    <span class="badge" style="background:#DCFCE7;color:#166534;border:none;">🚶 ${walk}</span>
+  </div>`;
+};
+
 // Merge in landlord-added listings from localStorage
 try {
   const extra = JSON.parse(localStorage.getItem('shf-user-listings') || '[]');

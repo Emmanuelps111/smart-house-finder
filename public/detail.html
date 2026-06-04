@@ -104,6 +104,7 @@
               <span><i class="fas fa-bath"></i> ${l.baths} bath${l.baths>1?'s':''}</span>
               <span><i class="fas fa-ruler-combined"></i> ${l.area}</span>
             </div>
+            ${SHF.proximityBadges(l.lat, l.lng)}
             <button class="btn btn-primary" style="width:100%; margin-top:.5rem;" onclick="alert('Request sent to landlord. They will contact you shortly.')"><i class="fas fa-paper-plane"></i> Request a viewing</button>
             <button class="btn btn-outline" style="width:100%; margin-top:.6rem;" onclick="alert('Saved to favourites.')"><i class="far fa-heart"></i> Save to favourites</button>
             <hr style="border:none; border-top:1px solid var(--border); margin:1.25rem 0;" />
