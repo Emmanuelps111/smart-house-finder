@@ -57,6 +57,7 @@
 <div id="footer-mount"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/js/data.js"></script>
+<script src="/js/cloud.js"></script>
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
@@ -91,6 +92,16 @@
               <li><i class="fas fa-car"></i> Parking available</li>
             </ul>
             <div id="detailMap"></div>
+          </div>
+          <div class="info-card" id="roommateSection" style="margin-top:1.5rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+              <h3 style="margin:0;">🤝 Roommate Requests</h3>
+              <button id="findRoommateBtn" class="btn btn-primary"><i class="fas fa-hand"></i> 🙋‍♂️ Find a Roommate to Split Cost</button>
+            </div>
+            <p style="color:var(--text-muted); margin:.5rem 0 1rem;">Students looking to co-tenant this property.</p>
+            <div id="roommateList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:.85rem;">
+              <div style="color:var(--text-muted); font-size:.9rem;">Loading…</div>
+            </div>
           </div>
         </div>
         <aside>
@@ -127,6 +138,86 @@
     const m = L.map('detailMap').setView([l.lat, l.lng], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom:19 }).addTo(m);
     L.marker([l.lat, l.lng]).addTo(m).bindPopup(`<strong>${l.title}</strong><br/>${SHF.formatPrice(l.price)}/mo`).openPopup();
+
+    // === Roommate Requests ===
+    (async function initRoommates(){
+      const propertyKey = String(l.id);
+      const listEl = document.getElementById('roommateList');
+      const btn = document.getElementById('findRoommateBtn');
+      const cached = JSON.parse(localStorage.getItem('shf-user') || 'null');
+
+      function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      function renderCards(rows){
+        if (!rows || !rows.length){
+          listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">No one has requested a roommate here yet. Be the first!</div>';
+          return;
+        }
+        listEl.innerHTML = rows.map(r => {
+          const p = r.profiles || {};
+          const name = escapeHtml(p.full_name || 'Student');
+          const clean = escapeHtml(p.cleanliness_preference || '—');
+          const sleep = escapeHtml(p.sleep_schedule || '—');
+          const bio = escapeHtml(p.bio || 'No bio yet.');
+          const av = `https://i.pravatar.cc/64?u=${encodeURIComponent(r.student_id)}`;
+          return `<div style="border:1px solid var(--border); border-radius:12px; padding:.9rem; background:var(--surface);">
+            <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.5rem;">
+              <img src="${av}" alt="" style="width:42px;height:42px;border-radius:50%;" />
+              <div style="font-weight:600;">${name}</div>
+            </div>
+            <div style="font-size:.82rem; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.5rem;">
+              <span title="Cleanliness">🧽 ${clean}</span>
+              <span title="Sleep schedule">🌙 ${sleep}</span>
+            </div>
+            <div style="font-size:.88rem; line-height:1.35;">${bio}</div>
+          </div>`;
+        }).join('');
+      }
+
+      try {
+        const sb = await window.SHFCloud.ready;
+
+        async function refresh(){
+          const { data, error } = await sb
+            .from('roommate_requests')
+            .select('id, student_id, status, created_at, profiles:student_id ( full_name, cleanliness_preference, sleep_schedule, bio )')
+            .eq('property_key', propertyKey)
+            .eq('status', 'searching')
+            .order('created_at', { ascending: false });
+          if (error){ console.error(error); listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load roommate requests.</div>'; return; }
+          renderCards(data);
+          if (cached && data && data.some(r => r.student_id === cached.id)){
+            btn.innerHTML = '<i class="fas fa-check"></i> You\\'re on the roommate list';
+            btn.disabled = true;
+            btn.classList.add('btn-outline');
+            btn.classList.remove('btn-primary');
+          }
+        }
+
+        btn.addEventListener('click', async () => {
+          const { data: { session } } = await sb.auth.getSession();
+          if (!session){ window.toast.error('Please sign in to request a roommate.'); return; }
+          btn.disabled = true;
+          const { error } = await sb.from('roommate_requests').insert({
+            student_id: session.user.id,
+            property_key: propertyKey,
+            status: 'searching',
+          });
+          if (error){
+            console.error(error);
+            window.toast.error(error.message || 'Could not post your request.');
+            btn.disabled = false;
+            return;
+          }
+          window.toast.success('You\\'re now listed as looking for a roommate here!');
+          refresh();
+        });
+
+        refresh();
+      } catch (e) {
+        console.error(e);
+        listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Roommate service unavailable.</div>';
+      }
+    })();
   }
 </script>
 </body>
