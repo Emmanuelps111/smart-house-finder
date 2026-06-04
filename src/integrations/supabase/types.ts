@@ -203,7 +203,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          property_id: string
+          property_id: string | null
+          property_key: string | null
           status: Database["public"]["Enums"]["roommate_request_status"]
           student_id: string
           updated_at: string
@@ -211,7 +212,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          property_id: string
+          property_id?: string | null
+          property_key?: string | null
           status?: Database["public"]["Enums"]["roommate_request_status"]
           student_id: string
           updated_at?: string
@@ -219,7 +221,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          property_id?: string
+          property_id?: string | null
+          property_key?: string | null
           status?: Database["public"]["Enums"]["roommate_request_status"]
           student_id?: string
           updated_at?: string
