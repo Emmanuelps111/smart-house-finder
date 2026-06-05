@@ -186,7 +186,7 @@
           if (error){ console.error(error); listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load roommate requests.</div>'; return; }
           renderCards(data);
           if (cached && data && data.some(r => r.student_id === cached.id)){
-            btn.innerHTML = '<i class="fas fa-check"></i> You\\'re on the roommate list';
+            btn.innerHTML = '<i class="fas fa-check"></i> You\'re on the roommate list';
             btn.disabled = true;
             btn.classList.add('btn-outline');
             btn.classList.remove('btn-primary');
