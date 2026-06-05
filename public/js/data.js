@@ -62,7 +62,7 @@ window.SHF.proximityBadges = function (lat, lng) {
   </div>`;
 };
 
-// Merge in landlord-added listings from localStorage
+// Merge in landlord-added listings from localStorage (legacy local-only path)
 try {
   const extra = JSON.parse(localStorage.getItem('shf-user-listings') || '[]');
   if (Array.isArray(extra) && extra.length) {
@@ -70,9 +70,58 @@ try {
   }
 } catch (e) { /* ignore */ }
 
-// Prefer Dar es Salaam listings — sort them to the top
-window.SHF_LISTINGS.sort((a, b) => {
-  const aDsm = /dar es salaam/i.test(a.city) ? 0 : 1;
-  const bDsm = /dar es salaam/i.test(b.city) ? 0 : 1;
-  return aDsm - bDsm;
-});
+function sortListings() {
+  window.SHF_LISTINGS.sort((a, b) => {
+    const aDsm = /dar es salaam/i.test(a.city || '') ? 0 : 1;
+    const bDsm = /dar es salaam/i.test(b.city || '') ? 0 : 1;
+    return aDsm - bDsm;
+  });
+}
+sortListings();
+
+// === Load landlord-submitted properties from Lovable Cloud ===
+window.SHF.fetchDbListings = async function () {
+  if (!window.SHFCloud || !window.SHFCloud.ready) return;
+  try {
+    const sb = await window.SHFCloud.ready;
+    const { data, error } = await sb
+      .from('properties')
+      .select('id, title, description, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, lat, lng, status')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+    if (error) { console.warn('[SHF] properties fetch failed:', error.message); return; }
+    if (!data || !data.length) return;
+
+    const mapped = data.map(p => ({
+      id: 'db-' + p.id,
+      title: p.title || 'Untitled property',
+      price: Number(p.price) || 0,
+      beds: p.beds || 1,
+      baths: p.baths || 1,
+      area: p.size_sqm ? `${p.size_sqm} sqm` : '—',
+      city: p.city || '',
+      neighborhood: p.neighbourhood || '',
+      tag: p.property_type || (p.furnishing ? p.furnishing : 'New'),
+      img: (Array.isArray(p.image_urls) && p.image_urls[0])
+        || `https://picsum.photos/seed/${p.id}/900/600`,
+      lat: p.lat != null ? Number(p.lat) : null,
+      lng: p.lng != null ? Number(p.lng) : null,
+      desc: p.description || '',
+    }));
+
+    // De-dupe by id in case of repeat calls
+    const existing = new Set(window.SHF_LISTINGS.map(l => String(l.id)));
+    const fresh = mapped.filter(m => !existing.has(String(m.id)));
+    if (!fresh.length) return;
+
+    window.SHF_LISTINGS = window.SHF_LISTINGS.concat(fresh);
+    sortListings();
+    window.dispatchEvent(new CustomEvent('shf:listings-updated', { detail: { added: fresh.length } }));
+  } catch (e) {
+    console.warn('[SHF] fetchDbListings error:', e);
+  }
+};
+
+// Kick off fetch (non-blocking)
+window.SHF.fetchDbListings();
+
