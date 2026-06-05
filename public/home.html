@@ -90,13 +90,15 @@
 
 
 <div id="footer-mount"></div>
+<script src="/js/cloud.js"></script>
 <script src="/js/data.js"></script>
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
   // Render featured listings
   const f = document.getElementById('featured');
-  if (f) {
+  function renderFeatured() {
+    if (!f) return;
     f.innerHTML = SHF_LISTINGS.slice(0,6).map(l => `
       <article class="card reveal" onclick="if(!event.target.closest('[data-lightbox]')) location.href='/detail.html?id=${l.id}'" style="cursor:pointer;">
         <img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />
@@ -112,6 +114,8 @@
       new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');o.disconnect();}}),{threshold:.1}).observe(el);
     });
   }
+  renderFeatured();
+  window.addEventListener('shf:listings-updated', renderFeatured);
 </script>
 </body>
 </html>
