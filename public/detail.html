@@ -63,23 +63,21 @@
 <script>
   const rawId = new URLSearchParams(location.search).get('id');
   const id = /^\d+$/.test(rawId) ? +rawId : rawId;
-  let l = SHF_LISTINGS.find(x => String(x.id) === String(id));
-  if (!l) {
-    // Wait for DB listings to load, then reload the page so the inline script re-runs cleanly.
-    window.addEventListener('shf:listings-updated', () => {
-      if (SHF_LISTINGS.find(x => String(x.id) === String(id))) location.reload();
-    });
-  }
   const root = document.getElementById('detailRoot');
+  let rendered = false;
 
-  if (!l) {
+  function renderNotFound(){
     root.innerHTML = `<div class="not-found"><h2>Listing not found</h2><p>The property you're looking for doesn't exist or has been removed.</p><a href="/listings.html" class="btn btn-primary">Browse all listings</a></div>`;
-  } else {
+  }
+
+  function renderDetail(l){
+    rendered = true;
     document.title = `${l.title} — Smart House Finder`;
     const gallery = [l.img,
       `https://picsum.photos/seed/${l.id}a/800/600`,
       `https://picsum.photos/seed/${l.id}b/800/600`,
       `https://picsum.photos/seed/${l.id}c/800/600`];
+    const avatarSeed = Math.abs(String(l.id).split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % 70;
     root.innerHTML = `
       <div class="detail-grid">
         <div>
@@ -128,7 +126,7 @@
             <hr style="border:none; border-top:1px solid var(--border); margin:1.25rem 0;" />
             <h4 style="margin:0 0 .5rem;">Listed by</h4>
             <div style="display:flex; align-items:center; gap:.75rem;">
-              <img src="https://i.pravatar.cc/80?img=${(l.id*7)%70}" alt="Landlord" style="width:48px; height:48px; border-radius:50%;" />
+              <img src="https://i.pravatar.cc/80?img=${avatarSeed}" alt="Landlord" style="width:48px; height:48px; border-radius:50%;" />
               <div>
                 <div style="font-weight:600;">Verified Landlord</div>
                 <div style="font-size:.85rem; color:var(--text-muted);"><i class="fas fa-circle-check" style="color:var(--primary);"></i> ID verified</div>
@@ -142,9 +140,14 @@
       document.getElementById('heroImg').src = t.src;
     }));
 
-    const m = L.map('detailMap').setView([l.lat, l.lng], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom:19 }).addTo(m);
-    L.marker([l.lat, l.lng]).addTo(m).bindPopup(`<strong>${l.title}</strong><br/>${SHF.formatPrice(l.price)}/mo`).openPopup();
+    if (l.lat != null && l.lng != null) {
+      const m = L.map('detailMap').setView([l.lat, l.lng], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom:19 }).addTo(m);
+      L.marker([l.lat, l.lng]).addTo(m).bindPopup(`<strong>${l.title}</strong><br/>${SHF.formatPrice(l.price)}/mo`).openPopup();
+    } else {
+      const mapEl = document.getElementById('detailMap');
+      if (mapEl) mapEl.style.display = 'none';
+    }
 
     // === Roommate Requests ===
     (async function initRoommates(){
@@ -225,6 +228,22 @@
         listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Roommate service unavailable.</div>';
       }
     })();
+  }
+
+  function tryRender(){
+    if (rendered) return true;
+    const l = SHF_LISTINGS.find(x => String(x.id) === String(id));
+    if (l) { renderDetail(l); return true; }
+    return false;
+  }
+
+  if (!tryRender()) {
+    renderNotFound();
+    window.addEventListener('shf:listings-updated', () => {
+      if (rendered) return;
+      const l = SHF_LISTINGS.find(x => String(x.id) === String(id));
+      if (l) renderDetail(l);
+    });
   }
 </script>
 </body>
