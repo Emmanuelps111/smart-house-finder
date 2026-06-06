@@ -122,6 +122,15 @@ window.SHF.fetchDbListings = async function () {
   }
 };
 
-// Kick off fetch (non-blocking)
+// Kick off fetch (non-blocking). If SHFCloud isn't loaded yet (script order
+// race on some pages), retry shortly so DB listings still load.
 window.SHF.fetchDbListings();
+if (!window.SHFCloud) {
+  const retry = () => window.SHF.fetchDbListings();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', retry, { once: true });
+  } else {
+    setTimeout(retry, 50);
+  }
+}
 
