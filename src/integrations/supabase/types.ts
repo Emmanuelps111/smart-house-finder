@@ -57,13 +57,6 @@ export type Database = {
             foreignKeyName: "bookings_renter_id_fkey"
             columns: ["renter_id"]
             isOneToOne: false
-            referencedRelation: "landlord_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_renter_id_fkey"
-            columns: ["renter_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -207,13 +200,6 @@ export type Database = {
             foreignKeyName: "properties_landlord_id_fkey"
             columns: ["landlord_id"]
             isOneToOne: false
-            referencedRelation: "landlord_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "properties_landlord_id_fkey"
-            columns: ["landlord_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -253,13 +239,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "roommate_requests_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "landlord_public"
             referencedColumns: ["id"]
           },
           {
@@ -331,13 +310,6 @@ export type Database = {
             foreignKeyName: "viewing_requests_landlord_id_fkey"
             columns: ["landlord_id"]
             isOneToOne: false
-            referencedRelation: "landlord_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "viewing_requests_landlord_id_fkey"
-            columns: ["landlord_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -352,13 +324,6 @@ export type Database = {
             foreignKeyName: "viewing_requests_renter_id_fkey"
             columns: ["renter_id"]
             isOneToOne: false
-            referencedRelation: "landlord_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "viewing_requests_renter_id_fkey"
-            columns: ["renter_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -366,26 +331,17 @@ export type Database = {
       }
     }
     Views: {
-      landlord_public: {
-        Row: {
-          full_name: string | null
-          id: string | null
-          selfie_url: string | null
-        }
-        Insert: {
-          full_name?: string | null
-          id?: string | null
-          selfie_url?: string | null
-        }
-        Update: {
-          full_name?: string | null
-          id?: string | null
-          selfie_url?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_landlord_public: {
+        Args: { _landlord_id: string }
+        Returns: {
+          full_name: string
+          id: string
+          selfie_url: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
