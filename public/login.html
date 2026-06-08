@@ -313,7 +313,7 @@
       const supabaseRole = role === 'student' ? 'renter' : 'landlord';
 
       if (tab === 'signup') {
-        const { error } = await sb.auth.signUp({
+        const { data: signupData, error } = await sb.auth.signUp({
           email: emailEl.value.trim(),
           password: passEl.value,
           options: {
@@ -327,7 +327,33 @@
         });
         if (error) throw error;
 
+        // For landlord signups, upload selfie + national-ID copy so they appear on listings and admin
         const isLandlordSignup = role === 'landlord';
+        if (isLandlordSignup) {
+          try {
+            // Sign in to get an authenticated client (works only if email-confirm is off OR project allows it)
+            const { data: signinData } = await sb.auth.signInWithPassword({
+              email: emailEl.value.trim(), password: passEl.value,
+            });
+            const uid = signinData?.user?.id || signupData?.user?.id;
+            if (uid && signinData?.session) {
+              const selfieFile = document.getElementById('ll-selfie').files[0];
+              let selfieUrl = null;
+              if (selfieFile) {
+                const path = `${uid}/selfie-${Date.now()}.${(selfieFile.name.split('.').pop()||'jpg').toLowerCase()}`;
+                const { error: upErr } = await sb.storage.from('property-photos').upload(path, selfieFile, { contentType: selfieFile.type || 'image/jpeg', upsert: true });
+                if (!upErr) {
+                  const { data: pub } = sb.storage.from('property-photos').getPublicUrl(path);
+                  selfieUrl = pub.publicUrl;
+                }
+              }
+              const patch = { selfie_url: selfieUrl, phone: landlordMeta.phone, national_id: landlordMeta.national_id };
+              await sb.from('profiles').update(patch).eq('id', uid);
+              await sb.auth.signOut();
+            }
+          } catch (e) { console.warn('post-signup selfie upload skipped:', e); }
+        }
+
         window.toast.success(isLandlordSignup
           ? 'Application received! Check your email to verify your account.'
           : 'Account created! Check your email to verify your account.');
