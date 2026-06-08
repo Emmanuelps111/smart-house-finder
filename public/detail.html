@@ -10,9 +10,7 @@
         var next = encodeURIComponent(location.pathname + location.search);
         location.replace('/login.html?next=' + next);
       }
-    } catch(e){
-      location.replace('/login.html');
-    }
+    } catch(e){ location.replace('/login.html'); }
   })();
 </script>
 <title>Listing Details — Smart House Finder</title>
@@ -25,7 +23,7 @@
   .detail-wrap { margin-top: var(--header-h); padding: 2rem 0 4rem; }
   .detail-grid { display:grid; grid-template-columns: 1.4fr 1fr; gap:2rem; }
   @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } }
-  .hero-img { width:100%; border-radius:14px; overflow:hidden; aspect-ratio: 16/10; object-fit:cover; box-shadow: 0 10px 30px -12px rgba(0,0,0,.25); }
+  .hero-img { width:100%; border-radius:14px; overflow:hidden; aspect-ratio: 16/10; object-fit:cover; box-shadow: 0 10px 30px -12px rgba(0,0,0,.25); background:#f1f5f9; }
   .thumb-row { display:grid; grid-template-columns: repeat(4,1fr); gap:.6rem; margin-top:.75rem; }
   .thumb-row img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; cursor:pointer; opacity:.85; transition:opacity .2s, transform .2s; }
   .thumb-row img:hover { opacity:1; transform: scale(1.03); }
@@ -66,36 +64,46 @@
   const root = document.getElementById('detailRoot');
   let rendered = false;
 
+  function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
   function renderNotFound(){
     root.innerHTML = `<div class="not-found"><h2>Listing not found</h2><p>The property you're looking for doesn't exist or has been removed.</p><a href="/listings.html" class="btn btn-primary">Browse all listings</a></div>`;
   }
 
-  function renderDetail(l){
+  const AMENITY_ICONS = {
+    'Wi-Fi':'fa-wifi','Parking':'fa-square-parking','Security':'fa-shield-halved',
+    'Water tank':'fa-water','Generator':'fa-bolt','Air conditioning':'fa-snowflake',
+    'Kitchen':'fa-utensils','Laundry':'fa-soap','Pet friendly':'fa-paw',
+    'Garden':'fa-tree','Balcony':'fa-house-chimney','Furnished':'fa-couch'
+  };
+
+  async function renderDetail(l){
     rendered = true;
     document.title = `${l.title} — Smart House Finder`;
-    const gallery = [l.img,
-      `https://picsum.photos/seed/${l.id}a/800/600`,
-      `https://picsum.photos/seed/${l.id}b/800/600`,
-      `https://picsum.photos/seed/${l.id}c/800/600`];
-    const avatarSeed = Math.abs(String(l.id).split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % 70;
+    const gallery = (Array.isArray(l.image_urls) && l.image_urls.length) ? l.image_urls : (l.img ? [l.img] : []);
+    const heroSrc = gallery[0] || 'https://placehold.co/900x600?text=No+photo';
+
+    const amenitiesHtml = (Array.isArray(l.amenities) && l.amenities.length)
+      ? `<ul class="feature-list">${l.amenities.map(a => {
+          const ic = AMENITY_ICONS[a] || 'fa-circle-check';
+          return `<li><i class="fas ${ic}"></i> ${escapeHtml(a)}</li>`;
+        }).join('')}</ul>`
+      : `<p style="color:var(--text-muted); font-style:italic;">No amenities listed.</p>`;
+
+    const thumbsHtml = gallery.length > 1
+      ? `<div class="thumb-row">${gallery.slice(0,8).map(g => `<img src="${escapeHtml(g)}" alt="thumbnail" data-thumb />`).join('')}</div>`
+      : '';
+
     root.innerHTML = `
       <div class="detail-grid">
         <div>
-          <img id="heroImg" class="hero-img" data-lightbox src="${gallery[0]}" alt="${l.title}" />
-          <div class="thumb-row">
-            ${gallery.map(g => `<img src="${g}" alt="thumbnail" data-thumb />`).join('')}
-          </div>
+          <img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" />
+          ${thumbsHtml}
           <div class="info-card" style="margin-top:1.5rem;">
             <h3 style="margin-top:0;">About this property</h3>
-            <p>${l.desc}</p>
-            <ul class="feature-list">
-              <li><i class="fas fa-wifi"></i> High-speed Wi-Fi</li>
-              <li><i class="fas fa-bolt"></i> Backup power</li>
-              <li><i class="fas fa-shield-halved"></i> 24/7 security</li>
-              <li><i class="fas fa-water"></i> Reliable water supply</li>
-              <li><i class="fas fa-couch"></i> Furnished</li>
-              <li><i class="fas fa-car"></i> Parking available</li>
-            </ul>
+            <p>${escapeHtml(l.desc) || '<em>No description provided.</em>'}</p>
+            <h4 style="margin:1.25rem 0 .5rem;">Amenities</h4>
+            ${amenitiesHtml}
             <div id="detailMap"></div>
           </div>
           <div class="info-card" id="roommateSection" style="margin-top:1.5rem;">
@@ -111,25 +119,30 @@
         </div>
         <aside>
           <div class="info-card">
-            <span class="badge">${l.tag}</span>
-            <h2 style="margin-top:.6rem;">${l.title}</h2>
-            <div style="color:var(--text-muted);"><i class="fas fa-location-dot"></i> ${l.neighborhood ? l.neighborhood + ', ' : ''}${l.city}</div>
+            <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+              <span class="badge">${escapeHtml(l.tag || 'Property')}</span>
+              ${SHF.occupancyBadge(l.occupancy)}
+            </div>
+            <h2 style="margin-top:.6rem;">${escapeHtml(l.title)}</h2>
+            <div style="color:var(--text-muted);"><i class="fas fa-location-dot"></i> ${escapeHtml(l.neighborhood ? l.neighborhood + ', ' : '')}${escapeHtml(l.city || '')}</div>
             <div class="price-big">${SHF.formatPrice(l.price)}<small> / month</small></div>
             <div class="meta-row">
-              <span><i class="fas fa-bed"></i> ${l.beds} bed${l.beds>1?'s':''}</span>
-              <span><i class="fas fa-bath"></i> ${l.baths} bath${l.baths>1?'s':''}</span>
-              <span><i class="fas fa-ruler-combined"></i> ${l.area}</span>
+              <span><i class="fas fa-bed"></i> ${l.beds||0} bed${l.beds>1?'s':''}</span>
+              <span><i class="fas fa-bath"></i> ${l.baths||0} bath${l.baths>1?'s':''}</span>
+              ${l.size_sqm ? `<span><i class="fas fa-ruler-combined"></i> ${l.size_sqm} sqm</span>` : ''}
+              ${l.furnishing ? `<span><i class="fas fa-couch"></i> ${escapeHtml(l.furnishing)}</span>` : ''}
             </div>
             ${SHF.proximityBadges(l.lat, l.lng)}
-            <button class="btn btn-primary" style="width:100%; margin-top:.5rem;" onclick="alert('Request sent to landlord. They will contact you shortly.')"><i class="fas fa-paper-plane"></i> Request a viewing</button>
-            <button class="btn btn-outline" style="width:100%; margin-top:.6rem;" onclick="alert('Saved to favourites.')"><i class="far fa-heart"></i> Save to favourites</button>
+            <button id="requestViewingBtn" class="btn btn-primary" style="width:100%; margin-top:.5rem;" ${l.occupancy==='occupied'?'disabled':''}>
+              <i class="fas fa-paper-plane"></i> ${l.occupancy==='occupied'?'Property is occupied':'Request a viewing'}
+            </button>
             <hr style="border:none; border-top:1px solid var(--border); margin:1.25rem 0;" />
             <h4 style="margin:0 0 .5rem;">Listed by</h4>
-            <div style="display:flex; align-items:center; gap:.75rem;">
-              <img src="https://i.pravatar.cc/80?img=${avatarSeed}" alt="Landlord" style="width:48px; height:48px; border-radius:50%;" />
+            <div id="landlordBlock" style="display:flex; align-items:center; gap:.75rem;">
+              <div style="width:48px; height:48px; border-radius:50%; background:#e5e7eb; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#9ca3af;"></i></div>
               <div>
-                <div style="font-weight:600;">Verified Landlord</div>
-                <div style="font-size:.85rem; color:var(--text-muted);"><i class="fas fa-circle-check" style="color:var(--primary);"></i> ID verified</div>
+                <div style="font-weight:600;">Loading…</div>
+                <div style="font-size:.85rem; color:var(--text-muted);"><i class="fas fa-circle-check" style="color:var(--primary);"></i> Verified Landlord</div>
               </div>
             </div>
           </div>
@@ -143,11 +156,68 @@
     if (l.lat != null && l.lng != null) {
       const m = L.map('detailMap').setView([l.lat, l.lng], 14);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom:19 }).addTo(m);
-      L.marker([l.lat, l.lng]).addTo(m).bindPopup(`<strong>${l.title}</strong><br/>${SHF.formatPrice(l.price)}/mo`).openPopup();
+      L.marker([l.lat, l.lng]).addTo(m).bindPopup(`<strong>${escapeHtml(l.title)}</strong><br/>${SHF.formatPrice(l.price)}/mo`).openPopup();
     } else {
       const mapEl = document.getElementById('detailMap');
       if (mapEl) mapEl.style.display = 'none';
     }
+
+    // === Landlord block (DB listings only) ===
+    if (l.isDb && l.landlord_id) {
+      try {
+        const sb = await window.SHFCloud.ready;
+        const { data: ll } = await sb.rpc('get_landlord_public', { _landlord_id: l.landlord_id });
+        const row = Array.isArray(ll) && ll[0];
+        if (row) {
+          const name = escapeHtml(row.full_name || 'Verified Landlord');
+          const av = row.selfie_url
+            ? `<img src="${escapeHtml(row.selfie_url)}" alt="${name}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" />`
+            : `<div style="width:48px; height:48px; border-radius:50%; background:#e5e7eb; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#9ca3af;"></i></div>`;
+          document.getElementById('landlordBlock').innerHTML = `
+            ${av}
+            <div>
+              <div style="font-weight:600;">${name}</div>
+              <div style="font-size:.85rem; color:var(--text-muted);"><i class="fas fa-circle-check" style="color:var(--primary);"></i> Verified Landlord</div>
+            </div>`;
+        }
+      } catch (e) { console.warn('landlord fetch', e); }
+    } else {
+      document.getElementById('landlordBlock').innerHTML = `
+        <div style="width:48px; height:48px; border-radius:50%; background:#e5e7eb; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#9ca3af;"></i></div>
+        <div>
+          <div style="font-weight:600;">Verified Landlord</div>
+          <div style="font-size:.85rem; color:var(--text-muted);"><i class="fas fa-circle-check" style="color:var(--primary);"></i> ID verified</div>
+        </div>`;
+    }
+
+    // === Request viewing ===
+    document.getElementById('requestViewingBtn').addEventListener('click', async () => {
+      if (!l.isDb || !l.landlord_id) {
+        alert('Request sent. The landlord will contact you shortly.');
+        return;
+      }
+      const cached = JSON.parse(localStorage.getItem('shf-user') || 'null');
+      if (!cached) { window.toast.error('Please sign in first.'); return; }
+      const sb = await window.SHFCloud.ready;
+      const { data: prof } = await sb.from('profiles').select('phone').eq('id', cached.id).maybeSingle();
+      const defaultPhone = (prof && prof.phone) || '+255';
+      const phone = prompt('Enter your phone number so the landlord can call you back:', defaultPhone);
+      if (!phone) return;
+      if (!/^\+255\d{9}$/.test(phone.trim())) {
+        window.toast.error('Phone must be in the format +255XXXXXXXXX (9 digits after +255).');
+        return;
+      }
+      const msg = prompt('Optional short message to the landlord (e.g. preferred viewing time):', '') || null;
+      const { error } = await sb.from('viewing_requests').insert({
+        property_id: l.dbId,
+        renter_id: cached.id,
+        landlord_id: l.landlord_id,
+        contact_phone: phone.trim(),
+        message: msg,
+      });
+      if (error) { window.toast.error(error.message); return; }
+      window.toast.success('Viewing request sent to the landlord!');
+    });
 
     // === Roommate Requests ===
     (async function initRoommates(){
@@ -156,7 +226,6 @@
       const btn = document.getElementById('findRoommateBtn');
       const cached = JSON.parse(localStorage.getItem('shf-user') || 'null');
 
-      function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
       function renderCards(rows){
         if (!rows || !rows.length){
           listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">No one has requested a roommate here yet. Be the first!</div>';
@@ -175,8 +244,7 @@
               <div style="font-weight:600;">${name}</div>
             </div>
             <div style="font-size:.82rem; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.5rem;">
-              <span title="Cleanliness">🧽 ${clean}</span>
-              <span title="Sleep schedule">🌙 ${sleep}</span>
+              <span>🧽 ${clean}</span><span>🌙 ${sleep}</span>
             </div>
             <div style="font-size:.88rem; line-height:1.35;">${bio}</div>
           </div>`;
@@ -185,7 +253,6 @@
 
       try {
         const sb = await window.SHFCloud.ready;
-
         async function refresh(){
           const { data, error } = await sb
             .from('roommate_requests')
@@ -193,58 +260,79 @@
             .eq('property_key', propertyKey)
             .eq('status', 'searching')
             .order('created_at', { ascending: false });
-          if (error){ console.error(error); listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load roommate requests.</div>'; return; }
+          if (error){ listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load roommate requests.</div>'; return; }
           renderCards(data);
           if (cached && data && data.some(r => r.student_id === cached.id)){
             btn.innerHTML = '<i class="fas fa-check"></i> You\'re on the roommate list';
             btn.disabled = true;
-            btn.classList.add('btn-outline');
-            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-outline'); btn.classList.remove('btn-primary');
           }
         }
-
         btn.addEventListener('click', async () => {
           const { data: { session } } = await sb.auth.getSession();
           if (!session){ window.toast.error('Please sign in to request a roommate.'); return; }
           btn.disabled = true;
           const { error } = await sb.from('roommate_requests').insert({
-            student_id: session.user.id,
-            property_key: propertyKey,
-            status: 'searching',
+            student_id: session.user.id, property_key: propertyKey, status: 'searching',
           });
-          if (error){
-            console.error(error);
-            window.toast.error(error.message || 'Could not post your request.');
-            btn.disabled = false;
-            return;
-          }
+          if (error){ window.toast.error(error.message || 'Could not post your request.'); btn.disabled = false; return; }
           window.toast.success('You\'re now listed as looking for a roommate here!');
           refresh();
         });
-
         refresh();
       } catch (e) {
-        console.error(e);
         listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Roommate service unavailable.</div>';
       }
     })();
   }
 
-  function tryRender(){
+  // For DB listings, fetch directly so we get FULL fields (amenities/images/occupancy/landlord)
+  async function tryRenderDb() {
+    if (typeof id !== 'string' || !id.startsWith('db-')) return false;
+    try {
+      const sb = await window.SHFCloud.ready;
+      const dbId = id.slice(3);
+      const { data: p, error } = await sb
+        .from('properties')
+        .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from')
+        .eq('id', dbId)
+        .maybeSingle();
+      if (error || !p) return false;
+      const l = {
+        id, dbId: p.id, landlord_id: p.landlord_id, isDb: true,
+        title: p.title || 'Untitled', price: Number(p.price) || 0,
+        beds: p.beds || 0, baths: p.baths || 0,
+        size_sqm: p.size_sqm, area: p.size_sqm ? `${p.size_sqm} sqm` : '',
+        city: p.city || '', neighborhood: p.neighbourhood || '', address: p.address || '',
+        tag: p.property_type || 'Property', furnishing: p.furnishing || '',
+        amenities: Array.isArray(p.amenities) ? p.amenities : [],
+        image_urls: Array.isArray(p.image_urls) ? p.image_urls.filter(Boolean) : [],
+        img: (Array.isArray(p.image_urls) && p.image_urls[0]) || '',
+        lat: p.lat != null ? Number(p.lat) : null,
+        lng: p.lng != null ? Number(p.lng) : null,
+        desc: p.description || '',
+        occupancy: p.occupancy || 'vacant',
+      };
+      renderDetail(l);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function tryRenderMock(){
     if (rendered) return true;
     const l = SHF_LISTINGS.find(x => String(x.id) === String(id));
     if (l) { renderDetail(l); return true; }
     return false;
   }
 
-  if (!tryRender()) {
-    renderNotFound();
-    window.addEventListener('shf:listings-updated', () => {
-      if (rendered) return;
-      const l = SHF_LISTINGS.find(x => String(x.id) === String(id));
-      if (l) renderDetail(l);
-    });
-  }
+  (async function init(){
+    if (typeof id === 'string' && id.startsWith('db-')) {
+      const ok = await tryRenderDb();
+      if (!ok) renderNotFound();
+    } else {
+      if (!tryRenderMock()) renderNotFound();
+    }
+  })();
 </script>
 </body>
 </html>

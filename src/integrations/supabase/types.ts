@@ -74,6 +74,7 @@ export type Database = {
           national_id: string | null
           phone: string | null
           role: Database["public"]["Enums"]["profile_role"]
+          selfie_url: string | null
           sleep_schedule:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
             | null
@@ -90,6 +91,7 @@ export type Database = {
           national_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
+          selfie_url?: string | null
           sleep_schedule?:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
             | null
@@ -106,6 +108,7 @@ export type Database = {
           national_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
+          selfie_url?: string | null
           sleep_schedule?:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
             | null
@@ -132,6 +135,7 @@ export type Database = {
           lat: number | null
           lng: number | null
           neighbourhood: string | null
+          occupancy: Database["public"]["Enums"]["occupancy_status"]
           price: number
           property_type: string | null
           size_sqm: number | null
@@ -157,6 +161,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           neighbourhood?: string | null
+          occupancy?: Database["public"]["Enums"]["occupancy_status"]
           price: number
           property_type?: string | null
           size_sqm?: number | null
@@ -182,6 +187,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           neighbourhood?: string | null
+          occupancy?: Database["public"]["Enums"]["occupancy_status"]
           price?: number
           property_type?: string | null
           size_sqm?: number | null
@@ -265,11 +271,77 @@ export type Database = {
         }
         Relationships: []
       }
+      viewing_requests: {
+        Row: {
+          contact_phone: string
+          created_at: string
+          id: string
+          landlord_id: string
+          message: string | null
+          property_id: string
+          renter_id: string
+          seen: boolean
+          updated_at: string
+        }
+        Insert: {
+          contact_phone: string
+          created_at?: string
+          id?: string
+          landlord_id: string
+          message?: string | null
+          property_id: string
+          renter_id: string
+          seen?: boolean
+          updated_at?: string
+        }
+        Update: {
+          contact_phone?: string
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          message?: string | null
+          property_id?: string
+          renter_id?: string
+          seen?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viewing_requests_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "viewing_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "viewing_requests_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_landlord_public: {
+        Args: { _landlord_id: string }
+        Returns: {
+          full_name: string
+          id: string
+          selfie_url: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -283,6 +355,7 @@ export type Database = {
       app_role: "student" | "landlord" | "admin"
       booking_status: "pending" | "confirmed" | "cancelled"
       cleanliness_pref: "High" | "Medium" | "Flexible"
+      occupancy_status: "vacant" | "occupied"
       profile_role: "renter" | "landlord" | "admin"
       property_status: "pending" | "approved" | "rejected"
       roommate_request_status: "searching" | "matched"
@@ -417,6 +490,7 @@ export const Constants = {
       app_role: ["student", "landlord", "admin"],
       booking_status: ["pending", "confirmed", "cancelled"],
       cleanliness_pref: ["High", "Medium", "Flexible"],
+      occupancy_status: ["vacant", "occupied"],
       profile_role: ["renter", "landlord", "admin"],
       property_status: ["pending", "approved", "rejected"],
       roommate_request_status: ["searching", "matched"],

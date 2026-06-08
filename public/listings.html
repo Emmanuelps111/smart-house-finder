@@ -67,7 +67,10 @@
       <article class="card" onclick="if(!event.target.closest('[data-lightbox]')) location.href='/detail.html?id=${l.id}'" style="cursor:pointer;">
         <img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />
         <div class="card-body">
-          <span class="badge">${l.tag}</span>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+            <span class="badge">${l.tag}</span>
+            ${SHF.occupancyBadge(l.occupancy)}
+          </div>
           <h3 style="margin:.6rem 0 .25rem;">${l.title}</h3>
           <div class="card-price">${SHF.formatPrice(l.price)}<small style="color:var(--text-muted);font-weight:400;font-size:.85rem;"> /month</small></div>
           <p style="margin:.6rem 0 .5rem; font-size:.9rem;">${l.desc}</p>
