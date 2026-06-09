@@ -348,7 +348,32 @@
             },
           },
         });
-        if (error) throw error;
+
+        // If email is already registered, allow adding a SECOND role to the same account
+        // (e.g. an existing renter signing up as a landlord, or vice-versa).
+        let addedRoleToExisting = false;
+        if (error && /already|registered|exists/i.test(error.message || '')) {
+          const { data: signinTry, error: signinErr } = await sb.auth.signInWithPassword({
+            email: emailEl.value.trim(), password: passEl.value,
+          });
+          if (signinErr) {
+            throw new Error('This email is already registered. Enter your existing password to add a new role to your account.');
+          }
+          const uid = signinTry.user.id;
+          // Check if user already has this role
+          const { data: existingRoles } = await sb.from('user_roles').select('role').eq('user_id', uid);
+          const hasThisRole = (existingRoles || []).some((r) => r.role === supabaseRole);
+          if (hasThisRole) {
+            await sb.auth.signOut();
+            throw new Error(`You already have a ${supabaseRole} account with this email. Sign in instead.`);
+          }
+          const { error: insErr } = await sb.from('user_roles').insert({ user_id: uid, role: supabaseRole });
+          if (insErr) { await sb.auth.signOut(); throw insErr; }
+          addedRoleToExisting = true;
+          // continue to landlord-extras block using this session
+        } else if (error) {
+          throw error;
+        }
 
         // For landlord signups, upload selfie + national-ID copy so they appear on listings and admin
         const isLandlordSignup = role === 'landlord';
