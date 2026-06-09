@@ -213,7 +213,7 @@
         <div class="form-row"><label>Latitude <small style="color:var(--text-muted);">— supports decimals & negatives</small></label><input id="p-lat" type="number" step="any" placeholder="-6.7741" value="${v.lat??''}" /></div>
         <div class="form-row"><label>Longitude</label><input id="p-lng" type="number" step="any" placeholder="39.2417" value="${v.lng??''}" /></div>
       </div>
-      <div class="form-row"><label>Description *</label><textarea id="p-desc" rows="4" maxlength="800" required>${escapeHtml(v.description||'')}</textarea><span class="error"></span></div>
+      <div class="form-row"><label>Description <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional)</span></label><textarea id="p-desc" rows="4" maxlength="800" placeholder="Additional information about the property — neighbourhood, rules, nearby amenities, anything renters should know.">${escapeHtml(v.description||'')}</textarea><span class="error"></span></div>
       <div class="form-row">
         <label>Property photos * (at least 1, up to 8) — only photos you upload will be shown</label>
         <label class="file-input-wrap" for="p-photos">
