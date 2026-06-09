@@ -30,6 +30,14 @@
   }
   .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
   @media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
+  .pw-wrap { position: relative; }
+  .pw-wrap input { padding-right: 2.6rem; }
+  .pw-toggle {
+    position: absolute; right: .6rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: var(--muted, #6b7280);
+    padding: .3rem; font-size: 1rem; line-height: 1;
+  }
+  .pw-toggle:hover { color: var(--primary, #3B82F6); }
 </style>
 </head>
 <body>
