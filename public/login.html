@@ -30,14 +30,6 @@
   }
   .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
   @media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
-  .pw-wrap { position: relative; }
-  .pw-wrap input { padding-right: 2.6rem; }
-  .pw-toggle {
-    position: absolute; right: .6rem; top: 50%; transform: translateY(-50%);
-    background: none; border: none; cursor: pointer; color: var(--muted, #6b7280);
-    padding: .3rem; font-size: 1rem; line-height: 1;
-  }
-  .pw-toggle:hover { color: var(--primary, #3B82F6); }
 </style>
 </head>
 <body>
@@ -72,10 +64,7 @@
       </div>
       <div class="form-row">
         <label for="au-pass">Password</label>
-        <div class="pw-wrap">
-          <input id="au-pass" type="password" autocomplete="current-password" required />
-          <button type="button" class="pw-toggle" data-pw-toggle="au-pass" aria-label="Show password"><i class="fas fa-eye"></i></button>
-        </div>
+        <input id="au-pass" type="password" autocomplete="current-password" required />
         <span class="error"></span>
       </div>
 
@@ -248,18 +237,6 @@
   bindFile('ll-selfie', 'll-selfie-name');
   bindFile('ll-deed', 'll-deed-name');
 
-  // Password show/hide toggle
-  document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-pw-toggle]');
-    if (!t) return;
-    const inp = document.getElementById(t.dataset.pwToggle);
-    if (!inp) return;
-    const isPw = inp.type === 'password';
-    inp.type = isPw ? 'text' : 'password';
-    t.innerHTML = isPw ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
-    t.setAttribute('aria-label', isPw ? 'Hide password' : 'Show password');
-  });
-
   function setError(id, msg) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -348,32 +325,7 @@
             },
           },
         });
-
-        // If email is already registered, allow adding a SECOND role to the same account
-        // (e.g. an existing renter signing up as a landlord, or vice-versa).
-        let addedRoleToExisting = false;
-        if (error && /already|registered|exists/i.test(error.message || '')) {
-          const { data: signinTry, error: signinErr } = await sb.auth.signInWithPassword({
-            email: emailEl.value.trim(), password: passEl.value,
-          });
-          if (signinErr) {
-            throw new Error('This email is already registered. Enter your existing password to add a new role to your account.');
-          }
-          const uid = signinTry.user.id;
-          // Check if user already has this role
-          const { data: existingRoles } = await sb.from('user_roles').select('role').eq('user_id', uid);
-          const hasThisRole = (existingRoles || []).some((r) => r.role === supabaseRole);
-          if (hasThisRole) {
-            await sb.auth.signOut();
-            throw new Error(`You already have a ${supabaseRole} account with this email. Sign in instead.`);
-          }
-          const { error: insErr } = await sb.from('user_roles').insert({ user_id: uid, role: supabaseRole });
-          if (insErr) { await sb.auth.signOut(); throw insErr; }
-          addedRoleToExisting = true;
-          // continue to landlord-extras block using this session
-        } else if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         // For landlord signups, upload selfie + national-ID copy so they appear on listings and admin
         const isLandlordSignup = role === 'landlord';
@@ -400,18 +352,6 @@
               await sb.auth.signOut();
             }
           } catch (e) { console.warn('post-signup selfie upload skipped:', e); }
-        }
-
-        if (addedRoleToExisting) {
-          window.toast.success(`Your existing account is now also a ${supabaseRole} account. Sign in to continue.`);
-          document.querySelector('.auth-card').innerHTML = `
-            <div style="text-align:center; padding:2rem 0;">
-              <i class="fas fa-circle-check" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
-              <h2>Role added!</h2>
-              <p>Your account <strong>${emailEl.value}</strong> can now sign in as a <strong>${supabaseRole}</strong> as well.</p>
-              <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Go to sign in</a>
-            </div>`;
-          return;
         }
 
         window.toast.success(isLandlordSignup

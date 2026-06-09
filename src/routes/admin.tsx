@@ -56,55 +56,28 @@ type Profile = {
   selfie_url: string | null;
   bio: string | null;
   role: "renter" | "landlord" | "admin";
-  cleanliness_preference: string | null;
-  sleep_schedule: string | null;
   created_at: string;
-  updated_at: string;
 };
 
-type AppRole = "student" | "landlord" | "admin";
-type RolesByUser = Record<string, AppRole[]>;
-
 type AuthState = "loading" | "unauthenticated" | "forbidden" | "ok";
-
-function displayRoles(roles: AppRole[] | undefined, fallback: string): string {
-  if (!roles || roles.length === 0) return fallback;
-  if (roles.includes("admin")) return "admin";
-  const hasStudent = roles.includes("student");
-  const hasLandlord = roles.includes("landlord");
-  if (hasStudent && hasLandlord) return "renter / landlord";
-  if (hasLandlord) return "landlord";
-  if (hasStudent) return "renter";
-  return fallback;
-}
 
 function AdminPage() {
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [rolesByUser, setRolesByUser] = useState<RolesByUser>({});
   const [bookingsCount, setBookingsCount] = useState(0);
   const [selected, setSelected] = useState<Property | null>(null);
   const [selectedLandlord, setSelectedLandlord] = useState<Profile | null>(null);
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
 
   const loadData = useCallback(async () => {
-    const [allProps, profs, bookings, roles] = await Promise.all([
+    const [allProps, profs, bookings] = await Promise.all([
       supabase.from("properties").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("bookings").select("id", { count: "exact", head: true }),
-      supabase.from("user_roles").select("user_id, role"),
     ]);
     if (allProps.data) setAllProperties(allProps.data as unknown as Property[]);
     if (profs.data) setProfiles(profs.data as unknown as Profile[]);
     if (typeof bookings.count === "number") setBookingsCount(bookings.count);
-    if (roles.data) {
-      const map: RolesByUser = {};
-      for (const r of roles.data as { user_id: string; role: AppRole }[]) {
-        (map[r.user_id] ||= []).push(r.role);
-      }
-      setRolesByUser(map);
-    }
   }, []);
 
   useEffect(() => {
@@ -136,19 +109,19 @@ function AdminPage() {
     setSelected((s) => (s && s.id === id ? { ...s, status } : s));
   };
 
-  if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
+  if (authState === "loading") return <div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Loading…</p></div>;
   if (authState === "unauthenticated") return (
-    <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-br from-blue-50 to-white">
-      <Card className="max-w-md border-blue-200"><CardHeader><CardTitle>Sign in required</CardTitle></CardHeader>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <Card className="max-w-md"><CardHeader><CardTitle>Sign in required</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground mb-4">You need to sign in to access the admin dashboard.</p>
-          <Button asChild className="bg-blue-600 hover:bg-blue-700"><a href="/login.html">Go to login</a></Button>
+          <Button asChild><a href="/login.html">Go to login</a></Button>
         </CardContent>
       </Card>
     </div>
   );
   if (authState === "forbidden") return (
-    <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-br from-blue-50 to-white">
-      <Card className="max-w-md border-blue-200"><CardHeader><CardTitle>Access denied</CardTitle></CardHeader>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <Card className="max-w-md"><CardHeader><CardTitle>Access denied</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground">Your account does not have admin privileges.</p></CardContent>
       </Card>
     </div>
@@ -160,30 +133,20 @@ function AdminPage() {
   const pending = allProperties.filter((p) => p.status === "pending");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50">
-      <header className="border-b border-blue-200 bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-lg">
-        <div className="mx-auto max-w-6xl px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2"><span>🛡️</span> Admin Dashboard</h1>
-            <p className="text-sm text-blue-50/90">Moderate listings and manage users.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button asChild variant="secondary" className="bg-white text-blue-700 hover:bg-blue-50">
-              <a href="/home.html">← Back to Home</a>
-            </Button>
-            <Button asChild variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border border-white/30">
-              <a href="/listings.html">View Listings</a>
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b">
+        <div className="mx-auto max-w-6xl px-6 py-6">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Moderate listings and manage users.</p>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Tabs defaultValue="overview">
-          <TabsList className="bg-blue-100/60 border border-blue-200">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
-            <TabsTrigger value="moderation" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingCount}</Badge>}</TabsTrigger>
-            <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">All properties</TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="moderation">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2">{pendingCount}</Badge>}</TabsTrigger>
+            <TabsTrigger value="all">All properties</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -206,43 +169,24 @@ function AdminPage() {
           </TabsContent>
 
           <TabsContent value="users" className="mt-6">
-            <Card className="border-blue-200"><CardHeader><CardTitle className="text-blue-900">All users</CardTitle></CardHeader>
+            <Card><CardHeader><CardTitle>All users</CardTitle></CardHeader>
               <CardContent>
                 {profiles.length === 0 ? <p className="text-sm text-muted-foreground">No users yet.</p> : (
                   <Table>
-                    <TableHeader><TableRow className="bg-blue-50"><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>National ID</TableHead><TableHead>Role</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>National ID</TableHead><TableHead>Role</TableHead><TableHead>Joined</TableHead></TableRow></TableHeader>
                     <TableBody>
-                      {profiles.map((u) => {
-                        const roles = rolesByUser[u.id];
-                        const roleLabel = displayRoles(roles, u.role);
-                        const isCombo = roleLabel.includes("/");
-                        return (
-                          <TableRow key={u.id} className="hover:bg-blue-50/50">
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-blue-200" /> : <div className="w-8 h-8 rounded-full bg-blue-100" />}
-                                {u.full_name ?? "—"}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">{u.phone ?? "—"}</TableCell>
-                            <TableCell className="text-muted-foreground font-mono text-xs">{u.national_id ?? "—"}</TableCell>
-                            <TableCell>
-                              <Badge className={
-                                roleLabel === "admin" ? "bg-purple-600 hover:bg-purple-700" :
-                                isCombo ? "bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-700 hover:to-emerald-600 text-white" :
-                                roleLabel === "landlord" ? "bg-emerald-600 hover:bg-emerald-700" :
-                                "bg-blue-600 hover:bg-blue-700"
-                              }>{roleLabel}</Badge>
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
-                            <TableCell className="text-right">
-                              <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={() => setSelectedUser(u)}>
-                                View more
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      {profiles.map((u) => (
+                        <TableRow key={u.id}>
+                          <TableCell className="font-medium flex items-center gap-2">
+                            {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-muted" />}
+                            {u.full_name ?? "—"}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{u.phone ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground font-mono text-xs">{u.national_id ?? "—"}</TableCell>
+                          <TableCell><Badge variant={u.role === "admin" ? "default" : "secondary"}>{u.role}</Badge></TableCell>
+                          <TableCell className="text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 )}
@@ -303,44 +247,10 @@ function AdminPage() {
 
               <div className="flex gap-2 pt-2">
                 {selected.status === "pending" && <>
-                  <Button onClick={() => moderate(selected.id, "approved")} className="bg-blue-600 hover:bg-blue-700">Approve</Button>
+                  <Button onClick={() => moderate(selected.id, "approved")}>Approve</Button>
                   <Button variant="destructive" onClick={() => moderate(selected.id, "rejected")}>Reject</Button>
                 </>}
               </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!selectedUser} onOpenChange={(o) => { if (!o) setSelectedUser(null); }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>User profile — {selectedUser?.full_name ?? "—"}</DialogTitle></DialogHeader>
-          {selectedUser && (
-            <div className="space-y-5 text-sm">
-              <div className="flex items-start gap-4">
-                {selectedUser.selfie_url ? (
-                  <a href={selectedUser.selfie_url} target="_blank" rel="noreferrer">
-                    <img src={selectedUser.selfie_url} alt="Profile selfie" className="w-32 h-32 rounded-xl object-cover ring-2 ring-blue-300" />
-                  </a>
-                ) : (
-                  <div className="w-32 h-32 rounded-xl bg-blue-100 flex items-center justify-center text-blue-400 text-xs">No selfie</div>
-                )}
-                <div className="flex-1 grid grid-cols-2 gap-3">
-                  <Field label="Full name">{selectedUser.full_name ?? "—"}</Field>
-                  <Field label="Role(s)">{displayRoles(rolesByUser[selectedUser.id], selectedUser.role)}</Field>
-                  <Field label="Phone">{selectedUser.phone ?? "—"}</Field>
-                  <Field label="National ID">{selectedUser.national_id ?? "—"}</Field>
-                  <Field label="Cleanliness">{selectedUser.cleanliness_preference ?? "—"}</Field>
-                  <Field label="Sleep schedule">{selectedUser.sleep_schedule ?? "—"}</Field>
-                  <Field label="Joined">{new Date(selectedUser.created_at).toLocaleString()}</Field>
-                  <Field label="Updated">{new Date(selectedUser.updated_at).toLocaleString()}</Field>
-                </div>
-              </div>
-              <Field label="Bio" wide>{selectedUser.bio ?? "—"}</Field>
-              <Field label="User ID" wide><span className="font-mono text-xs">{selectedUser.id}</span></Field>
-              <p className="text-xs text-muted-foreground border-t pt-3">
-                National ID image and identity-document uploads will appear here once the OCR verification system is enabled.
-              </p>
             </div>
           )}
         </DialogContent>
@@ -352,8 +262,8 @@ function AdminPage() {
 function Field({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className={wide ? "col-span-2" : ""}>
-      <div className="text-xs uppercase tracking-wide text-blue-700/70 font-semibold">{label}</div>
-      <div className="font-medium break-words text-slate-800">{children}</div>
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="font-medium break-words">{children}</div>
     </div>
   );
 }
@@ -362,23 +272,23 @@ function PropertyTable({ items, onOpen, showActions, onModerate }: {
   items: Property[]; onOpen: (p: Property) => void;
   showActions?: boolean; onModerate?: (id: string, s: "approved" | "rejected") => void;
 }) {
-  if (!items.length) return <Card className="border-blue-200"><CardContent className="py-8"><p className="text-sm text-muted-foreground text-center">No properties.</p></CardContent></Card>;
+  if (!items.length) return <Card><CardContent className="py-8"><p className="text-sm text-muted-foreground text-center">No properties.</p></CardContent></Card>;
   return (
-    <Card className="border-blue-200"><CardContent className="p-0">
+    <Card><CardContent className="p-0">
       <Table>
-        <TableHeader><TableRow className="bg-blue-50"><TableHead>Title</TableHead><TableHead>City</TableHead><TableHead>Price</TableHead><TableHead>Status</TableHead><TableHead>Occupancy</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>City</TableHead><TableHead>Price</TableHead><TableHead>Status</TableHead><TableHead>Occupancy</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
         <TableBody>
           {items.map((p) => (
-            <TableRow key={p.id} className="cursor-pointer hover:bg-blue-50/50" onClick={() => onOpen(p)}>
+            <TableRow key={p.id} className="cursor-pointer" onClick={() => onOpen(p)}>
               <TableCell className="font-medium">{p.title}</TableCell>
               <TableCell className="text-muted-foreground">{p.city ?? p.address}</TableCell>
               <TableCell>TSh {Number(p.price).toLocaleString()}</TableCell>
-              <TableCell><Badge variant={p.status === "approved" ? "default" : p.status === "rejected" ? "destructive" : "secondary"} className={p.status === "approved" ? "bg-blue-600 hover:bg-blue-700" : ""}>{p.status}</Badge></TableCell>
+              <TableCell><Badge variant={p.status === "approved" ? "default" : p.status === "rejected" ? "destructive" : "secondary"}>{p.status}</Badge></TableCell>
               <TableCell><Badge variant={p.occupancy === "occupied" ? "destructive" : "secondary"}>{p.occupancy}</Badge></TableCell>
               <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={() => onOpen(p)}>View</Button>
+                <Button size="sm" variant="outline" onClick={() => onOpen(p)}>View</Button>
                 {showActions && onModerate && p.status === "pending" && <>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => onModerate(p.id, "approved")}>Approve</Button>
+                  <Button size="sm" onClick={() => onModerate(p.id, "approved")}>Approve</Button>
                   <Button size="sm" variant="destructive" onClick={() => onModerate(p.id, "rejected")}>Reject</Button>
                 </>}
               </TableCell>
@@ -392,9 +302,9 @@ function PropertyTable({ items, onOpen, showActions, onModerate }: {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <Card className="border-blue-200 bg-gradient-to-br from-white to-blue-50 hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-blue-700/80">{label}</CardTitle></CardHeader>
-      <CardContent><p className="text-3xl font-bold text-blue-900">{value}</p></CardContent>
+    <Card>
+      <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle></CardHeader>
+      <CardContent><p className="text-3xl font-bold">{value}</p></CardContent>
     </Card>
   );
 }
