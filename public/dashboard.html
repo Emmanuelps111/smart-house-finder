@@ -279,7 +279,7 @@
       if (!get('p-title')) { setErr('p-title','Title is required'); ok = false; }
       if (!get('p-city')) { setErr('p-city','City is required'); ok = false; }
       if (!get('p-price') || +get('p-price') < 10000) { setErr('p-price','Enter a valid rent'); ok = false; }
-      if (!get('p-desc') || get('p-desc').length < 20) { setErr('p-desc','Description must be at least 20 characters'); ok = false; }
+      // description is optional
       if ((existingPhotoUrls.length + pendingPhotos.length) === 0) { setErr('p-photos','Please add at least one photo'); ok = false; }
       const phone = get('p-contact');
       if (phone && !/^\+255\d{9}$/.test(phone)) { setErr('p-contact','Phone must be +255 followed by 9 digits'); ok = false; }
