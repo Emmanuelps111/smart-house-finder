@@ -140,16 +140,16 @@ export const verifyIdentity = createServerFn({ method: "POST" })
       }${!ocr.name_match ? "Name doesn't match. " : ""}Please re-upload clearer photos.`;
     }
 
-    const updatePatch: Record<string, unknown> = {
+    const updatePatch = {
       ocr_attempts: attempts,
-      ocr_data: { ...ocr, attempt: attempts },
+      ocr_data: { ...ocr, attempt: attempts } as unknown,
       verification_status: nextStatus,
       nid_front_url: data.nid_front_url,
       nid_back_url: data.nid_back_url ?? null,
+      ...(nextStatus === "approved" ? { verified_at: new Date().toISOString() } : {}),
     };
-    if (nextStatus === "approved") updatePatch.verified_at = new Date().toISOString();
 
-    const { error: uErr } = await supabase.from("profiles").update(updatePatch).eq("id", userId);
+    const { error: uErr } = await supabase.from("profiles").update(updatePatch as never).eq("id", userId);
     if (uErr) throw uErr;
 
     return {
@@ -185,13 +185,13 @@ export const adminSetVerification = createServerFn({ method: "POST" })
     const isAdmin = (roles ?? []).some((r) => r.role === "admin");
     if (!isAdmin) throw new Response("Forbidden", { status: 403 });
 
-    const patch: Record<string, unknown> = {
+    const patch = {
       verification_status: data.decision,
       rejection_reason: data.decision === "rejected" ? data.reason ?? null : null,
+      ...(data.decision === "approved" ? { verified_at: new Date().toISOString() } : {}),
     };
-    if (data.decision === "approved") patch.verified_at = new Date().toISOString();
 
-    const { error } = await supabase.from("profiles").update(patch).eq("id", data.user_id);
+    const { error } = await supabase.from("profiles").update(patch as never).eq("id", data.user_id);
     if (error) throw error;
     return { ok: true };
   });
