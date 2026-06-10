@@ -236,6 +236,50 @@ function AdminPage() {
             <PropertyTable items={allProperties} onOpen={openProperty} />
           </TabsContent>
 
+          <TabsContent value="verifications" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader><CardTitle className="text-blue-900">Pending identity verifications</CardTitle></CardHeader>
+              <CardContent>
+                {pendingVerifications.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending verifications.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingVerifications.map((u) => {
+                      const roles = displayRoles(rolesByUser[u.id], u.role);
+                      const ocr = u.ocr_data as { confidence?: number; detected_name?: string; detected_nid?: string; reasoning?: string } | null;
+                      return (
+                        <div key={u.id} className="flex items-start gap-4 p-3 border border-blue-100 rounded-lg bg-blue-50/30">
+                          {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-blue-200" /> : <div className="w-16 h-16 rounded-full bg-blue-100" />}
+                          <div className="flex-1 text-sm">
+                            <div className="font-semibold text-blue-900">{u.full_name ?? "—"} <Badge className="ml-2 bg-amber-500 hover:bg-amber-600">{roles}</Badge></div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {u.phone && <>📞 {u.phone} · </>}{u.national_id && <>NID: <span className="font-mono">{u.national_id}</span></>}
+                            </div>
+                            {u.university && <div className="text-xs mt-1">🎓 {u.university} · Reg #: {u.student_reg_no}</div>}
+                            {ocr && (
+                              <div className="text-xs mt-1 text-slate-700">
+                                OCR ({u.ocr_attempts ?? 0} attempts) confidence: <strong>{ocr.confidence ?? "?"}%</strong>. Detected: {ocr.detected_name ?? "?"} / {ocr.detected_nid ?? "?"}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={() => setSelectedUser(u)}>Review</Button>
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setVerification(u.id, "approved")}>Approve</Button>
+                            <Button size="sm" variant="destructive" onClick={() => {
+                              const reason = window.prompt("Reason for rejection (optional):") ?? "";
+                              setVerification(u.id, "rejected", reason);
+                            }}>Reject</Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
           <TabsContent value="users" className="mt-6">
             <Card className="border-blue-200"><CardHeader><CardTitle className="text-blue-900">All users</CardTitle></CardHeader>
               <CardContent>
