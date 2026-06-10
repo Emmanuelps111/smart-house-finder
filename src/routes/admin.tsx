@@ -413,9 +413,40 @@ function AdminPage() {
               </div>
               <Field label="Bio" wide>{selectedUser.bio ?? "—"}</Field>
               <Field label="User ID" wide><span className="font-mono text-xs">{selectedUser.id}</span></Field>
-              <p className="text-xs text-muted-foreground border-t pt-3">
-                National ID image and identity-document uploads will appear here once the OCR verification system is enabled.
-              </p>
+
+              <div className="border-t pt-4 space-y-3">
+                <h4 className="font-semibold text-blue-900">Identity verification</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Status">
+                    <Badge className={
+                      selectedUser.verification_status === "approved" ? "bg-emerald-600" :
+                      selectedUser.verification_status === "rejected" ? "bg-red-600" :
+                      "bg-amber-500"
+                    }>{selectedUser.verification_status ?? "pending"}</Badge>
+                  </Field>
+                  <Field label="OCR attempts">{selectedUser.ocr_attempts ?? 0} / 3</Field>
+                  {selectedUser.university && <Field label="University">{selectedUser.university}</Field>}
+                  {selectedUser.student_reg_no && <Field label="Reg #">{selectedUser.student_reg_no}</Field>}
+                </div>
+                {selectedUser.ocr_data && (
+                  <pre className="text-xs bg-slate-50 border border-slate-200 rounded p-2 overflow-auto max-h-40">{JSON.stringify(selectedUser.ocr_data, null, 2)}</pre>
+                )}
+                <div className="grid grid-cols-3 gap-2">
+                  {selectedUser.nid_front_url && <a href={selectedUser.nid_front_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_front_url} alt="NID front" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">NID front</div></a>}
+                  {selectedUser.nid_back_url && <a href={selectedUser.nid_back_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_back_url} alt="NID back" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">NID back</div></a>}
+                  {selectedUser.student_id_url && <a href={selectedUser.student_id_url} target="_blank" rel="noreferrer"><img src={selectedUser.student_id_url} alt="Student ID" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">Student ID</div></a>}
+                </div>
+                {selectedUser.verification_status !== "approved" && (
+                  <div className="flex gap-2">
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setVerification(selectedUser.id, "approved")}>Approve</Button>
+                    <Button size="sm" variant="destructive" onClick={() => {
+                      const reason = window.prompt("Reason for rejection (optional):") ?? "";
+                      setVerification(selectedUser.id, "rejected", reason);
+                    }}>Reject</Button>
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
         </DialogContent>
