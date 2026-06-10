@@ -376,7 +376,7 @@
 
     try {
       const sb = await window.SHFCloud.ready;
-      const supabaseRole = role === 'student' ? 'renter' : 'landlord';
+      const supabaseRole = role === 'landlord' ? 'landlord' : role === 'student' ? 'student' : 'renter';
 
       if (tab === 'signup') {
         const { data: signupData, error } = await sb.auth.signUp({
@@ -392,18 +392,15 @@
           },
         });
 
-        // If email is already registered, allow adding a SECOND role to the same account
-        // (e.g. an existing renter signing up as a landlord, or vice-versa).
         let addedRoleToExisting = false;
         if (error && /already|registered|exists/i.test(error.message || '')) {
           const { data: signinTry, error: signinErr } = await sb.auth.signInWithPassword({
             email: emailEl.value.trim(), password: passEl.value,
           });
           if (signinErr) {
-            throw new Error('This email is already registered. Enter your existing password to add a new role to your account.');
+            throw new Error('This email is already registered. Enter your existing password to add a new role.');
           }
           const uid = signinTry.user.id;
-          // Check if user already has this role
           const { data: existingRoles } = await sb.from('user_roles').select('role').eq('user_id', uid);
           const hasThisRole = (existingRoles || []).some((r) => r.role === supabaseRole);
           if (hasThisRole) {
@@ -413,36 +410,91 @@
           const { error: insErr } = await sb.from('user_roles').insert({ user_id: uid, role: supabaseRole });
           if (insErr) { await sb.auth.signOut(); throw insErr; }
           addedRoleToExisting = true;
-          // continue to landlord-extras block using this session
         } else if (error) {
           throw error;
         }
 
-        // For landlord signups, upload selfie + national-ID copy so they appear on listings and admin
         const isLandlordSignup = role === 'landlord';
-        if (isLandlordSignup) {
+        const isStudentSignup = role === 'student';
+        const isRenterSignup = role === 'renter';
+        let ocrResult = null;
+
+        if (isLandlordSignup || isStudentSignup) {
           try {
-            // Sign in to get an authenticated client (works only if email-confirm is off OR project allows it)
             const { data: signinData } = await sb.auth.signInWithPassword({
               email: emailEl.value.trim(), password: passEl.value,
             });
             const uid = signinData?.user?.id || signupData?.user?.id;
+            const accessToken = signinData?.session?.access_token;
             if (uid && signinData?.session) {
-              const selfieFile = document.getElementById('ll-selfie').files[0];
-              let selfieUrl = null;
-              if (selfieFile) {
-                const path = `${uid}/selfie-${Date.now()}.${(selfieFile.name.split('.').pop()||'jpg').toLowerCase()}`;
-                const { error: upErr } = await sb.storage.from('property-photos').upload(path, selfieFile, { contentType: selfieFile.type || 'image/jpeg', upsert: true });
-                if (!upErr) {
-                  const { data: pub } = sb.storage.from('property-photos').getPublicUrl(path);
-                  selfieUrl = pub.publicUrl;
+              const uploadFile = async (file, prefix) => {
+                if (!file) return null;
+                const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+                const path = `${uid}/${prefix}-${Date.now()}.${ext}`;
+                const { error: upErr } = await sb.storage.from('property-photos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true });
+                if (upErr) return null;
+                const { data: pub } = sb.storage.from('property-photos').getPublicUrl(path);
+                return pub.publicUrl;
+              };
+
+              if (isLandlordSignup) {
+                const selfieFile = document.getElementById('ll-selfie').files[0];
+                const nidFiles = document.getElementById('ll-nid-file').files;
+                const selfieUrl = await uploadFile(selfieFile, 'selfie');
+                const nidFrontUrl = await uploadFile(nidFiles[0], 'nid-front');
+                const nidBackUrl = nidFiles[1] ? await uploadFile(nidFiles[1], 'nid-back') : null;
+
+                await sb.from('profiles').update({
+                  selfie_url: selfieUrl,
+                  phone: landlordMeta.phone,
+                  national_id: landlordMeta.national_id,
+                  nid_front_url: nidFrontUrl,
+                  nid_back_url: nidBackUrl,
+                }).eq('id', uid);
+
+                // Call OCR verification
+                if (nidFrontUrl && accessToken) {
+                  try {
+                    const r = await fetch('/api/verify-id', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                      body: JSON.stringify({
+                        nid_front_url: nidFrontUrl,
+                        nid_back_url: nidBackUrl || undefined,
+                        selfie_url: selfieUrl || undefined,
+                        expected_name: nameEl.value.trim(),
+                        expected_nid: landlordMeta.national_id,
+                      }),
+                    });
+                    ocrResult = await r.json();
+                  } catch (e) { console.warn('OCR call failed:', e); }
                 }
+              } else if (isStudentSignup) {
+                const idFile = document.getElementById('st-id-file').files[0];
+                const studentIdUrl = await uploadFile(idFile, 'student-id');
+                await sb.from('profiles').update({
+                  university: studentMeta.university,
+                  student_reg_no: studentMeta.student_reg_no,
+                  student_id_url: studentIdUrl,
+                }).eq('id', uid);
               }
-              const patch = { selfie_url: selfieUrl, phone: landlordMeta.phone, national_id: landlordMeta.national_id };
-              await sb.from('profiles').update(patch).eq('id', uid);
               await sb.auth.signOut();
             }
-          } catch (e) { console.warn('post-signup selfie upload skipped:', e); }
+          } catch (e) { console.warn('post-signup upload skipped:', e); }
+        } else if (isRenterSignup) {
+          // Auto-approve plain renters so they can request viewings
+          try {
+            const { data: signinData } = await sb.auth.signInWithPassword({
+              email: emailEl.value.trim(), password: passEl.value,
+            });
+            if (signinData?.user?.id) {
+              await sb.from('profiles').update({
+                verification_status: 'approved',
+                verified_at: new Date().toISOString(),
+              }).eq('id', signinData.user.id);
+              await sb.auth.signOut();
+            }
+          } catch (e) { console.warn('renter auto-approve skipped:', e); }
         }
 
         if (addedRoleToExisting) {
