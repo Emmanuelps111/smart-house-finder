@@ -509,15 +509,34 @@
           return;
         }
 
-        window.toast.success(isLandlordSignup
-          ? 'Application received! Check your email to verify your account.'
-          : 'Account created! Check your email to verify your account.');
-
+        let headline, bodyMsg, icon;
+        if (ocrResult && ocrResult.status === 'approved') {
+          headline = 'Identity verified ✓';
+          icon = 'circle-check';
+          bodyMsg = `Welcome! Your ID was verified automatically (${ocrResult.confidence}% confidence). You can now sign in and request property viewings.`;
+        } else if (ocrResult && ocrResult.status === 'pending') {
+          headline = 'Pending admin review';
+          icon = 'hourglass-half';
+          bodyMsg = ocrResult.message || 'Our team will review your ID within 24–48 hours. You can browse listings in the meantime.';
+        } else if (isLandlordSignup) {
+          headline = 'Application received';
+          icon = 'hourglass-half';
+          bodyMsg = `We sent a confirmation link to ${emailEl.value}. Verification will start once you sign in.`;
+        } else if (isStudentSignup) {
+          headline = 'Account created';
+          icon = 'envelope-circle-check';
+          bodyMsg = `We sent a confirmation link to ${emailEl.value}. Student verification will complete within 24 hours.`;
+        } else {
+          headline = 'Welcome aboard!';
+          icon = 'envelope-circle-check';
+          bodyMsg = `We sent a confirmation link to ${emailEl.value}. Click it to activate your account, then sign in.`;
+        }
+        window.toast.success(headline);
         document.querySelector('.auth-card').innerHTML = `
           <div style="text-align:center; padding:2rem 0;">
-            <i class="fas fa-${isLandlordSignup ? 'hourglass-half' : 'envelope-circle-check'}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
-            <h2>${isLandlordSignup ? 'Application received!' : 'Verify your email'}</h2>
-            <p>We sent a confirmation link to <strong>${emailEl.value}</strong>. Click it to activate your account, then sign in.</p>
+            <i class="fas fa-${icon}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
+            <h2>${headline}</h2>
+            <p>${bodyMsg}</p>
             <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Back to sign in</a>
           </div>`;
         return;
