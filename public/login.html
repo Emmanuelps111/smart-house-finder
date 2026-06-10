@@ -316,6 +316,7 @@
     if (tab === 'signup' && nameEl.value.trim().length < 2) { setError('au-name','Enter your full name.'); ok = false; }
 
     let landlordMeta = {};
+    let studentMeta = {};
     if (tab === 'signup' && role === 'landlord') {
       const phone = document.getElementById('ll-phone').value.trim();
       const dob = document.getElementById('ll-dob').value;
@@ -328,22 +329,17 @@
       const account = document.getElementById('ll-account').value.trim();
       const agree = document.getElementById('ll-agree').checked;
 
-      if (!/^\+255\d{9}$/.test(phone)) { setError('ll-phone','Phone must be +255 followed by exactly 9 digits (e.g. +255759996841).'); ok = false; }
+      if (!/^\+255\d{9}$/.test(phone)) { setError('ll-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
       if (!dob) { setError('ll-dob','Date of birth is required.'); ok = false; }
       else {
         const age = (Date.now() - new Date(dob).getTime()) / (365.25*24*3600*1000);
         if (age < 18) { setError('ll-dob','You must be at least 18 years old.'); ok = false; }
       }
-      if (!/^\d{20}$/.test(nid)) {
-        if (nid.length < 20) setError('ll-nid','National ID must be exactly 20 digits (you entered '+nid.length+').');
-        else if (nid.length > 20) setError('ll-nid','National ID is too long — must be exactly 20 digits.');
-        else setError('ll-nid','National ID must contain only digits (0-9).');
-        ok = false;
-      }
+      if (!/^\d{20}$/.test(nid)) { setError('ll-nid','National ID must be exactly 20 digits.'); ok = false; }
       if (!nidFile || !nidFile.length) { setError('ll-nid-file','Please upload a copy of your National ID.'); ok = false; }
       else if (Array.from(nidFile).some(f => f.size > 5*1024*1024)) { setError('ll-nid-file','Each file must be under 5MB.'); ok = false; }
       const selfieEl = document.getElementById('ll-selfie');
-      if (!selfieEl.files || !selfieEl.files.length) { setError('ll-selfie','Please upload a selfie — it will be shown on your listings.'); ok = false; }
+      if (!selfieEl.files || !selfieEl.files.length) { setError('ll-selfie','Please upload a selfie.'); ok = false; }
       else if (selfieEl.files[0].size > 5*1024*1024) { setError('ll-selfie','Selfie must be under 5MB.'); ok = false; }
       if (address.length < 5) { setError('ll-address','Enter your residential address.'); ok = false; }
       if (!properties || +properties < 1) { setError('ll-properties','Enter at least 1 property.'); ok = false; }
@@ -354,6 +350,17 @@
       if (!agree) { setError('ll-agree','You must accept the terms to continue.'); ok = false; }
 
       landlordMeta = { phone, national_id: nid };
+    }
+
+    if (tab === 'signup' && role === 'student') {
+      const university = document.getElementById('st-university').value.trim();
+      const regno = document.getElementById('st-regno').value.trim();
+      const idFile = document.getElementById('st-id-file').files;
+      if (university.length < 2) { setError('st-university','Enter your university or college.'); ok = false; }
+      if (regno.length < 3) { setError('st-regno','Enter your student registration number.'); ok = false; }
+      if (!idFile || !idFile.length) { setError('st-id-file','Please upload a photo of your student ID.'); ok = false; }
+      else if (idFile[0].size > 5*1024*1024) { setError('st-id-file','File must be under 5MB.'); ok = false; }
+      studentMeta = { university, student_reg_no: regno };
     }
 
     if (!ok) {
