@@ -72,13 +72,23 @@ export type Database = {
           full_name: string | null
           id: string
           national_id: string | null
+          nid_back_url: string | null
+          nid_front_url: string | null
+          ocr_attempts: number
+          ocr_data: Json | null
           phone: string | null
+          rejection_reason: string | null
           role: Database["public"]["Enums"]["profile_role"]
           selfie_url: string | null
           sleep_schedule:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
             | null
+          student_id_url: string | null
+          student_reg_no: string | null
+          university: string | null
           updated_at: string
+          verification_status: Database["public"]["Enums"]["verification_status"]
+          verified_at: string | null
         }
         Insert: {
           bio?: string | null
@@ -89,13 +99,23 @@ export type Database = {
           full_name?: string | null
           id: string
           national_id?: string | null
+          nid_back_url?: string | null
+          nid_front_url?: string | null
+          ocr_attempts?: number
+          ocr_data?: Json | null
           phone?: string | null
+          rejection_reason?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
           selfie_url?: string | null
           sleep_schedule?:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
             | null
+          student_id_url?: string | null
+          student_reg_no?: string | null
+          university?: string | null
           updated_at?: string
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
         }
         Update: {
           bio?: string | null
@@ -106,13 +126,23 @@ export type Database = {
           full_name?: string | null
           id?: string
           national_id?: string | null
+          nid_back_url?: string | null
+          nid_front_url?: string | null
+          ocr_attempts?: number
+          ocr_data?: Json | null
           phone?: string | null
+          rejection_reason?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
           selfie_url?: string | null
           sleep_schedule?:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
             | null
+          student_id_url?: string | null
+          student_reg_no?: string | null
+          university?: string | null
           updated_at?: string
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -350,9 +380,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_verified: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "student" | "landlord" | "admin"
+      app_role: "student" | "landlord" | "admin" | "renter"
       booking_status: "pending" | "confirmed" | "cancelled"
       cleanliness_pref: "High" | "Medium" | "Flexible"
       occupancy_status: "vacant" | "occupied"
@@ -360,6 +391,7 @@ export type Database = {
       property_status: "pending" | "approved" | "rejected"
       roommate_request_status: "searching" | "matched"
       sleep_schedule_pref: "Early Bird" | "Night Owl" | "Flexible"
+      verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -487,7 +519,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "landlord", "admin"],
+      app_role: ["student", "landlord", "admin", "renter"],
       booking_status: ["pending", "confirmed", "cancelled"],
       cleanliness_pref: ["High", "Medium", "Flexible"],
       occupancy_status: ["vacant", "occupied"],
@@ -495,6 +527,7 @@ export const Constants = {
       property_status: ["pending", "approved", "rejected"],
       roommate_request_status: ["searching", "matched"],
       sleep_schedule_pref: ["Early Bird", "Night Owl", "Flexible"],
+      verification_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
