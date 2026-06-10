@@ -240,18 +240,21 @@
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
-  let role = 'student';
+  let role = 'renter';
   let tab = 'signin';
   const submit = document.getElementById('submitBtn');
   const nameRow = document.getElementById('nameRow');
 
+  function roleLabel(r) {
+    return r === 'student' ? 'Student' : r === 'landlord' ? 'Landlord' : 'Renter';
+  }
   function refresh() {
     nameRow.style.display = tab === 'signup' ? 'block' : 'none';
     document.body.classList.toggle('is-landlord', role === 'landlord');
+    document.body.classList.toggle('is-student', role === 'student');
     document.body.classList.toggle('is-signup', tab === 'signup');
     const action = tab === 'signin' ? 'Sign In' : (role === 'landlord' ? 'Submit for Verification' : 'Sign Up');
-    const r = role === 'student' ? 'Student' : 'Landlord';
-    submit.textContent = tab === 'signin' ? `${action} as ${r}` : action;
+    submit.textContent = tab === 'signin' ? `${action} as ${roleLabel(role)}` : action;
   }
 
   document.querySelectorAll('.role-toggle button').forEach(b => b.addEventListener('click', () => {
@@ -267,10 +270,10 @@
     refresh();
   }));
 
-  // File input previews
   function bindFile(inputId, labelId) {
     const inp = document.getElementById(inputId);
     const lbl = document.getElementById(labelId);
+    if (!inp || !lbl) return;
     inp.addEventListener('change', () => {
       if (!inp.files || !inp.files.length) { lbl.textContent = 'No file selected'; return; }
       lbl.textContent = Array.from(inp.files).map(f => f.name).join(', ');
@@ -279,6 +282,7 @@
   bindFile('ll-nid-file', 'll-nid-file-name');
   bindFile('ll-selfie', 'll-selfie-name');
   bindFile('ll-deed', 'll-deed-name');
+  bindFile('st-id-file', 'st-id-file-name');
 
   // Password show/hide toggle
   document.addEventListener('click', (e) => {
