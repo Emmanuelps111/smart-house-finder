@@ -60,6 +60,16 @@ type Profile = {
   sleep_schedule: string | null;
   created_at: string;
   updated_at: string;
+  verification_status?: "pending" | "approved" | "rejected" | null;
+  ocr_attempts?: number | null;
+  ocr_data?: Record<string, unknown> | null;
+  nid_front_url?: string | null;
+  nid_back_url?: string | null;
+  university?: string | null;
+  student_reg_no?: string | null;
+  student_id_url?: string | null;
+  rejection_reason?: string | null;
+  verified_at?: string | null;
 };
 
 type AppRole = "student" | "landlord" | "admin";
@@ -134,6 +144,19 @@ function AdminPage() {
     toast.success(`Property ${status}`);
     setAllProperties((p) => p.map((x) => (x.id === id ? { ...x, status } : x)));
     setSelected((s) => (s && s.id === id ? { ...s, status } : s));
+  };
+
+  const setVerification = async (userId: string, decision: "approved" | "rejected", reason?: string) => {
+    const patch: Record<string, unknown> = {
+      verification_status: decision,
+      rejection_reason: decision === "rejected" ? reason ?? null : null,
+    };
+    if (decision === "approved") patch.verified_at = new Date().toISOString();
+    const { error } = await supabase.from("profiles").update(patch as never).eq("id", userId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`User ${decision}`);
+    setProfiles((arr) => arr.map((u) => (u.id === userId ? { ...u, ...patch } as Profile : u)));
+    setSelectedUser((u) => (u && u.id === userId ? { ...u, ...patch } as Profile : u));
   };
 
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
