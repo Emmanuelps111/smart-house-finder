@@ -181,6 +181,10 @@ function AdminPage() {
   const pendingCount = allProperties.filter((p) => p.status === "pending").length;
   const rejectedCount = allProperties.filter((p) => p.status === "rejected").length;
   const pending = allProperties.filter((p) => p.status === "pending");
+  const pendingVerifications = profiles.filter(
+    (u) => u.verification_status === "pending" &&
+      (u.nid_front_url || u.student_id_url || u.ocr_data || u.university)
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50">
@@ -206,10 +210,14 @@ function AdminPage() {
             <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
             <TabsTrigger value="moderation" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingCount}</Badge>}</TabsTrigger>
             <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">All properties</TabsTrigger>
+            <TabsTrigger value="verifications" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Verifications{pendingVerifications.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingVerifications.length}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
+
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Total properties" value={allProperties.length} />
               <StatCard label="Pending" value={pendingCount} />
