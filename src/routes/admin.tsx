@@ -60,6 +60,16 @@ type Profile = {
   sleep_schedule: string | null;
   created_at: string;
   updated_at: string;
+  verification_status?: "pending" | "approved" | "rejected" | null;
+  ocr_attempts?: number | null;
+  ocr_data?: Record<string, unknown> | null;
+  nid_front_url?: string | null;
+  nid_back_url?: string | null;
+  university?: string | null;
+  student_reg_no?: string | null;
+  student_id_url?: string | null;
+  rejection_reason?: string | null;
+  verified_at?: string | null;
 };
 
 type AppRole = "student" | "landlord" | "admin";
@@ -136,6 +146,19 @@ function AdminPage() {
     setSelected((s) => (s && s.id === id ? { ...s, status } : s));
   };
 
+  const setVerification = async (userId: string, decision: "approved" | "rejected", reason?: string) => {
+    const patch: Record<string, unknown> = {
+      verification_status: decision,
+      rejection_reason: decision === "rejected" ? reason ?? null : null,
+    };
+    if (decision === "approved") patch.verified_at = new Date().toISOString();
+    const { error } = await supabase.from("profiles").update(patch as never).eq("id", userId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`User ${decision}`);
+    setProfiles((arr) => arr.map((u) => (u.id === userId ? { ...u, ...patch } as Profile : u)));
+    setSelectedUser((u) => (u && u.id === userId ? { ...u, ...patch } as Profile : u));
+  };
+
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
   if (authState === "unauthenticated") return (
     <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-br from-blue-50 to-white">
@@ -158,6 +181,10 @@ function AdminPage() {
   const pendingCount = allProperties.filter((p) => p.status === "pending").length;
   const rejectedCount = allProperties.filter((p) => p.status === "rejected").length;
   const pending = allProperties.filter((p) => p.status === "pending");
+  const pendingVerifications = profiles.filter(
+    (u) => u.verification_status === "pending" &&
+      (u.nid_front_url || u.student_id_url || u.ocr_data || u.university)
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50">
@@ -183,10 +210,14 @@ function AdminPage() {
             <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
             <TabsTrigger value="moderation" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingCount}</Badge>}</TabsTrigger>
             <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">All properties</TabsTrigger>
+            <TabsTrigger value="verifications" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Verifications{pendingVerifications.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingVerifications.length}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
+
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Total properties" value={allProperties.length} />
               <StatCard label="Pending" value={pendingCount} />
@@ -204,6 +235,50 @@ function AdminPage() {
           <TabsContent value="all" className="mt-6">
             <PropertyTable items={allProperties} onOpen={openProperty} />
           </TabsContent>
+
+          <TabsContent value="verifications" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader><CardTitle className="text-blue-900">Pending identity verifications</CardTitle></CardHeader>
+              <CardContent>
+                {pendingVerifications.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending verifications.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingVerifications.map((u) => {
+                      const roles = displayRoles(rolesByUser[u.id], u.role);
+                      const ocr = u.ocr_data as { confidence?: number; detected_name?: string; detected_nid?: string; reasoning?: string } | null;
+                      return (
+                        <div key={u.id} className="flex items-start gap-4 p-3 border border-blue-100 rounded-lg bg-blue-50/30">
+                          {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-blue-200" /> : <div className="w-16 h-16 rounded-full bg-blue-100" />}
+                          <div className="flex-1 text-sm">
+                            <div className="font-semibold text-blue-900">{u.full_name ?? "—"} <Badge className="ml-2 bg-amber-500 hover:bg-amber-600">{roles}</Badge></div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {u.phone && <>📞 {u.phone} · </>}{u.national_id && <>NID: <span className="font-mono">{u.national_id}</span></>}
+                            </div>
+                            {u.university && <div className="text-xs mt-1">🎓 {u.university} · Reg #: {u.student_reg_no}</div>}
+                            {ocr && (
+                              <div className="text-xs mt-1 text-slate-700">
+                                OCR ({u.ocr_attempts ?? 0} attempts) confidence: <strong>{ocr.confidence ?? "?"}%</strong>. Detected: {ocr.detected_name ?? "?"} / {ocr.detected_nid ?? "?"}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={() => setSelectedUser(u)}>Review</Button>
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setVerification(u.id, "approved")}>Approve</Button>
+                            <Button size="sm" variant="destructive" onClick={() => {
+                              const reason = window.prompt("Reason for rejection (optional):") ?? "";
+                              setVerification(u.id, "rejected", reason);
+                            }}>Reject</Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           <TabsContent value="users" className="mt-6">
             <Card className="border-blue-200"><CardHeader><CardTitle className="text-blue-900">All users</CardTitle></CardHeader>
@@ -338,9 +413,40 @@ function AdminPage() {
               </div>
               <Field label="Bio" wide>{selectedUser.bio ?? "—"}</Field>
               <Field label="User ID" wide><span className="font-mono text-xs">{selectedUser.id}</span></Field>
-              <p className="text-xs text-muted-foreground border-t pt-3">
-                National ID image and identity-document uploads will appear here once the OCR verification system is enabled.
-              </p>
+
+              <div className="border-t pt-4 space-y-3">
+                <h4 className="font-semibold text-blue-900">Identity verification</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Status">
+                    <Badge className={
+                      selectedUser.verification_status === "approved" ? "bg-emerald-600" :
+                      selectedUser.verification_status === "rejected" ? "bg-red-600" :
+                      "bg-amber-500"
+                    }>{selectedUser.verification_status ?? "pending"}</Badge>
+                  </Field>
+                  <Field label="OCR attempts">{selectedUser.ocr_attempts ?? 0} / 3</Field>
+                  {selectedUser.university && <Field label="University">{selectedUser.university}</Field>}
+                  {selectedUser.student_reg_no && <Field label="Reg #">{selectedUser.student_reg_no}</Field>}
+                </div>
+                {selectedUser.ocr_data && (
+                  <pre className="text-xs bg-slate-50 border border-slate-200 rounded p-2 overflow-auto max-h-40">{JSON.stringify(selectedUser.ocr_data, null, 2)}</pre>
+                )}
+                <div className="grid grid-cols-3 gap-2">
+                  {selectedUser.nid_front_url && <a href={selectedUser.nid_front_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_front_url} alt="NID front" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">NID front</div></a>}
+                  {selectedUser.nid_back_url && <a href={selectedUser.nid_back_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_back_url} alt="NID back" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">NID back</div></a>}
+                  {selectedUser.student_id_url && <a href={selectedUser.student_id_url} target="_blank" rel="noreferrer"><img src={selectedUser.student_id_url} alt="Student ID" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">Student ID</div></a>}
+                </div>
+                {selectedUser.verification_status !== "approved" && (
+                  <div className="flex gap-2">
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setVerification(selectedUser.id, "approved")}>Approve</Button>
+                    <Button size="sm" variant="destructive" onClick={() => {
+                      const reason = window.prompt("Reason for rejection (optional):") ?? "";
+                      setVerification(selectedUser.id, "rejected", reason);
+                    }}>Reject</Button>
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
         </DialogContent>
