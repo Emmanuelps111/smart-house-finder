@@ -192,14 +192,21 @@
 
     // === Request viewing ===
     document.getElementById('requestViewingBtn').addEventListener('click', async () => {
+      const cached = JSON.parse(localStorage.getItem('shf-user') || 'null');
+      if (!cached) { window.toast.error('Please sign in first.'); location.href = '/login.html?next=' + encodeURIComponent(location.pathname + location.search); return; }
+      // Verification gate
+      const sb = await window.SHFCloud.ready;
+      const { data: prof } = await sb.from('profiles').select('phone, verification_status').eq('id', cached.id).maybeSingle();
+      if (!prof || prof.verification_status !== 'approved') {
+        if (confirm('You need to verify your identity before requesting a viewing. Go to sign-up to complete verification now?')) {
+          location.href = '/login.html';
+        }
+        return;
+      }
       if (!l.isDb || !l.landlord_id) {
         alert('Request sent. The landlord will contact you shortly.');
         return;
       }
-      const cached = JSON.parse(localStorage.getItem('shf-user') || 'null');
-      if (!cached) { window.toast.error('Please sign in first.'); return; }
-      const sb = await window.SHFCloud.ready;
-      const { data: prof } = await sb.from('profiles').select('phone').eq('id', cached.id).maybeSingle();
       const defaultPhone = (prof && prof.phone) || '+255';
       const phone = prompt('Enter your phone number so the landlord can call you back:', defaultPhone);
       if (!phone) return;
@@ -218,6 +225,13 @@
       if (error) { window.toast.error(error.message); return; }
       window.toast.success('Viewing request sent to the landlord!');
     });
+
+    // === Hide student-only sections from non-students ===
+    const _u = JSON.parse(localStorage.getItem('shf-user') || 'null');
+    if (!_u || _u.role !== 'student') {
+      const rm = document.getElementById('roommateSection');
+      if (rm) rm.style.display = 'none';
+    }
 
     // === Roommate Requests ===
     (async function initRoommates(){
