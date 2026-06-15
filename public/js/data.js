@@ -40,6 +40,11 @@ window.SHF.walkingTime = function (km) {
   return h + 'h ' + m + 'm walk';
 };
 window.SHF.proximityBadges = function (lat, lng) {
+  // Student-only feature: hide commute/walk/distance from renters & landlords
+  try {
+    const u = JSON.parse(localStorage.getItem('shf-user') || 'null');
+    if (!u || u.role !== 'student') return '';
+  } catch (e) { return ''; }
   const km = window.SHF.haversineKm(lat, lng, window.SHF.CAMPUS.lat, window.SHF.CAMPUS.lng);
   if (km == null) return '';
   const cost = window.SHF.commuteCostTZS(km);
@@ -48,6 +53,7 @@ window.SHF.proximityBadges = function (lat, lng) {
     <span class="badge" style="background:#E0F2FE;color:#0369A1;border:none;">📍 ${km.toFixed(1)} km to Campus</span>
     <span class="badge" style="background:#FEF3C7;color:#92400E;border:none;">🛵 ~TSh ${cost.toLocaleString('en-TZ')}/day</span>
     <span class="badge" style="background:#DCFCE7;color:#166534;border:none;">🚶 ${walk}</span>
+    <span class="badge" style="background:#EDE9FE;color:#5B21B6;border:none;">🎓 10% Student Discount</span>
   </div>`;
 };
 
