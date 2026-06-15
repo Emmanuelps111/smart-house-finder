@@ -528,7 +528,7 @@
       if (account.length < 4) { setError('ll-account','Enter your account number.'); ok = false; }
       if (!agree) { setError('ll-agree','You must accept the terms to continue.'); ok = false; }
 
-      landlordMeta = { phone, national_id: nid };
+      landlordMeta = { phone, national_id: nid, dob };
     }
 
     if (tab === 'signup' && role === 'student') {
