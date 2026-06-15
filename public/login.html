@@ -417,128 +417,62 @@
         const isLandlordSignup = role === 'landlord';
         const isStudentSignup = role === 'student';
         const isRenterSignup = role === 'renter';
-        let ocrResult = null;
-
-        if (isLandlordSignup || isStudentSignup) {
-          try {
-            const { data: signinData } = await sb.auth.signInWithPassword({
-              email: emailEl.value.trim(), password: passEl.value,
-            });
-            const uid = signinData?.user?.id || signupData?.user?.id;
-            const accessToken = signinData?.session?.access_token;
-            if (uid && signinData?.session) {
-              const uploadFile = async (file, prefix) => {
-                if (!file) return null;
-                const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-                const path = `${uid}/${prefix}-${Date.now()}.${ext}`;
-                const { error: upErr } = await sb.storage.from('property-photos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true });
-                if (upErr) return null;
-                const { data: pub } = sb.storage.from('property-photos').getPublicUrl(path);
-                return pub.publicUrl;
-              };
-
-              if (isLandlordSignup) {
-                const selfieFile = document.getElementById('ll-selfie').files[0];
-                const nidFiles = document.getElementById('ll-nid-file').files;
-                const selfieUrl = await uploadFile(selfieFile, 'selfie');
-                const nidFrontUrl = await uploadFile(nidFiles[0], 'nid-front');
-                const nidBackUrl = nidFiles[1] ? await uploadFile(nidFiles[1], 'nid-back') : null;
-
-                await sb.from('profiles').update({
-                  selfie_url: selfieUrl,
-                  phone: landlordMeta.phone,
-                  national_id: landlordMeta.national_id,
-                  nid_front_url: nidFrontUrl,
-                  nid_back_url: nidBackUrl,
-                }).eq('id', uid);
-
-                // Call OCR verification
-                if (nidFrontUrl && accessToken) {
-                  try {
-                    const r = await fetch('/api/verify-id', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-                      body: JSON.stringify({
-                        nid_front_url: nidFrontUrl,
-                        nid_back_url: nidBackUrl || undefined,
-                        selfie_url: selfieUrl || undefined,
-                        expected_name: nameEl.value.trim(),
-                        expected_nid: landlordMeta.national_id,
-                      }),
-                    });
-                    ocrResult = await r.json();
-                  } catch (e) { console.warn('OCR call failed:', e); }
-                }
-              } else if (isStudentSignup) {
-                const idFile = document.getElementById('st-id-file').files[0];
-                const studentIdUrl = await uploadFile(idFile, 'student-id');
-                await sb.from('profiles').update({
-                  university: studentMeta.university,
-                  student_reg_no: studentMeta.student_reg_no,
-                  student_id_url: studentIdUrl,
-                }).eq('id', uid);
-              }
-              await sb.auth.signOut();
-            }
-          } catch (e) { console.warn('post-signup upload skipped:', e); }
-        } else if (isRenterSignup) {
-          // Auto-approve plain renters so they can request viewings
-          try {
-            const { data: signinData } = await sb.auth.signInWithPassword({
-              email: emailEl.value.trim(), password: passEl.value,
-            });
-            if (signinData?.user?.id) {
-              await sb.from('profiles').update({
-                verification_status: 'approved',
-                verified_at: new Date().toISOString(),
-              }).eq('id', signinData.user.id);
-              await sb.auth.signOut();
-            }
-          } catch (e) { console.warn('renter auto-approve skipped:', e); }
-        }
 
         if (addedRoleToExisting) {
-          window.toast.success(`Your existing account is now also a ${supabaseRole} account. Sign in to continue.`);
+          window.toast.success(`Your existing account is now also a ${supabaseRole} account.`);
           document.querySelector('.auth-card').innerHTML = `
             <div style="text-align:center; padding:2rem 0;">
               <i class="fas fa-circle-check" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
               <h2>Role added!</h2>
-              <p>Your account <strong>${emailEl.value}</strong> can now sign in as a <strong>${supabaseRole}</strong> as well.</p>
-              <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Go to sign in</a>
+              <p>Your account <strong>${emailEl.value}</strong> can now also sign in as a <strong>${supabaseRole}</strong>.</p>
+              ${isRenterSignup ? '<a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Continue to sign in</a>' : '<p style="font-size:.9rem;color:#6b7280;">Sign in below to complete ID verification.</p><a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Sign in to verify</a>'}
             </div>`;
           return;
         }
 
-        let headline, bodyMsg, icon;
-        if (ocrResult && ocrResult.status === 'approved') {
-          headline = 'Identity verified ✓';
-          icon = 'circle-check';
-          bodyMsg = `Welcome! Your ID was verified automatically (${ocrResult.confidence}% confidence). You can now sign in and request property viewings.`;
-        } else if (ocrResult && ocrResult.status === 'pending') {
-          headline = 'Pending admin review';
-          icon = 'hourglass-half';
-          bodyMsg = ocrResult.message || 'Our team will review your ID within 24–48 hours. You can browse listings in the meantime.';
-        } else if (isLandlordSignup) {
-          headline = 'Application received';
-          icon = 'hourglass-half';
-          bodyMsg = `We sent a confirmation link to ${emailEl.value}. Verification will start once you sign in.`;
-        } else if (isStudentSignup) {
-          headline = 'Account created';
-          icon = 'envelope-circle-check';
-          bodyMsg = `We sent a confirmation link to ${emailEl.value}. Student verification will complete within 24 hours.`;
-        } else {
-          headline = 'Welcome aboard!';
-          icon = 'envelope-circle-check';
-          bodyMsg = `We sent a confirmation link to ${emailEl.value}. Click it to activate your account, then sign in.`;
+        if (isRenterSignup) {
+          // Auto-approve plain renters
+          try {
+            const { data: signinData } = await sb.auth.signInWithPassword({ email: emailEl.value.trim(), password: passEl.value });
+            if (signinData?.user?.id) {
+              await sb.from('profiles').update({ verification_status: 'approved', verified_at: new Date().toISOString() }).eq('id', signinData.user.id);
+              await sb.auth.signOut();
+            }
+          } catch (e) { console.warn('renter auto-approve skipped:', e); }
+          showFinalPanel('Welcome aboard!', `Account created for <strong>${emailEl.value}</strong>. ${emailEl.value.includes('@') ? 'If asked, confirm via the email we sent, then sign in.' : ''}`, 'envelope-circle-check');
+          return;
         }
-        window.toast.success(headline);
-        document.querySelector('.auth-card').innerHTML = `
-          <div style="text-align:center; padding:2rem 0;">
-            <i class="fas fa-${icon}" style="font-size:3.5rem; color:var(--primary,#3B82F6); margin-bottom:1rem;"></i>
-            <h2>${headline}</h2>
-            <p>${bodyMsg}</p>
-            <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Back to sign in</a>
-          </div>`;
+
+        // Landlord or Student: sign in (or skip if email confirmation required), upload, verify
+        let session = null;
+        try {
+          const r = await sb.auth.signInWithPassword({ email: emailEl.value.trim(), password: passEl.value });
+          if (r.data?.session) session = r.data.session;
+        } catch (e) {}
+        if (!session) {
+          showFinalPanel('Confirm your email', `We sent a confirmation link to <strong>${emailEl.value}</strong>. Open it, then return here to upload your ID and complete verification.`, 'envelope-circle-check');
+          return;
+        }
+
+        const ctx = {
+          sb, session, uid: session.user.id,
+          role: supabaseRole,
+          name: nameEl.value.trim(),
+          email: emailEl.value.trim(),
+          landlordMeta, studentMeta,
+          attempts: 0,
+        };
+        // Persist role-specific profile metadata first
+        if (isLandlordSignup) {
+          await sb.from('profiles').update({
+            phone: landlordMeta.phone, national_id: landlordMeta.national_id,
+          }).eq('id', ctx.uid);
+        } else {
+          await sb.from('profiles').update({
+            university: studentMeta.university, student_reg_no: studentMeta.student_reg_no,
+          }).eq('id', ctx.uid);
+        }
+        await runVerification(ctx);
         return;
       }
 
