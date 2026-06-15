@@ -316,15 +316,37 @@
 
     const { sb, session, uid, role, name, landlordMeta, studentMeta } = ctx;
 
-    // Upload (use replacement files on retry, else original form files)
-    let idFront, idBack, selfieFile, studentIdFile;
-    if (role === 'landlord') {
-      const nidFiles = (replacementFiles && replacementFiles.nidFiles) || document.getElementById('ll-nid-file')?.files;
-      selfieFile = (replacementFiles && replacementFiles.selfie) || document.getElementById('ll-selfie')?.files[0];
-      if (nidFiles && nidFiles.length) { idFront = nidFiles[0]; idBack = nidFiles[1] || null; }
-    } else {
-      studentIdFile = (replacementFiles && replacementFiles.studentId) || document.getElementById('st-id-file')?.files[0];
-      idFront = studentIdFile;
+    // Cache originally-selected files on ctx so retries work after the form is gone
+    if (!ctx.files) {
+      ctx.files = {};
+      if (role === 'landlord') {
+        const nidFiles = document.getElementById('ll-nid-file')?.files;
+        ctx.files.idFront = nidFiles && nidFiles[0] || null;
+        ctx.files.idBack = nidFiles && nidFiles[1] || null;
+        ctx.files.selfie = document.getElementById('ll-selfie')?.files[0] || null;
+      } else {
+        ctx.files.idFront = document.getElementById('st-id-file')?.files[0] || null;
+      }
+    }
+    // Apply replacements if provided and non-empty
+    if (replacementFiles) {
+      if (role === 'landlord') {
+        if (replacementFiles.nidFiles && replacementFiles.nidFiles.length) {
+          ctx.files.idFront = replacementFiles.nidFiles[0];
+          ctx.files.idBack = replacementFiles.nidFiles[1] || ctx.files.idBack;
+        }
+        if (replacementFiles.selfie) ctx.files.selfie = replacementFiles.selfie;
+      } else {
+        if (replacementFiles.studentId) ctx.files.idFront = replacementFiles.studentId;
+      }
+    }
+    const idFront = ctx.files.idFront;
+    const idBack = ctx.files.idBack;
+    const selfieFile = ctx.files.selfie;
+
+    if (!idFront) {
+      renderVerifResult(ctx, { error: 'Please choose an ID image to upload.' });
+      return;
     }
 
     const idFrontUrl = await uploadVerifFile(sb, uid, idFront, role === 'landlord' ? 'nid-front' : 'student-id');
