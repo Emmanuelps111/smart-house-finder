@@ -75,6 +75,13 @@
     if (!user || (user.role !== 'landlord' && user.role !== 'admin')) {
       return renderDenied('You need a landlord account to manage listings.');
     }
+    // Verification gate — landlords must be approved (admins bypass)
+    if (user.role !== 'admin') {
+      const { data: prof } = await sb.from('profiles').select('verification_status').eq('id', user.id).maybeSingle();
+      if (!prof || prof.verification_status !== 'approved') {
+        return renderPending(prof?.verification_status || 'pending');
+      }
+    }
     await Promise.all([loadMine(), loadNotifications()]);
     renderDashboard();
   })();
@@ -84,6 +91,21 @@
       <i class="fas fa-lock" style="font-size:3.5rem;color:var(--primary);"></i>
       <h1>Landlords only</h1><p>${msg}</p>
       <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Go to sign in</a>
+    </div></div>`;
+  }
+
+  function renderPending(status) {
+    const rejected = status === 'rejected';
+    root.innerHTML = `<div class="dash-wrap"><div class="container access-denied">
+      <i class="fas fa-${rejected?'circle-xmark':'hourglass-half'}" style="font-size:3.5rem;color:${rejected?'#ef4444':'#f59e0b'};"></i>
+      <h1>${rejected ? 'Verification rejected' : 'Verification pending'}</h1>
+      <p style="max-width:520px;margin:0 auto;">${rejected
+        ? 'Your previous ID submission was rejected by our admin team. Please sign up again with a clearer ID to retry verification.'
+        : 'An admin is reviewing your ID documents. You\'ll get full access to the landlord dashboard once approved (usually within 24–48 hours).'}</p>
+      <div style="margin-top:1.5rem; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
+        <a href="/listings.html" class="btn btn-outline">Browse listings while you wait</a>
+        <a href="/login.html" class="btn btn-primary">Retry verification</a>
+      </div>
     </div></div>`;
   }
 
