@@ -102,11 +102,16 @@ function nameMatchAtLeastTwo(detected: string | null, expected: string): Rule {
   };
 }
 
-function confidenceRule(c: number, threshold = 60): Rule {
+function confidenceRule(ocr: OcrFields, threshold = 100): Rule {
+  const c = ocr.confidence;
+  const passed = c >= threshold;
+  const why = ocr.confidence_reason ? ` Reason: ${ocr.confidence_reason}` : "";
   return {
-    name: `OCR confidence ≥ ${threshold}%`,
-    passed: c >= threshold,
-    reason: c >= threshold ? undefined : `Confidence ${c}% — please upload a clearer photo.`,
+    name: `OCR confidence = ${threshold}%`,
+    passed,
+    reason: passed
+      ? undefined
+      : `Confidence ${c}% — needs to be ${threshold}%.${why} Please upload a sharper, well-lit photo with the whole card in frame.`,
   };
 }
 
