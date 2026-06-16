@@ -8,6 +8,7 @@ type OcrFields = {
   detected_dob: string | null; // YYYY-MM-DD
   detected_institution: string | null;
   confidence: number; // 0-100
+  confidence_reason: string | null; // why < 100
   raw_text: string | null;
 };
 
@@ -24,7 +25,8 @@ Extract these fields exactly as printed on the card image(s):
 - detected_id_number: the 20-digit NIDA number (digits only, strip spaces/dashes)
 - detected_dob: date of birth in YYYY-MM-DD
 - detected_institution: null
-- confidence: 0-100 integer (how clear the ID is)
+- confidence: integer 0-100. Only return 100 if EVERY character of EVERY field is perfectly clear, sharp, fully visible, and you are 100% certain there are no misread characters. Otherwise return a lower number.
+- confidence_reason: if confidence < 100, a short specific explanation of what reduced it (e.g. "glare on NIDA digits 9-12", "surname partially cropped", "blurry DOB area"). Use null only when confidence is exactly 100.
 - raw_text: the full OCR text you read (1-2 lines max)`
       : `You are an OCR engine for a University of Dar es Salaam (UDSM) Student ID card.
 Extract these fields exactly as printed on the card image(s):
@@ -32,7 +34,8 @@ Extract these fields exactly as printed on the card image(s):
 - detected_id_number: the student registration number as printed (e.g. "2023-04-12345" or "2023/04/12345")
 - detected_dob: null (not on student card)
 - detected_institution: the institution / university name printed on the card
-- confidence: 0-100 integer
+- confidence: integer 0-100. Only return 100 if EVERY character of EVERY field is perfectly clear, sharp, fully visible, and you are 100% certain there are no misread characters. Otherwise return a lower number.
+- confidence_reason: if confidence < 100, a short specific explanation of what reduced it (e.g. "glare on reg number", "name partially obscured", "blurry institution text"). Use null only when confidence is exactly 100.
 - raw_text: the full OCR text you read (1-2 lines max)`;
 
   const content: Array<Record<string, unknown>> = [
@@ -40,7 +43,7 @@ Extract these fields exactly as printed on the card image(s):
       type: "text",
       text: `${prompt}
 
-Return ONLY a JSON object with EXACTLY these keys: detected_name, detected_id_number, detected_dob, detected_institution, confidence, raw_text. Use null for missing values. No markdown, no commentary.`,
+Return ONLY a JSON object with EXACTLY these keys: detected_name, detected_id_number, detected_dob, detected_institution, confidence, confidence_reason, raw_text. Use null for missing values. No markdown, no commentary.`,
     },
     ...imageUrls.map((url) => ({ type: "image_url", image_url: { url } })),
   ];
@@ -69,6 +72,7 @@ Return ONLY a JSON object with EXACTLY these keys: detected_name, detected_id_nu
     detected_dob: parsed.detected_dob ?? null,
     detected_institution: parsed.detected_institution ?? null,
     confidence: Number(parsed.confidence) || 0,
+    confidence_reason: parsed.confidence_reason ?? null,
     raw_text: parsed.raw_text ?? null,
   };
 }
@@ -98,18 +102,23 @@ function nameMatchAtLeastTwo(detected: string | null, expected: string): Rule {
   };
 }
 
-function confidenceRule(c: number, threshold = 60): Rule {
+function confidenceRule(ocr: OcrFields, threshold = 100): Rule {
+  const c = ocr.confidence;
+  const passed = c >= threshold;
+  const why = ocr.confidence_reason ? ` Reason: ${ocr.confidence_reason}` : "";
   return {
-    name: `OCR confidence ≥ ${threshold}%`,
-    passed: c >= threshold,
-    reason: c >= threshold ? undefined : `Confidence ${c}% — please upload a clearer photo.`,
+    name: `OCR confidence = ${threshold}%`,
+    passed,
+    reason: passed
+      ? undefined
+      : `Confidence ${c}% — needs to be ${threshold}%.${why} Please upload a sharper, well-lit photo with the whole card in frame.`,
   };
 }
 
 // --- Landlord rules ---
 function validateLandlord(ocr: OcrFields, expected: { name: string; nid: string; dob: string }): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr.confidence, 60));
+  rules.push(confidenceRule(ocr, 100));
 
   const digits = (ocr.detected_id_number ?? "").replace(/\D/g, "");
   rules.push({
@@ -152,7 +161,7 @@ function validateStudent(
   expected: { name: string; regno: string; university: string },
 ): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr.confidence, 55));
+  rules.push(confidenceRule(ocr, 100));
 
   const instRaw = (ocr.detected_institution ?? "").toString();
   const instNorm = instRaw
