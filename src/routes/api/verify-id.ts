@@ -8,6 +8,7 @@ type OcrFields = {
   detected_dob: string | null; // YYYY-MM-DD
   detected_institution: string | null;
   confidence: number; // 0-100
+  confidence_reason: string | null; // why < 100
   raw_text: string | null;
 };
 
