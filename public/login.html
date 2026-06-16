@@ -354,35 +354,10 @@
       const el = document.querySelector(`#vSteps [data-step="${key}"]`);
       if (el) { el.style.opacity = '1'; el.innerHTML = `<i class="fas fa-spinner fa-spin" style="color:#3B82F6;"></i> ` + (el.textContent || '').trim(); }
     };
-
-
-    const { sb, session, uid, role, name, landlordMeta, studentMeta } = ctx;
-
-    if (!ctx.files) {
-      ctx.files = {};
-      if (role === 'landlord') {
-        const nidFiles = document.getElementById('ll-nid-file')?.files;
-        ctx.files.idFront = nidFiles && nidFiles[0] || null;
-        ctx.files.idBack = nidFiles && nidFiles[1] || null;
-        ctx.files.selfie = document.getElementById('ll-selfie')?.files[0] || null;
-      } else {
-        ctx.files.idFront = document.getElementById('st-id-file')?.files[0] || null;
-      }
-    }
-    if (replacementFiles) {
-      if (role === 'landlord') {
-        if (replacementFiles.nidFiles && replacementFiles.nidFiles.length) {
-          ctx.files.idFront = replacementFiles.nidFiles[0];
-          ctx.files.idBack = replacementFiles.nidFiles[1] || ctx.files.idBack;
-        }
-        if (replacementFiles.selfie) ctx.files.selfie = replacementFiles.selfie;
-      } else {
-        if (replacementFiles.studentId) ctx.files.idFront = replacementFiles.studentId;
-      }
-    }
     const idFront = ctx.files.idFront;
     const idBack = ctx.files.idBack;
     const selfieFile = ctx.files.selfie;
+
 
     if (!idFront) {
       renderVerifResult(ctx, { error: 'No ID image found. Please re-upload your document.', errorType: 'missing_file' });
