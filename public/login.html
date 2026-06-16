@@ -308,15 +308,29 @@
   async function runVerification(ctx, replacementFiles) {
     const card = document.querySelector('.auth-card');
     card.innerHTML = `
-      <div style="text-align:center; padding:2rem 0;">
-        <i class="fas fa-spinner fa-spin" style="font-size:2.5rem; color:var(--primary,#3B82F6);"></i>
+      <div style="text-align:center; padding:1.5rem 0;">
+        <div style="display:inline-flex; width:84px; height:84px; border-radius:50%; background:linear-gradient(135deg,#3B82F6,#8b5cf6); align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(59,130,246,.35);">
+          <i class="fas fa-id-card" style="font-size:2.2rem; color:white;"></i>
+        </div>
         <h2 style="margin-top:1rem;">Verifying your ID…</h2>
-        <p>Reading text from your ID and matching it with your details. This takes 5–15 seconds.</p>
+        <p style="color:#6b7280;">Reading your document with AI and comparing it to what you entered.</p>
+        <div id="vSteps" style="max-width:320px; margin:1rem auto 0; text-align:left; font-size:.9rem;">
+          <div data-step="upload"><i class="fas fa-spinner fa-spin" style="color:#3B82F6;"></i> Uploading your document…</div>
+          <div data-step="ocr" style="opacity:.45; margin-top:.4rem;"><i class="far fa-circle"></i> Extracting text from the image</div>
+          <div data-step="match" style="opacity:.45; margin-top:.4rem;"><i class="far fa-circle"></i> Matching against your details</div>
+        </div>
       </div>`;
+    const tick = (key) => {
+      const el = document.querySelector(`#vSteps [data-step="${key}"]`);
+      if (el) el.innerHTML = `<i class="fas fa-circle-check" style="color:#10b981;"></i> ` + (el.textContent || '').trim();
+    };
+    const start = (key) => {
+      const el = document.querySelector(`#vSteps [data-step="${key}"]`);
+      if (el) { el.style.opacity = '1'; el.innerHTML = `<i class="fas fa-spinner fa-spin" style="color:#3B82F6;"></i> ` + (el.textContent || '').trim(); }
+    };
 
     const { sb, session, uid, role, name, landlordMeta, studentMeta } = ctx;
 
-    // Cache originally-selected files on ctx so retries work after the form is gone
     if (!ctx.files) {
       ctx.files = {};
       if (role === 'landlord') {
@@ -328,7 +342,6 @@
         ctx.files.idFront = document.getElementById('st-id-file')?.files[0] || null;
       }
     }
-    // Apply replacements if provided and non-empty
     if (replacementFiles) {
       if (role === 'landlord') {
         if (replacementFiles.nidFiles && replacementFiles.nidFiles.length) {
@@ -345,7 +358,7 @@
     const selfieFile = ctx.files.selfie;
 
     if (!idFront) {
-      renderVerifResult(ctx, { error: 'Please choose an ID image to upload.' });
+      renderVerifResult(ctx, { error: 'No ID image found. Please re-upload your document.', errorType: 'missing_file' });
       return;
     }
 
@@ -355,16 +368,14 @@
     if (selfieUrl) await sb.from('profiles').update({ selfie_url: selfieUrl }).eq('id', uid);
 
     if (!idFrontUrl) {
-      renderVerifResult(ctx, { error: 'Could not upload your ID image. Please try again.' });
+      renderVerifResult(ctx, { error: 'We could not upload your ID image. Check your connection and re-upload.', errorType: 'upload_failed' });
       return;
     }
+    tick('upload'); start('ocr');
 
     const payload = {
-      role,
-      id_front_url: idFrontUrl,
-      id_back_url: idBackUrl || undefined,
-      selfie_url: selfieUrl || undefined,
-      expected_name: name,
+      role, id_front_url: idFrontUrl, id_back_url: idBackUrl || undefined,
+      selfie_url: selfieUrl || undefined, expected_name: name,
     };
     if (role === 'landlord') {
       payload.expected_nid = landlordMeta.national_id;
@@ -383,9 +394,32 @@
       });
       result = await r.json();
     } catch (e) {
-      result = { error: 'Verification service unreachable. Please try again.' };
+      result = { error: 'Verification service is unreachable. Check your internet connection and try again.', errorType: 'network' };
     }
+    tick('ocr'); tick('match');
+    ctx.expected = {
+      name,
+      id_number: role === 'landlord' ? landlordMeta.national_id : studentMeta.student_reg_no,
+      dob: role === 'landlord' ? (document.getElementById('ll-dob')?.value || landlordMeta.dob) : null,
+      institution: role === 'student' ? studentMeta.university : null,
+    };
     renderVerifResult(ctx, result);
+  }
+
+  function fieldRow(label, expected, detected, ok) {
+    const color = ok ? '#10b981' : '#ef4444';
+    const bg = ok ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)';
+    const icon = ok ? 'circle-check' : 'circle-xmark';
+    return `
+      <div style="background:${bg}; border:1px solid ${color}33; border-radius:10px; padding:.7rem .85rem; margin-bottom:.5rem;">
+        <div style="display:flex; align-items:center; gap:.5rem; font-weight:600; color:${color};">
+          <i class="fas fa-${icon}"></i> ${label} ${ok ? 'matches' : "doesn't match"}
+        </div>
+        <div style="font-size:.85rem; margin-top:.35rem; display:grid; grid-template-columns:auto 1fr; gap:.2rem .6rem;">
+          <span style="color:#6b7280;">You entered:</span><span><strong>${expected || '—'}</strong></span>
+          <span style="color:#6b7280;">Read from ID:</span><span><strong>${detected || '—'}</strong></span>
+        </div>
+      </div>`;
   }
 
   function renderVerifResult(ctx, result) {
@@ -393,16 +427,31 @@
     const isStudent = ctx.role === 'student';
 
     if (result.error) {
+      const reasons = {
+        network: 'Your device could not reach our verification server. This usually means your internet dropped briefly.',
+        upload_failed: "We couldn't upload your photo to secure storage. The file may be too large or the connection unstable.",
+        missing_file: "We didn't receive an ID image to verify.",
+      };
+      const why = reasons[result.errorType] || result.error;
       card.innerHTML = `
-        <div style="text-align:center; padding:1.5rem 0;">
-          <i class="fas fa-triangle-exclamation" style="font-size:3rem; color:#ef4444;"></i>
-          <h2>Something went wrong</h2>
-          <p>${result.error}</p>
-          <button id="vRetry" class="btn btn-primary" style="margin-top:1rem;">Try again</button>
-          <button id="vSkip" class="btn btn-outline" style="margin-top:.5rem;">Continue to sign in</button>
+        <div style="text-align:center; padding:1rem 0;">
+          <div style="display:inline-flex; width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#f59e0b,#ef4444); align-items:center; justify-content:center;">
+            <i class="fas fa-triangle-exclamation" style="font-size:2rem; color:white;"></i>
+          </div>
+          <h2 style="margin-top:.75rem;">We couldn't complete verification</h2>
+          <div style="background:rgba(239,68,68,.08); border-left:3px solid #ef4444; padding:.75rem 1rem; border-radius:8px; text-align:left; margin:1rem 0; font-size:.9rem;">
+            <div style="font-weight:600; margin-bottom:.25rem;">Reason</div>
+            <div style="color:#374151;">${why}</div>
+          </div>
+          <p style="font-size:.85rem; color:#6b7280;">You can start the sign-up again with fresh photos.</p>
+          <button id="vBackSignup" class="btn btn-primary" style="margin-top:1rem; width:100%; justify-content:center;"><i class="fas fa-rotate-right"></i> Try again — back to sign up</button>
+          <button id="vRetryNow" class="btn btn-outline" style="margin-top:.5rem; width:100%; justify-content:center;">Retry with the same photos</button>
         </div>`;
-      document.getElementById('vRetry').onclick = () => runVerification(ctx);
-      document.getElementById('vSkip').onclick = async () => { await ctx.sb.auth.signOut(); location.href = '/login.html'; };
+      document.getElementById('vBackSignup').onclick = async () => {
+        try { await ctx.sb.auth.signOut(); } catch(_){}
+        location.href = '/login.html';
+      };
+      document.getElementById('vRetryNow').onclick = () => runVerification(ctx);
       return;
     }
 
@@ -411,62 +460,80 @@
     const max = result.max_attempts || 3;
     const outOfTries = !passed && attempts >= max;
     const rules = Array.isArray(result.rules) ? result.rules : [];
-
-    const headerIcon = passed ? 'circle-check' : (outOfTries ? 'hourglass-half' : 'circle-xmark');
-    const headerColor = passed ? '#10b981' : (outOfTries ? '#f59e0b' : '#ef4444');
-    const headerText = passed
-      ? 'You are verified!'
-      : (outOfTries ? 'Sent for admin review' : `Verification did not pass (${attempts}/${max})`);
-
-    const rulesHtml = rules.map(r => `
-      <div style="display:flex; gap:.6rem; align-items:flex-start; padding:.55rem .75rem; border-radius:8px; background:${r.passed?'rgba(16,185,129,.08)':'rgba(239,68,68,.06)'}; margin-bottom:.4rem;">
-        <i class="fas fa-${r.passed?'circle-check':'circle-xmark'}" style="color:${r.passed?'#10b981':'#ef4444'}; margin-top:.2rem;"></i>
-        <div style="flex:1; font-size:.88rem;">
-          <div style="font-weight:600;">${r.name}</div>
-          ${r.reason ? `<div style="color:#6b7280; margin-top:.15rem;">${r.reason}</div>` : ''}
-        </div>
-      </div>`).join('');
-
     const detected = result.detected || {};
-    const detectedHtml = `
-      <div style="background:#f8fafc; border:1px solid var(--border,#e5e7eb); border-radius:10px; padding:.85rem; margin:.75rem 0; font-size:.85rem;">
-        <div style="font-weight:600; margin-bottom:.4rem;">📷 What we read from your ID:</div>
-        <div><strong>Name:</strong> ${detected.detected_name || '—'}</div>
-        <div><strong>${isStudent?'Registration No.':'NIDA number'}:</strong> ${detected.detected_id_number || '—'}</div>
-        ${isStudent ? `<div><strong>Institution:</strong> ${detected.detected_institution || '—'}</div>` : `<div><strong>Date of birth:</strong> ${detected.detected_dob || '—'}</div>`}
-        <div><strong>OCR confidence:</strong> ${result.confidence ?? '—'}%</div>
-      </div>`;
+    const expected = ctx.expected || {};
+
+    const headerIcon = passed ? 'circle-check' : (outOfTries ? 'hourglass-half' : 'circle-exclamation');
+    const headerGrad = passed ? 'linear-gradient(135deg,#10b981,#059669)'
+      : (outOfTries ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#ef4444,#b91c1c)');
+    const headerText = passed
+      ? 'You are verified! 🎉'
+      : (outOfTries ? 'Sent to admin for review' : `Some details don't match (attempt ${attempts}/${max})`);
+
+    const nameRule = rules.find(r => /name/i.test(r.name));
+    const idRule = rules.find(r => /nida|registration|id number/i.test(r.name));
+    const dobRule = rules.find(r => /birth|dob/i.test(r.name));
+    const instRule = rules.find(r => /institution|university/i.test(r.name));
+
+    let comparisonHtml = '';
+    comparisonHtml += fieldRow('Full name', expected.name, detected.detected_name, nameRule ? nameRule.passed : true);
+    comparisonHtml += fieldRow(isStudent ? 'Registration number' : 'NIDA number', expected.id_number, detected.detected_id_number, idRule ? idRule.passed : true);
+    if (isStudent) comparisonHtml += fieldRow('Institution', expected.institution, detected.detected_institution, instRule ? instRule.passed : true);
+    else comparisonHtml += fieldRow('Date of birth', expected.dob, detected.detected_dob, dobRule ? dobRule.passed : true);
+
+    const named = [nameRule, idRule, dobRule, instRule].filter(Boolean);
+    const otherRules = rules.filter(r => !named.includes(r));
+    const otherHtml = otherRules.length ? `
+      <div style="margin-top:.5rem;">
+        <div style="font-weight:600; font-size:.85rem; margin-bottom:.4rem; color:#374151;">Other checks</div>
+        ${otherRules.map(r => `
+          <div style="display:flex; gap:.5rem; align-items:flex-start; padding:.4rem .6rem; font-size:.82rem;">
+            <i class="fas fa-${r.passed?'circle-check':'circle-xmark'}" style="color:${r.passed?'#10b981':'#ef4444'}; margin-top:.15rem;"></i>
+            <div><strong>${r.name}.</strong> <span style="color:#6b7280;">${r.reason || ''}</span></div>
+          </div>`).join('')}
+      </div>` : '';
 
     let actionsHtml;
     if (passed) {
       actionsHtml = `<a href="/login.html" class="btn btn-primary" style="margin-top:1rem; width:100%; justify-content:center;">Sign in and browse listings</a>`;
     } else if (outOfTries) {
       actionsHtml = `
-        <p style="font-size:.9rem; color:#6b7280; margin:.5rem 0 1rem;">An admin will review your submission within 24–48 hours. You can still sign in and browse listings — restricted features will unlock once approved.</p>
+        <p style="font-size:.9rem; color:#6b7280; margin:.75rem 0;">An admin will review your submission within 24–48 hours. You can sign in and browse listings now — posting/contacting unlocks once approved.</p>
         <a href="/login.html" class="btn btn-primary" style="width:100%; justify-content:center;">Continue to sign in</a>`;
     } else {
-      // Re-upload form
+      const failedNames = rules.filter(r => !r.passed).map(r => r.name).join(', ');
       actionsHtml = `
-        <div style="margin-top:1rem; padding:1rem; border:1px dashed var(--primary,#3B82F6); border-radius:10px;">
-          <div style="font-weight:600; margin-bottom:.5rem;">Re-upload a clearer photo (${max - attempts} ${max - attempts === 1 ? 'try' : 'tries'} left)</div>
+        <div style="margin-top:1rem; padding:1rem; border:1px dashed #3B82F6; border-radius:10px; background:rgba(59,130,246,.04);">
+          <div style="font-weight:600; margin-bottom:.25rem;">How to fix this</div>
+          <div style="font-size:.85rem; color:#374151; margin-bottom:.6rem;">
+            ${failedNames ? `Make sure <strong>${failedNames}</strong> on the document matches what you entered. ` : ''}
+            Re-upload a sharper, well-lit photo where every line is readable. Avoid glare and crop tightly to the card.
+          </div>
           ${isStudent
             ? `<input type="file" accept="image/*" id="reStudentId" />`
-            : `<div style="font-size:.85rem; margin-bottom:.4rem;">National ID (front, optional back):</div>
+            : `<div style="font-size:.85rem; margin-bottom:.3rem;">National ID (front, optional back):</div>
                <input type="file" accept="image/*,.pdf" id="reNid" multiple style="margin-bottom:.5rem;" />
-               <div style="font-size:.85rem; margin:.5rem 0 .4rem;">Selfie holding the ID:</div>
+               <div style="font-size:.85rem; margin:.4rem 0 .3rem;">Selfie holding the ID:</div>
                <input type="file" accept="image/*" id="reSelfie" />`}
-          <button id="vRetry" class="btn btn-primary" style="margin-top:.75rem; width:100%; justify-content:center;">Retry verification</button>
+          <button id="vRetry" class="btn btn-primary" style="margin-top:.75rem; width:100%; justify-content:center;"><i class="fas fa-rotate-right"></i> Retry verification (${max - attempts} ${max - attempts === 1 ? 'try' : 'tries'} left)</button>
+          <button id="vBackSignup2" class="btn btn-outline" style="margin-top:.5rem; width:100%; justify-content:center;">Edit my details — back to sign up</button>
         </div>`;
     }
 
     card.innerHTML = `
       <div style="text-align:center;">
-        <i class="fas fa-${headerIcon}" style="font-size:3rem; color:${headerColor}; margin-bottom:.5rem;"></i>
+        <div style="display:inline-flex; width:78px; height:78px; border-radius:50%; background:${headerGrad}; align-items:center; justify-content:center; margin-bottom:.5rem;">
+          <i class="fas fa-${headerIcon}" style="font-size:2rem; color:white;"></i>
+        </div>
         <h2 style="margin:.25rem 0;">${headerText}</h2>
         <p style="color:#6b7280; font-size:.9rem; margin:0 0 1rem;">${result.message || ''}</p>
       </div>
-      ${detectedHtml}
-      <div style="margin-top:.5rem;"><div style="font-weight:600; margin-bottom:.5rem;">Verification checks:</div>${rulesHtml}</div>
+      <div style="margin-top:.25rem;">
+        <div style="font-weight:600; margin-bottom:.5rem; font-size:.95rem;">Side-by-side comparison</div>
+        ${comparisonHtml}
+        <div style="font-size:.78rem; color:#6b7280; margin-top:.25rem;">OCR confidence: <strong>${result.confidence ?? '—'}%</strong></div>
+        ${otherHtml}
+      </div>
       ${actionsHtml}
     `;
 
@@ -482,6 +549,11 @@
         runVerification(ctx, replacement);
       };
     }
+    const backBtn = document.getElementById('vBackSignup2');
+    if (backBtn) backBtn.onclick = async () => {
+      try { await ctx.sb.auth.signOut(); } catch(_){}
+      location.href = '/login.html';
+    };
   }
 
 
