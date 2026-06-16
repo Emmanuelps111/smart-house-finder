@@ -118,7 +118,7 @@ function confidenceRule(ocr: OcrFields, threshold = 100): Rule {
 // --- Landlord rules ---
 function validateLandlord(ocr: OcrFields, expected: { name: string; nid: string; dob: string }): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr.confidence, 60));
+  rules.push(confidenceRule(ocr, 100));
 
   const digits = (ocr.detected_id_number ?? "").replace(/\D/g, "");
   rules.push({
@@ -161,7 +161,7 @@ function validateStudent(
   expected: { name: string; regno: string; university: string },
 ): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr.confidence, 55));
+  rules.push(confidenceRule(ocr, 100));
 
   const instRaw = (ocr.detected_institution ?? "").toString();
   const instNorm = instRaw
