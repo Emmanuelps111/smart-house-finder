@@ -154,15 +154,21 @@ function validateStudent(
   const rules: Rule[] = [];
   rules.push(confidenceRule(ocr.confidence, 55));
 
-  const inst = (ocr.detected_institution ?? "").toLowerCase();
-  const isUdsm =
-    inst.includes("dar es salaam") ||
-    inst.includes("udsm") ||
-    inst.includes("university of dar");
+  const instRaw = (ocr.detected_institution ?? "").toString();
+  const instNorm = instRaw
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const isUdsm = instNorm === "university of dar es salaam";
   rules.push({
-    name: "Institution is University of Dar es Salaam",
+    name: "Institution is exactly 'University of Dar es Salaam'",
     passed: isUdsm,
-    reason: isUdsm ? undefined : `Card institution "${ocr.detected_institution ?? "—"}" is not UDSM.`,
+    reason: isUdsm
+      ? undefined
+      : `Card institution "${instRaw || "—"}" does not exactly match "University of Dar es Salaam".`,
   });
 
   rules.push(nameMatchAtLeastTwo(ocr.detected_name, expected.name));
