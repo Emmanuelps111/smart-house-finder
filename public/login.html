@@ -737,7 +737,7 @@
           try {
             const { data: signinData } = await sb.auth.signInWithPassword({ email: emailEl.value.trim(), password: passEl.value });
             if (signinData?.user?.id) {
-              await sb.from('profiles').update({ verification_status: 'approved', verified_at: new Date().toISOString() }).eq('id', signinData.user.id);
+              await sb.from('profiles').update({ verification_status: 'approved', verified_at: new Date().toISOString(), phone: renterMeta.phone }).eq('id', signinData.user.id);
               await sb.auth.signOut();
             }
           } catch (e) { console.warn('renter auto-approve skipped:', e); }
