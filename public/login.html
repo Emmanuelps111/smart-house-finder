@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link rel="stylesheet" href="/css/styles.css" />
 <style>
-  .landlord-only, .student-only { display: none; }
+  .landlord-only, .student-only, .renter-only { display: none; }
   body.is-landlord.is-signup .landlord-only { display: block; }
   body.is-student.is-signup .student-only { display: block; }
+  body.is-renter.is-signup .renter-only { display: block; }
   .file-input-wrap {
     border: 2px dashed var(--border, #d1d5db);
     border-radius: 10px;
@@ -81,9 +82,24 @@
         <span class="error"></span>
       </div>
 
+      <!-- Renter-only signup fields -->
+      <div class="renter-only">
+        <div class="section-title"><i class="fas fa-user"></i> Contact details</div>
+        <div class="form-row">
+          <label for="rn-phone">Phone number (+255 followed by 9 digits)</label>
+          <input id="rn-phone" type="tel" autocomplete="tel" placeholder="+255759996841" pattern="^\+255\d{9}$" maxlength="13" />
+          <span class="error"></span>
+        </div>
+      </div>
+
       <!-- Student-only signup fields -->
       <div class="student-only">
         <div class="section-title"><i class="fas fa-graduation-cap"></i> Student details</div>
+        <div class="form-row">
+          <label for="st-phone">Phone number (+255 followed by 9 digits)</label>
+          <input id="st-phone" type="tel" autocomplete="tel" placeholder="+255759996841" pattern="^\+255\d{9}$" maxlength="13" />
+          <span class="error"></span>
+        </div>
         <div class="form-row">
           <label for="st-university">University / College</label>
           <input id="st-university" type="text" placeholder="e.g. University of Dar es Salaam" />
@@ -252,6 +268,7 @@
     nameRow.style.display = tab === 'signup' ? 'block' : 'none';
     document.body.classList.toggle('is-landlord', role === 'landlord');
     document.body.classList.toggle('is-student', role === 'student');
+    document.body.classList.toggle('is-renter', role === 'renter');
     document.body.classList.toggle('is-signup', tab === 'signup');
     const action = tab === 'signin' ? 'Sign In' : (role === 'landlord' ? 'Submit for Verification' : 'Sign Up');
     submit.textContent = tab === 'signin' ? `${action} as ${roleLabel(role)}` : action;
@@ -627,15 +644,24 @@
       landlordMeta = { phone, national_id: nid, dob };
     }
 
+    let renterMeta = {};
     if (tab === 'signup' && role === 'student') {
       const university = document.getElementById('st-university').value.trim();
       const regno = document.getElementById('st-regno').value.trim();
+      const phone = document.getElementById('st-phone').value.trim();
       const idFile = document.getElementById('st-id-file').files;
+      if (!/^\+255\d{9}$/.test(phone)) { setError('st-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
       if (university.length < 2) { setError('st-university','Enter your university or college.'); ok = false; }
       if (regno.length < 3) { setError('st-regno','Enter your student registration number.'); ok = false; }
       if (!idFile || !idFile.length) { setError('st-id-file','Please upload a photo of your student ID.'); ok = false; }
       else if (idFile[0].size > 5*1024*1024) { setError('st-id-file','File must be under 5MB.'); ok = false; }
-      studentMeta = { university, student_reg_no: regno };
+      studentMeta = { university, student_reg_no: regno, phone };
+    }
+
+    if (tab === 'signup' && role === 'renter') {
+      const phone = document.getElementById('rn-phone').value.trim();
+      if (!/^\+255\d{9}$/.test(phone)) { setError('rn-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
+      renterMeta = { phone };
     }
 
     if (!ok) {
@@ -662,6 +688,7 @@
             data: {
               full_name: nameEl.value.trim(),
               role: supabaseRole,
+              phone: landlordMeta.phone || studentMeta.phone || renterMeta.phone,
               ...landlordMeta,
             },
           },
@@ -710,7 +737,7 @@
           try {
             const { data: signinData } = await sb.auth.signInWithPassword({ email: emailEl.value.trim(), password: passEl.value });
             if (signinData?.user?.id) {
-              await sb.from('profiles').update({ verification_status: 'approved', verified_at: new Date().toISOString() }).eq('id', signinData.user.id);
+              await sb.from('profiles').update({ verification_status: 'approved', verified_at: new Date().toISOString(), phone: renterMeta.phone }).eq('id', signinData.user.id);
               await sb.auth.signOut();
             }
           } catch (e) { console.warn('renter auto-approve skipped:', e); }
@@ -744,7 +771,7 @@
           }).eq('id', ctx.uid);
         } else {
           await sb.from('profiles').update({
-            university: studentMeta.university, student_reg_no: studentMeta.student_reg_no,
+            university: studentMeta.university, student_reg_no: studentMeta.student_reg_no, phone: studentMeta.phone,
           }).eq('id', ctx.uid);
         }
         await runVerification(ctx);
@@ -758,14 +785,27 @@
       });
       if (error) throw error;
 
+      // Enforce that the toggle-selected role matches a role assigned to this user
+      const { data: roleRows, error: roleErr } = await sb.from('user_roles').select('role').eq('user_id', data.user.id);
+      if (roleErr) { await sb.auth.signOut(); throw roleErr; }
+      const userRoles = (roleRows || []).map(r => r.role);
+      const isAdmin = userRoles.includes('admin');
+      if (!isAdmin && !userRoles.includes(supabaseRole)) {
+        await sb.auth.signOut();
+        window.toast.error('Incorrect account type selected for this email.');
+        btn.disabled = false;
+        btn.innerHTML = original;
+        return;
+      }
+
       await window.SHFCloud.syncLocalUser(sb, data.session);
       const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
       window.toast.success(`Welcome back${cached.name ? ', ' + cached.name : ''}!`);
 
       const nextParam = new URLSearchParams(location.search).get('next');
       const target = nextParam
-        || (cached.role === 'admin' ? '/admin'
-          : cached.role === 'landlord' ? '/dashboard.html'
+        || (isAdmin ? '/admin'
+          : supabaseRole === 'landlord' ? '/dashboard.html'
           : '/listings.html');
       setTimeout(() => { location.href = target; }, 600);
     } catch (err) {
