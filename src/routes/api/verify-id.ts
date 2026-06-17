@@ -91,34 +91,43 @@ function normName(s: string | null | undefined): string[] {
     .filter((t) => t.length >= 2);
 }
 
-function nameMatchAtLeastTwo(detected: string | null, expected: string): Rule {
-  const a = new Set(normName(detected));
-  const b = normName(expected);
-  const overlap = b.filter((t) => a.has(t)).length;
+function nameMatchExact(detected: string | null, expected: string): Rule {
+  const a = normName(detected).join(" ");
+  const b = normName(expected).join(" ");
+  const passed = a.length > 0 && a === b;
   return {
-    name: "Name match (≥2 names)",
-    passed: overlap >= 2,
-    reason: overlap >= 2 ? undefined : `Found "${detected ?? "—"}" — expected "${expected}".`,
+    name: "Name matches exactly",
+    passed,
+    reason: passed
+      ? undefined
+      : `Card shows "${detected ?? "—"}", you entered "${expected}". Every name must match exactly (order and spelling).`,
   };
 }
 
-function confidenceRule(ocr: OcrFields, threshold = 100): Rule {
+function confidenceRule(ocr: OcrFields, threshold = 95): Rule {
   const c = ocr.confidence;
   const passed = c >= threshold;
   const why = ocr.confidence_reason ? ` Reason: ${ocr.confidence_reason}` : "";
   return {
-    name: `OCR confidence = ${threshold}%`,
+    name: `OCR confidence ≥ ${threshold}%`,
     passed,
     reason: passed
       ? undefined
-      : `Confidence ${c}% — needs to be ${threshold}%.${why} Please upload a sharper, well-lit photo with the whole card in frame.`,
+      : `Confidence ${c}% — needs to be at least ${threshold}%.${why} Please upload a sharper, well-lit photo with the whole card in frame.`,
   };
+}
+
+function countDigitDiffs(a: string, b: string): number {
+  const n = Math.max(a.length, b.length);
+  let diff = Math.abs(a.length - b.length);
+  for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) diff++;
+  return diff;
 }
 
 // --- Landlord rules ---
 function validateLandlord(ocr: OcrFields, expected: { name: string; nid: string; dob: string }): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr, 100));
+  rules.push(confidenceRule(ocr, 95));
 
   const digits = (ocr.detected_id_number ?? "").replace(/\D/g, "");
   rules.push({
@@ -127,10 +136,17 @@ function validateLandlord(ocr: OcrFields, expected: { name: string; nid: string;
     reason: /^\d{20}$/.test(digits) ? undefined : `Detected "${ocr.detected_id_number ?? "—"}" — not a 20-digit NIDA number.`,
   });
 
+  // NIDA digit match — tolerate worn-off digits proportional to (100 - confidence).
+  // tolerance: 0 diffs at 100%, +1 per 5% drop, capped at 4.
+  const tolerance = Math.min(4, Math.max(0, Math.ceil((100 - ocr.confidence) / 5)));
+  const diffs = countDigitDiffs(digits, expected.nid);
+  const nidPassed = digits.length === expected.nid.length && diffs <= tolerance;
   rules.push({
     name: "NIDA number matches input",
-    passed: digits === expected.nid,
-    reason: digits === expected.nid ? undefined : `Card shows ${digits || "—"}, you entered ${expected.nid}.`,
+    passed: nidPassed,
+    reason: nidPassed
+      ? undefined
+      : `Card shows ${digits || "—"}, you entered ${expected.nid}. ${diffs} digit(s) differ; allowed tolerance at ${ocr.confidence}% confidence is ${tolerance}. Re-upload a sharper photo if digits are worn off.`,
   });
 
   // First 8 digits = YYYYMMDD → must match expected DOB
@@ -151,7 +167,7 @@ function validateLandlord(ocr: OcrFields, expected: { name: string; nid: string;
         : `NID encodes DOB ${dobFromNid ?? "—"}, you entered ${expected.dob}.`,
   });
 
-  rules.push(nameMatchAtLeastTwo(ocr.detected_name, expected.name));
+  rules.push(nameMatchExact(ocr.detected_name, expected.name));
   return rules;
 }
 
@@ -161,7 +177,7 @@ function validateStudent(
   expected: { name: string; regno: string; university: string },
 ): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr, 100));
+  rules.push(confidenceRule(ocr, 95));
 
   const instRaw = (ocr.detected_institution ?? "").toString();
   const instNorm = instRaw
@@ -180,7 +196,7 @@ function validateStudent(
       : `Card institution "${instRaw || "—"}" does not exactly match "University of Dar es Salaam".`,
   });
 
-  rules.push(nameMatchAtLeastTwo(ocr.detected_name, expected.name));
+  rules.push(nameMatchExact(ocr.detected_name, expected.name));
 
   // Reg no format: e.g. 2023-04-12345  or 2023/04/12345 (year, programme/faculty code, serial)
   const detected = (ocr.detected_id_number ?? "").replace(/\s+/g, "").replace(/\//g, "-");
