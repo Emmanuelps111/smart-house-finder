@@ -644,15 +644,24 @@
       landlordMeta = { phone, national_id: nid, dob };
     }
 
+    let renterMeta = {};
     if (tab === 'signup' && role === 'student') {
       const university = document.getElementById('st-university').value.trim();
       const regno = document.getElementById('st-regno').value.trim();
+      const phone = document.getElementById('st-phone').value.trim();
       const idFile = document.getElementById('st-id-file').files;
+      if (!/^\+255\d{9}$/.test(phone)) { setError('st-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
       if (university.length < 2) { setError('st-university','Enter your university or college.'); ok = false; }
       if (regno.length < 3) { setError('st-regno','Enter your student registration number.'); ok = false; }
       if (!idFile || !idFile.length) { setError('st-id-file','Please upload a photo of your student ID.'); ok = false; }
       else if (idFile[0].size > 5*1024*1024) { setError('st-id-file','File must be under 5MB.'); ok = false; }
-      studentMeta = { university, student_reg_no: regno };
+      studentMeta = { university, student_reg_no: regno, phone };
+    }
+
+    if (tab === 'signup' && role === 'renter') {
+      const phone = document.getElementById('rn-phone').value.trim();
+      if (!/^\+255\d{9}$/.test(phone)) { setError('rn-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
+      renterMeta = { phone };
     }
 
     if (!ok) {
