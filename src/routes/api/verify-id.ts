@@ -92,15 +92,19 @@ function normName(s: string | null | undefined): string[] {
 }
 
 function nameMatchExact(detected: string | null, expected: string): Rule {
-  const a = normName(detected).join(" ");
-  const b = normName(expected).join(" ");
-  const passed = a.length > 0 && a === b;
+  const a = normName(detected);
+  const b = normName(expected);
+  const aSet = new Set(a);
+  const bSet = new Set(b);
+  const missing = b.filter((t) => !aSet.has(t));
+  const extra = a.filter((t) => !bSet.has(t));
+  const passed = b.length > 0 && missing.length === 0 && extra.length === 0;
   return {
-    name: "Name matches exactly",
+    name: "All names match (order doesn't matter)",
     passed,
     reason: passed
       ? undefined
-      : `Card shows "${detected ?? "—"}", you entered "${expected}". Every name must match exactly (order and spelling).`,
+      : `Card shows "${detected ?? "—"}", you entered "${expected}".${missing.length ? ` Missing on card: ${missing.join(", ")}.` : ""}${extra.length ? ` Extra on card: ${extra.join(", ")}.` : ""} Every name you entered must appear on the ID (spelling must match).`,
   };
 }
 
