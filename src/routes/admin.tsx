@@ -226,6 +226,9 @@ function AdminPage() {
               Verifications{pendingVerifications.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingVerifications.length}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
+            <TabsTrigger value="messages" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Messages{messages.filter(m => m.status === 'new').length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{messages.filter(m => m.status === 'new').length}</Badge>}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -332,6 +335,49 @@ function AdminPage() {
                       })}
                     </TableBody>
                   </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="messages" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader><CardTitle className="text-blue-900">Contact form messages</CardTitle></CardHeader>
+              <CardContent>
+                {messages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No messages yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {messages.map((m) => (
+                      <div key={m.id} className={`p-4 border rounded-lg ${m.status === 'new' ? 'border-blue-300 bg-blue-50/40' : 'border-slate-200 bg-white'}`}>
+                        <div className="flex items-start justify-between gap-3 flex-wrap">
+                          <div className="text-sm">
+                            <div className="font-semibold text-blue-900">{m.name} {m.status === 'new' && <Badge className="ml-2 bg-amber-500">new</Badge>}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              From: <a href={`mailto:${m.email}`} className="text-blue-700 underline">{m.email}</a>
+                              {' · '}Reply to: <a href={`mailto:${m.callback_email}`} className="text-blue-700 underline font-medium">{m.callback_email}</a>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{new Date(m.created_at).toLocaleString()}</div>
+                          </div>
+                          <div className="flex gap-2">
+                            {m.status === 'new' && (
+                              <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={async () => {
+                                const { error } = await supabase.from('contact_messages').update({ status: 'read' }).eq('id', m.id);
+                                if (error) { toast.error(error.message); return; }
+                                setMessages((arr) => arr.map((x) => x.id === m.id ? { ...x, status: 'read' } : x));
+                              }}>Mark read</Button>
+                            )}
+                            <Button size="sm" variant="destructive" onClick={async () => {
+                              if (!window.confirm('Delete this message?')) return;
+                              const { error } = await supabase.from('contact_messages').delete().eq('id', m.id);
+                              if (error) { toast.error(error.message); return; }
+                              setMessages((arr) => arr.filter((x) => x.id !== m.id));
+                            }}>Delete</Button>
+                          </div>
+                        </div>
+                        <p className="text-sm mt-3 whitespace-pre-wrap text-slate-800">{m.message}</p>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>
