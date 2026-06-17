@@ -771,7 +771,7 @@
           }).eq('id', ctx.uid);
         } else {
           await sb.from('profiles').update({
-            university: studentMeta.university, student_reg_no: studentMeta.student_reg_no,
+            university: studentMeta.university, student_reg_no: studentMeta.student_reg_no, phone: studentMeta.phone,
           }).eq('id', ctx.uid);
         }
         await runVerification(ctx);
