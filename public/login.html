@@ -268,6 +268,7 @@
     nameRow.style.display = tab === 'signup' ? 'block' : 'none';
     document.body.classList.toggle('is-landlord', role === 'landlord');
     document.body.classList.toggle('is-student', role === 'student');
+    document.body.classList.toggle('is-renter', role === 'renter');
     document.body.classList.toggle('is-signup', tab === 'signup');
     const action = tab === 'signin' ? 'Sign In' : (role === 'landlord' ? 'Submit for Verification' : 'Sign Up');
     submit.textContent = tab === 'signin' ? `${action} as ${roleLabel(role)}` : action;
