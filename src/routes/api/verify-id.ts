@@ -177,7 +177,7 @@ function validateStudent(
   expected: { name: string; regno: string; university: string },
 ): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr, 100));
+  rules.push(confidenceRule(ocr, 95));
 
   const instRaw = (ocr.detected_institution ?? "").toString();
   const instNorm = instRaw
