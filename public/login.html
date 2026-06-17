@@ -688,6 +688,7 @@
             data: {
               full_name: nameEl.value.trim(),
               role: supabaseRole,
+              phone: landlordMeta.phone || studentMeta.phone || renterMeta.phone,
               ...landlordMeta,
             },
           },
