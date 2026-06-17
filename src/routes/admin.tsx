@@ -114,7 +114,6 @@ function AdminPage() {
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("bookings").select("id", { count: "exact", head: true }),
       supabase.from("user_roles").select("user_id, role"),
-      // @ts-expect-error contact_messages types regenerate after migration
       supabase.from("contact_messages").select("*").order("created_at", { ascending: false }),
     ]);
     if (allProps.data) setAllProperties(allProps.data as unknown as Property[]);
