@@ -785,14 +785,27 @@
       });
       if (error) throw error;
 
+      // Enforce that the toggle-selected role matches a role assigned to this user
+      const { data: roleRows, error: roleErr } = await sb.from('user_roles').select('role').eq('user_id', data.user.id);
+      if (roleErr) { await sb.auth.signOut(); throw roleErr; }
+      const userRoles = (roleRows || []).map(r => r.role);
+      const isAdmin = userRoles.includes('admin');
+      if (!isAdmin && !userRoles.includes(supabaseRole)) {
+        await sb.auth.signOut();
+        window.toast.error('Incorrect account type selected for this email.');
+        btn.disabled = false;
+        btn.innerHTML = original;
+        return;
+      }
+
       await window.SHFCloud.syncLocalUser(sb, data.session);
       const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
       window.toast.success(`Welcome back${cached.name ? ', ' + cached.name : ''}!`);
 
       const nextParam = new URLSearchParams(location.search).get('next');
       const target = nextParam
-        || (cached.role === 'admin' ? '/admin'
-          : cached.role === 'landlord' ? '/dashboard.html'
+        || (isAdmin ? '/admin'
+          : supabaseRole === 'landlord' ? '/dashboard.html'
           : '/listings.html');
       setTimeout(() => { location.href = target; }, 600);
     } catch (err) {
