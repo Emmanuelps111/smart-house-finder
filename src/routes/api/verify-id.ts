@@ -108,7 +108,7 @@ function nameMatchExact(detected: string | null, expected: string): Rule {
   };
 }
 
-function confidenceRule(ocr: OcrFields, threshold = 95): Rule {
+function confidenceRule(ocr: OcrFields, threshold = 85): Rule {
   const c = ocr.confidence;
   const passed = c >= threshold;
   const why = ocr.confidence_reason ? ` Reason: ${ocr.confidence_reason}` : "";
@@ -131,7 +131,7 @@ function countDigitDiffs(a: string, b: string): number {
 // --- Landlord rules ---
 function validateLandlord(ocr: OcrFields, expected: { name: string; nid: string; dob: string }): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr, 95));
+  rules.push(confidenceRule(ocr, 85));
 
   const digits = (ocr.detected_id_number ?? "").replace(/\D/g, "");
   rules.push({
@@ -181,7 +181,7 @@ function validateStudent(
   expected: { name: string; regno: string; university: string },
 ): Rule[] {
   const rules: Rule[] = [];
-  rules.push(confidenceRule(ocr, 95));
+  rules.push(confidenceRule(ocr, 85));
 
   const instRaw = (ocr.detected_institution ?? "").toString();
   const instNorm = instRaw
