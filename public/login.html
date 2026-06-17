@@ -82,9 +82,24 @@
         <span class="error"></span>
       </div>
 
+      <!-- Renter-only signup fields -->
+      <div class="renter-only">
+        <div class="section-title"><i class="fas fa-user"></i> Contact details</div>
+        <div class="form-row">
+          <label for="rn-phone">Phone number (+255 followed by 9 digits)</label>
+          <input id="rn-phone" type="tel" autocomplete="tel" placeholder="+255759996841" pattern="^\+255\d{9}$" maxlength="13" />
+          <span class="error"></span>
+        </div>
+      </div>
+
       <!-- Student-only signup fields -->
       <div class="student-only">
         <div class="section-title"><i class="fas fa-graduation-cap"></i> Student details</div>
+        <div class="form-row">
+          <label for="st-phone">Phone number (+255 followed by 9 digits)</label>
+          <input id="st-phone" type="tel" autocomplete="tel" placeholder="+255759996841" pattern="^\+255\d{9}$" maxlength="13" />
+          <span class="error"></span>
+        </div>
         <div class="form-row">
           <label for="st-university">University / College</label>
           <input id="st-university" type="text" placeholder="e.g. University of Dar es Salaam" />
