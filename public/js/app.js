@@ -87,10 +87,10 @@
     if (e.target.closest('.lightbox-close') || e.target === lb) lb?.classList.remove('open');
   });
 
-  // Contact form validation
+  // Contact form validation + submit to backend
   const cf = document.getElementById('contactForm');
   if (cf) {
-    cf.addEventListener('submit', (e) => {
+    cf.addEventListener('submit', async (e) => {
       e.preventDefault();
       let ok = true;
       const fields = [
@@ -103,8 +103,33 @@
         const err = el.parentElement.querySelector('.error');
         if (!f.test(el.value)) { err.textContent = f.msg; ok = false; } else { err.textContent = ''; }
       });
-      if (ok) {
-        cf.innerHTML = '<div style="text-align:center;padding:2rem;"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--primary);margin-bottom:1rem;"></i><h3>Thank you!</h3><p>We received your message and will reply within 24 hours.</p></div>';
+      if (!ok) return;
+
+      // Ask for a callback email customer care will use to reach back
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let callbackEmail = '';
+      while (true) {
+        const ans = window.prompt('Please enter the email address where our customer care team should reach you:', document.getElementById('cf-email').value || '');
+        if (ans === null) return; // user cancelled
+        if (emailRe.test(ans.trim())) { callbackEmail = ans.trim(); break; }
+        window.alert('That doesn\'t look like a valid email. Please try again.');
+      }
+
+      const payload = {
+        name: document.getElementById('cf-name').value.trim(),
+        email: document.getElementById('cf-email').value.trim(),
+        callback_email: callbackEmail,
+        message: document.getElementById('cf-msg').value.trim(),
+      };
+
+      try {
+        const sb = window.SHFCloud && window.SHFCloud.ready ? await window.SHFCloud.ready : null;
+        if (!sb) throw new Error('Backend not ready');
+        const { error } = await sb.from('contact_messages').insert(payload);
+        if (error) throw error;
+        cf.innerHTML = '<div style="text-align:center;padding:2rem;"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--primary);margin-bottom:1rem;"></i><h3>Thank you!</h3><p>We received your message and will reply to <strong>' + callbackEmail.replace(/[<>&"]/g, '') + '</strong> within 24 hours.</p></div>';
+      } catch (err) {
+        window.alert('Could not send your message: ' + (err.message || err));
       }
     });
   }
