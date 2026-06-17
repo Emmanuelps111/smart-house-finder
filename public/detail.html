@@ -285,14 +285,64 @@
         btn.addEventListener('click', async () => {
           const { data: { session } } = await sb.auth.getSession();
           if (!session){ window.toast.error('Please sign in to request a roommate.'); return; }
-          btn.disabled = true;
-          const { error } = await sb.from('roommate_requests').insert({
-            student_id: session.user.id, property_key: propertyKey, status: 'searching',
-          });
-          if (error){ window.toast.error(error.message || 'Could not post your request.'); btn.disabled = false; return; }
-          window.toast.success('You\'re now listed as looking for a roommate here!');
-          refresh();
+          openRoommateModal(session.user.id);
         });
+
+        async function openRoommateModal(userId){
+          // Prefill from existing profile
+          const { data: prof } = await sb.from('profiles')
+            .select('cleanliness_preference, sleep_schedule, bio')
+            .eq('id', userId).maybeSingle();
+          const overlay = document.createElement('div');
+          overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem;';
+          overlay.innerHTML = `
+            <div style="background:var(--surface, #fff); border-radius:14px; padding:1.5rem; max-width:460px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.3);">
+              <h3 style="margin:0 0 .25rem;">🙋 Find a Roommate</h3>
+              <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.9rem;">Tell others a bit about your living style so they can match with you.</p>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Cleanliness preference</label>
+              <select id="rm_clean" class="form-control" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
+                <option value="">Select…</option>
+                <option ${prof?.cleanliness_preference==='High'?'selected':''}>High</option>
+                <option ${prof?.cleanliness_preference==='Medium'?'selected':''}>Medium</option>
+                <option ${prof?.cleanliness_preference==='Flexible'?'selected':''}>Flexible</option>
+              </select>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Sleep schedule</label>
+              <select id="rm_sleep" class="form-control" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
+                <option value="">Select…</option>
+                <option ${prof?.sleep_schedule==='Early Bird'?'selected':''}>Early Bird</option>
+                <option ${prof?.sleep_schedule==='Night Owl'?'selected':''}>Night Owl</option>
+                <option ${prof?.sleep_schedule==='Flexible'?'selected':''}>Flexible</option>
+              </select>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Short bio</label>
+              <textarea id="rm_bio" rows="3" maxlength="280" placeholder="A few words about you…" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit;">${escapeHtml(prof?.bio || '')}</textarea>
+              <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem;">
+                <button id="rm_cancel" class="btn btn-outline">Cancel</button>
+                <button id="rm_send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send Request</button>
+              </div>
+            </div>`;
+          document.body.appendChild(overlay);
+          const close = () => overlay.remove();
+          overlay.querySelector('#rm_cancel').addEventListener('click', close);
+          overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+          overlay.querySelector('#rm_send').addEventListener('click', async () => {
+            const cleanliness = overlay.querySelector('#rm_clean').value;
+            const sleep = overlay.querySelector('#rm_sleep').value;
+            const bio = overlay.querySelector('#rm_bio').value.trim();
+            if (!cleanliness || !sleep || !bio){ window.toast.error('Please fill all fields.'); return; }
+            const sendBtn = overlay.querySelector('#rm_send'); sendBtn.disabled = true;
+            const { error: pErr } = await sb.from('profiles').update({
+              cleanliness_preference: cleanliness, sleep_schedule: sleep, bio,
+            }).eq('id', userId);
+            if (pErr){ window.toast.error(pErr.message); sendBtn.disabled = false; return; }
+            const { error } = await sb.from('roommate_requests').insert({
+              student_id: userId, property_key: propertyKey, status: 'searching',
+            });
+            if (error){ window.toast.error(error.message || 'Could not post your request.'); sendBtn.disabled = false; return; }
+            window.toast.success('You\'re now listed as looking for a roommate here!');
+            close();
+            refresh();
+          });
+        }
         refresh();
       } catch (e) {
         listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Roommate service unavailable.</div>';
