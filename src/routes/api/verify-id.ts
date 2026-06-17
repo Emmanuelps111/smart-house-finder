@@ -196,7 +196,7 @@ function validateStudent(
       : `Card institution "${instRaw || "—"}" does not exactly match "University of Dar es Salaam".`,
   });
 
-  rules.push(nameMatchAtLeastTwo(ocr.detected_name, expected.name));
+  rules.push(nameMatchExact(ocr.detected_name, expected.name));
 
   // Reg no format: e.g. 2023-04-12345  or 2023/04/12345 (year, programme/faculty code, serial)
   const detected = (ocr.detected_id_number ?? "").replace(/\s+/g, "").replace(/\//g, "-");
