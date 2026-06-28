@@ -64,7 +64,10 @@
   let sb = null, user = null, myListings = [], notifications = [];
   let pendingPhotos = []; // {name, file, dataUrl}
   let existingPhotoUrls = []; // when editing
+  let pendingVideo = null; // {name, file}
+  let existingVideoPath = null;
   let editingId = null;
+
 
   (async function init() {
     sb = await window.SHFCloud.ready;
