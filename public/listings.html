@@ -8,6 +8,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .listing-row { background: rgba(255,255,255,0.92); }
+  [data-theme="dark"] .listing-row { background: rgba(17,26,46,0.92); }
+  .listing-row:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .listing-row .card-meta { display:flex; gap:1rem; color:var(--text-muted); font-size:.9rem; flex-wrap:wrap; }
+  @media (max-width: 760px) {
+    .listing-row { grid-template-columns: 1fr !important; }
+    .listing-row > div:first-child { min-height: 180px; }
+    .listing-row > div:last-child { padding: 1rem; }
+  }
+</style>
 </head>
 <body>
 <div id="header-mount"></div>
