@@ -381,6 +381,16 @@
           newUrls.push(pub.publicUrl);
         }
 
+        // Upload new video (if any)
+        let videoPath = existingVideoPath;
+        if (pendingVideo) {
+          const safeVidName = pendingVideo.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const vPath = `${user.id}/${ts}-${safeVidName}`;
+          const { error: vErr } = await sb.storage.from('property-videos').upload(vPath, pendingVideo.file, { contentType: pendingVideo.file.type || 'video/mp4', upsert: false });
+          if (vErr) throw vErr;
+          videoPath = vPath;
+        }
+
         const payload = {
           title: get('p-title'),
           description: get('p-desc'),
@@ -399,9 +409,11 @@
           lng: isNaN(lngRaw) ? null : lngRaw,
           amenities,
           image_urls: [...existingPhotoUrls, ...newUrls],
+          video_url: videoPath,
           property_type: document.getElementById('p-type').value,
           occupancy: document.getElementById('p-occ').value,
         };
+
 
         if (editingId) {
           const { error } = await sb.from('properties').update(payload).eq('id', editingId);
