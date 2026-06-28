@@ -335,19 +335,32 @@ section { padding: 5rem 0; }
   .price-card.featured { transform: none; }
 }
 
-/* ===== House background (global, undimmed) ===== */
-body {
+/* ===== House background slideshow (global, fixed) ===== */
+body { background-color: var(--bg); }
+.bg-slideshow {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden;
   background-color: var(--bg);
-  background-image: url('/assets/bg-house.jpg');
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
+}
+.bg-slideshow .bg-slide {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center center;
   background-repeat: no-repeat;
+  opacity: 0; animation: bgFade 25s infinite;
+  will-change: opacity;
 }
-[data-theme="dark"] body,
-body[data-theme="dark"] {
-  background-image: url('/assets/bg-house.jpg');
+.bg-slideshow .bg-slide:nth-child(1) { animation-delay: 0s; }
+.bg-slideshow .bg-slide:nth-child(2) { animation-delay: 5s; }
+.bg-slideshow .bg-slide:nth-child(3) { animation-delay: 10s; }
+.bg-slideshow .bg-slide:nth-child(4) { animation-delay: 15s; }
+.bg-slideshow .bg-slide:nth-child(5) { animation-delay: 20s; }
+@keyframes bgFade {
+  0%   { opacity: 0; }
+  4%   { opacity: 1; }
+  20%  { opacity: 1; }
+  24%  { opacity: 0; }
+  100% { opacity: 0; }
 }
-/* Keep section backgrounds transparent so the house shows through */
+/* Keep section backgrounds transparent so the houses show through */
 section { background: transparent; }
+
 
