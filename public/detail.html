@@ -358,10 +358,17 @@
       const dbId = id.slice(3);
       const { data: p, error } = await sb
         .from('properties')
-        .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from')
+        .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from, video_url')
         .eq('id', dbId)
         .maybeSingle();
       if (error || !p) return false;
+      let videoUrl = null;
+      if (p.video_url) {
+        try {
+          const { data: signed } = await sb.storage.from('property-videos').createSignedUrl(p.video_url, 60 * 60 * 6);
+          videoUrl = signed?.signedUrl || null;
+        } catch (_) {}
+      }
       const l = {
         id, dbId: p.id, landlord_id: p.landlord_id, isDb: true,
         title: p.title || 'Untitled', price: Number(p.price) || 0,
@@ -376,7 +383,9 @@
         lng: p.lng != null ? Number(p.lng) : null,
         desc: p.description || '',
         occupancy: p.occupancy || 'vacant',
+        video_url: videoUrl,
       };
+
       renderDetail(l);
       return true;
     } catch (e) { return false; }
