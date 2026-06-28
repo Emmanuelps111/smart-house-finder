@@ -121,6 +121,25 @@
               <div style="color:var(--text-muted); font-size:.9rem;">Loading…</div>
             </div>
           </div>
+
+          <div class="info-card" id="reviewsSection" style="margin-top:1.5rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+              <h3 style="margin:0;">⭐ Reviews</h3>
+              <div id="reviewsSummary" style="font-size:.9rem; color:var(--text-muted);">No reviews yet.</div>
+            </div>
+            <div id="reviewForm" style="margin-top:1rem; padding:1rem; border:1px solid var(--border); border-radius:10px; background:var(--surface);">
+              <div style="font-weight:600; font-size:.9rem; margin-bottom:.4rem;">Your rating</div>
+              <div id="starPicker" style="font-size:1.6rem; cursor:pointer; user-select:none; color:#facc15; letter-spacing:.15rem;">
+                <span data-star="1">☆</span><span data-star="2">☆</span><span data-star="3">☆</span><span data-star="4">☆</span><span data-star="5">☆</span>
+              </div>
+              <textarea id="reviewComment" rows="3" maxlength="500" placeholder="Share your experience with this property…" style="width:100%; margin-top:.6rem; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit;"></textarea>
+              <div style="display:flex; justify-content:flex-end; margin-top:.6rem;">
+                <button id="submitReviewBtn" class="btn btn-primary"><i class="fas fa-paper-plane"></i> <span id="submitReviewLabel">Post review</span></button>
+              </div>
+            </div>
+            <div id="reviewList" style="margin-top:1rem; display:flex; flex-direction:column; gap:.75rem;"></div>
+          </div>
+
         </div>
         <aside>
           <div class="info-card">
@@ -357,6 +376,115 @@
         listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Roommate service unavailable.</div>';
       }
     })();
+
+    // === Reviews ===
+    (async function initReviews(){
+      const section = document.getElementById('reviewsSection');
+      if (!section) return;
+      if (!l.dbId) { section.style.display = 'none'; return; }
+      const listEl = document.getElementById('reviewList');
+      const summaryEl = document.getElementById('reviewsSummary');
+      const formEl = document.getElementById('reviewForm');
+      const picker = document.getElementById('starPicker');
+      const commentEl = document.getElementById('reviewComment');
+      const submitBtn = document.getElementById('submitReviewBtn');
+      const submitLabel = document.getElementById('submitReviewLabel');
+      let myRating = 0;
+      let editingId = null;
+
+      function paintStars(n){
+        picker.querySelectorAll('span').forEach(s => {
+          s.textContent = Number(s.dataset.star) <= n ? '★' : '☆';
+        });
+      }
+      picker.querySelectorAll('span').forEach(s => s.addEventListener('click', () => {
+        myRating = Number(s.dataset.star); paintStars(myRating);
+      }));
+
+      function starString(n){ return '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n); }
+
+      try {
+        const sb = await window.SHFCloud.ready;
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+          formEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;"><a href="/login.html" style="color:var(--primary);">Sign in</a> to leave a review.</div>';
+        }
+
+        async function refresh(){
+          const { data, error } = await sb
+            .from('property_reviews')
+            .select('id, reviewer_id, rating, comment, created_at, updated_at, profiles:reviewer_id ( full_name, selfie_url )')
+            .eq('property_id', l.dbId)
+            .order('created_at', { ascending:false });
+          if (error){ listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load reviews.</div>'; return; }
+          const rows = data || [];
+          if (rows.length){
+            const avg = rows.reduce((s,r)=>s+r.rating,0)/rows.length;
+            summaryEl.innerHTML = `<strong style="color:#facc15;">${starString(Math.round(avg))}</strong> <span style="color:var(--text);">${avg.toFixed(1)}</span> · ${rows.length} review${rows.length>1?'s':''}`;
+          } else {
+            summaryEl.textContent = 'No reviews yet.';
+          }
+          const myUid = session?.user?.id;
+          const mine = myUid && rows.find(r => r.reviewer_id === myUid);
+          if (mine && session){
+            editingId = mine.id; myRating = mine.rating; paintStars(myRating);
+            commentEl.value = mine.comment || '';
+            submitLabel.textContent = 'Update review';
+          }
+          listEl.innerHTML = rows.map(r => {
+            const p = r.profiles || {};
+            const name = escapeHtml(p.full_name || 'User');
+            const av = p.selfie_url
+              ? `<img src="${escapeHtml(p.selfie_url)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;" />`
+              : `<div style="width:38px;height:38px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="color:#9ca3af;"></i></div>`;
+            const when = new Date(r.created_at).toLocaleDateString();
+            const isMine = myUid && r.reviewer_id === myUid;
+            return `<div style="border:1px solid var(--border); border-radius:10px; padding:.85rem; background:var(--surface);">
+              <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.4rem;">
+                ${av}
+                <div style="flex:1;">
+                  <div style="font-weight:600;">${name}${isMine?' <span style="font-size:.75rem; color:var(--text-muted); font-weight:400;">(you)</span>':''}</div>
+                  <div style="font-size:.8rem; color:var(--text-muted);">${when}</div>
+                </div>
+                <div style="color:#facc15; font-size:1.05rem;">${starString(r.rating)}</div>
+              </div>
+              ${r.comment ? `<div style="font-size:.92rem; line-height:1.4;">${escapeHtml(r.comment)}</div>` : ''}
+              ${isMine ? `<div style="margin-top:.5rem; text-align:right;"><button data-del-review="${r.id}" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:.82rem;"><i class="fas fa-trash"></i> Delete</button></div>` : ''}
+            </div>`;
+          }).join('') || '<div style="color:var(--text-muted); font-size:.9rem;">Be the first to review this property.</div>';
+
+          listEl.querySelectorAll('[data-del-review]').forEach(b => b.addEventListener('click', async () => {
+            if (!confirm('Delete your review?')) return;
+            const { error } = await sb.from('property_reviews').delete().eq('id', b.dataset.delReview);
+            if (error){ window.toast.error(error.message); return; }
+            window.toast.success('Review deleted.');
+            editingId = null; myRating = 0; paintStars(0); commentEl.value = ''; submitLabel.textContent = 'Post review';
+            refresh();
+          }));
+        }
+
+        if (submitBtn) submitBtn.addEventListener('click', async () => {
+          if (!session){ window.toast.error('Please sign in to leave a review.'); return; }
+          if (!myRating){ window.toast.error('Pick a star rating first.'); return; }
+          submitBtn.disabled = true;
+          const payload = {
+            property_id: l.dbId, reviewer_id: session.user.id,
+            rating: myRating, comment: commentEl.value.trim() || null,
+          };
+          const { error } = await sb.from('property_reviews')
+            .upsert(payload, { onConflict: 'property_id,reviewer_id' });
+          submitBtn.disabled = false;
+          if (error){ window.toast.error(error.message || 'Could not post review.'); return; }
+          window.toast.success(editingId ? 'Review updated.' : 'Thanks for your review!');
+          refresh();
+        });
+
+        refresh();
+      } catch(e){
+        listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Reviews service unavailable.</div>';
+      }
+    })();
+
   }
 
   // For DB listings, fetch directly so we get FULL fields (amenities/images/occupancy/landlord)
