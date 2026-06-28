@@ -34,7 +34,15 @@
         <option value="2000000">Under TSh 2,000,000</option>
         <option value="5000000">Under TSh 5,000,000</option>
       </select>
+      <select id="sortBy" style="padding:.8rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="beds_desc">Most bedrooms</option>
+      </select>
     </div>
+
     <div class="masonry" id="grid"></div>
     <p id="empty" style="text-align:center; display:none;">No listings match your filters.</p>
   </div>
