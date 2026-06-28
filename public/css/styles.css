@@ -334,3 +334,23 @@ section { padding: 5rem 0; }
   section { padding: 3rem 0; }
   .price-card.featured { transform: none; }
 }
+
+/* ===== Dimmed house background (global) ===== */
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(248, 250, 252, 0.86), rgba(219, 234, 254, 0.86)),
+    url('/assets/bg-house.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+[data-theme="dark"] body,
+body[data-theme="dark"] {
+  background-image:
+    linear-gradient(rgba(11, 18, 32, 0.88), rgba(17, 26, 46, 0.9)),
+    url('/assets/bg-house.jpg');
+}
+/* Keep section backgrounds translucent so the house subtly shows through */
+section { background: transparent; }
