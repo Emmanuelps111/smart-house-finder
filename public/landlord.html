@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+  (function(){
+    try {
+      if (!JSON.parse(localStorage.getItem('shf-user') || 'null')) {
+        var next = encodeURIComponent(location.pathname + location.search);
+        location.replace('/login.html?next=' + next);
+      }
+    } catch(e){ location.replace('/login.html'); }
+  })();
+</script>
+<title>Landlord Profile — Smart House Finder</title>
+<meta name="description" content="View landlord profile, listings and contact options." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .ll-wrap { margin-top: var(--header-h); padding: 2rem 0 4rem; }
+  .ll-card { background: var(--surface); border:1px solid var(--border); border-radius:14px; padding:2rem; box-shadow:0 4px 20px -10px rgba(0,0,0,.15); }
+  .ll-head { display:flex; gap:1.25rem; align-items:center; flex-wrap:wrap; }
+  .ll-avatar { width:96px; height:96px; border-radius:50%; object-fit:cover; background:#e5e7eb; }
+  .ll-name { margin:0; font-size:1.6rem; }
+  .ll-stat { display:inline-flex; gap:.35rem; align-items:center; background:#eff6ff; color:#1e40af; padding:.25rem .65rem; border-radius:999px; font-size:.85rem; font-weight:600; }
+  .ll-actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.75rem; margin-top:1.5rem; }
+  .ll-action { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.85rem 1rem; border-radius:10px; font-weight:600; text-decoration:none; color:#fff; transition:transform .15s, opacity .15s; }
+  .ll-action:hover { transform:translateY(-1px); opacity:.92; }
+  .ll-call { background:#2563eb; }
+  .ll-wa { background:#25D366; }
+  .ll-mail { background:#64748b; }
+  .ll-action.disabled { background:#94a3b8; cursor:not-allowed; pointer-events:none; }
+  .ll-section { margin-top:2rem; }
+  .ll-listings { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; margin-top:1rem; }
+  .ll-list-card { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); cursor:pointer; transition:transform .15s, box-shadow .15s; }
+  .ll-list-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px -12px rgba(0,0,0,.2); }
+  .ll-list-card img { width:100%; height:140px; object-fit:cover; background:#f1f5f9; }
+  .ll-list-body { padding:.75rem; }
+  .back-link { display:inline-flex; align-items:center; gap:.4rem; margin-bottom:1rem; color:var(--primary); text-decoration:none; font-weight:500; }
+  .back-link:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<div id="header-mount"></div>
+
+<div class="ll-wrap">
+  <div class="container">
+    <a href="javascript:history.back()" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+    <div id="root">Loading landlord…</div>
+  </div>
+</div>
+
+<div id="footer-mount"></div>
+<script src="/js/cloud.js"></script>
+<script src="/js/data.js"></script>
+<script src="/partials.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  const id = new URLSearchParams(location.search).get('id');
+  const root = document.getElementById('root');
+  const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function waLink(phone){
+    // Strip + and non-digits for wa.me
+    const clean = String(phone||'').replace(/[^\d]/g,'');
+    return clean ? `https://wa.me/${clean}` : null;
+  }
+
+  async function load(){
+    if (!id) { root.innerHTML = '<p>Missing landlord id.</p>'; return; }
+    try {
+      const sb = await window.SHFCloud.ready;
+      const [{ data: llRows }, { data: props }] = await Promise.all([
+        sb.rpc('get_landlord_public', { _landlord_id: id }),
+        sb.from('properties')
+          .select('id, title, price, image_urls, city, neighbourhood, beds, baths, status, created_at')
+          .eq('landlord_id', id).eq('status','approved')
+          .order('created_at', { ascending:false })
+      ]);
+      const ll = Array.isArray(llRows) && llRows[0];
+      if (!ll) { root.innerHTML = '<p>Landlord not found.</p>'; return; }
+
+      const name = esc(ll.full_name || 'Verified Landlord');
+      const av = ll.selfie_url
+        ? `<img class="ll-avatar" src="${esc(ll.selfie_url)}" alt="${name}" />`
+        : `<div class="ll-avatar" style="display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:2.5rem;color:#9ca3af;"></i></div>`;
+      const phone = ll.phone || '';
+      const wa = waLink(phone);
+      const count = props ? props.length : 0;
+
+      root.innerHTML = `
+        <div class="ll-card">
+          <div class="ll-head">
+            ${av}
+            <div style="flex:1; min-width:200px;">
+              <h1 class="ll-name">${name}</h1>
+              <div style="margin-top:.4rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+                <span class="ll-stat"><i class="fas fa-circle-check"></i> Verified Landlord</span>
+                <span class="ll-stat"><i class="fas fa-house"></i> ${count} listing${count==1?'':'s'}</span>
+              </div>
+              ${phone ? `<div style="margin-top:.5rem; color:var(--text-muted); font-size:.95rem;"><i class="fas fa-phone"></i> ${esc(phone)}</div>` : ''}
+            </div>
+          </div>
+
+          <div class="ll-actions">
+            <a class="ll-action ll-call ${phone?'':'disabled'}" href="${phone?`tel:${esc(phone)}`:'#'}">
+              <i class="fas fa-phone"></i> Call
+            </a>
+            <a class="ll-action ll-wa ${wa?'':'disabled'}" href="${wa||'#'}" target="_blank" rel="noopener">
+              <i class="fab fa-whatsapp"></i> WhatsApp
+            </a>
+            <a class="ll-action ll-mail" href="mailto:?subject=${encodeURIComponent('Inquiry about your listing on Smart House Finder')}">
+              <i class="fas fa-envelope"></i> Email
+            </a>
+          </div>
+
+          <div class="ll-section">
+            <h3 style="margin:0 0 .25rem;">Listings by ${name}</h3>
+            <p style="color:var(--text-muted); margin:0;">${count} approved propert${count==1?'y':'ies'}.</p>
+            <div class="ll-listings">
+              ${(props||[]).map(p => {
+                const img = (Array.isArray(p.image_urls) && p.image_urls[0]) || 'https://placehold.co/400x280?text=No+photo';
+                const loc = [p.neighbourhood, p.city].filter(Boolean).join(', ');
+                return `<div class="ll-list-card" onclick="location.href='/detail.html?id=db-${p.id}'">
+                  <img src="${esc(img)}" alt="${esc(p.title)}" loading="lazy" />
+                  <div class="ll-list-body">
+                    <div style="font-weight:600; font-size:.95rem;">${esc(p.title||'Untitled')}</div>
+                    <div style="color:var(--primary); font-weight:600; margin:.25rem 0;">${SHF.formatPrice(p.price)}<small style="color:var(--text-muted); font-weight:400;"> /mo</small></div>
+                    <div style="font-size:.8rem; color:var(--text-muted);"><i class="fas fa-location-dot"></i> ${esc(loc||'—')} · 🛏 ${p.beds||0} 🚿 ${p.baths||0}</div>
+                  </div>
+                </div>`;
+              }).join('') || '<div style="color:var(--text-muted); padding:1rem 0;">No active listings.</div>'}
+            </div>
+          </div>
+
+          <div class="ll-section">
+            <h3 style="margin:0 0 .5rem;">Reviews</h3>
+            <div style="padding:1.25rem; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center;">
+              <i class="fas fa-star" style="opacity:.4;"></i> No reviews yet. Be the first after your viewing.
+            </div>
+          </div>
+        </div>`;
+    } catch (e) {
+      console.error(e);
+      root.innerHTML = '<p>Could not load landlord profile.</p>';
+    }
+  }
+  load();
+</script>
+</body>
+</html>
