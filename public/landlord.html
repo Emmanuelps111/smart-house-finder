@@ -63,9 +63,15 @@
   const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function waLink(phone){
-    // Strip + and non-digits for wa.me
-    const clean = String(phone||'').replace(/[^\d]/g,'');
-    return clean ? `https://wa.me/${clean}` : null;
+    // Normalize to international E.164 without +
+    let clean = String(phone||'').replace(/[^\d]/g,'');
+    if (!clean) return null;
+    if (clean.startsWith('0')) clean = '255' + clean.slice(1);      // 0713... -> 255713...
+    if (clean.startsWith('255')) return (isMobile() ? 'whatsapp://send?phone=' : 'https://wa.me/') + clean;
+    return (isMobile() ? 'whatsapp://send?phone=' : 'https://wa.me/') + clean;
+  }
+  function isMobile(){
+    return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   async function load(){
@@ -108,7 +114,7 @@
             <a class="ll-action ll-call ${phone?'':'disabled'}" href="${phone?`tel:${esc(phone)}`:'#'}">
               <i class="fas fa-phone"></i> Call
             </a>
-            <a class="ll-action ll-wa ${wa?'':'disabled'}" href="${wa||'#'}" target="_blank" rel="noopener">
+            <a class="ll-action ll-wa ${wa?'':'disabled'}" href="${wa||'#'}" ${wa ? 'onclick="event.preventDefault(); window.open(this.href, \'_blank\');"' : ''} target="_blank" rel="noopener">
               <i class="fab fa-whatsapp"></i> WhatsApp
             </a>
             <a class="ll-action ll-mail" href="mailto:?subject=${encodeURIComponent('Inquiry about your listing on Smart House Finder')}">
