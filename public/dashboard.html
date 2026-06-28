@@ -246,6 +246,17 @@
         <div class="preview-grid" id="photoPreview"></div>
         <span class="error"></span>
       </div>
+      <div class="form-row">
+        <label>Property video <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional, max 100MB — MP4/WebM/MOV)</span></label>
+        <label class="file-input-wrap" for="p-video">
+          <i class="fas fa-video" style="font-size:1.5rem; color:var(--primary);"></i>
+          <div>Click to upload a short video tour of the house</div>
+          <input id="p-video" type="file" accept="video/*" />
+        </label>
+        <div id="videoPreview" style="margin-top:.5rem;"></div>
+        <span class="error"></span>
+      </div>
+
       <div class="grid-2">
         <div class="form-row"><label>Contact phone</label><input id="p-contact" type="tel" placeholder="+255759996841" value="${escapeHtml(v.contact_phone||'')}" /></div>
         <div class="form-row"><label>Deposit (months)</label><input id="p-deposit" type="number" min="0" max="12" value="${v.deposit_months??2}" /></div>
