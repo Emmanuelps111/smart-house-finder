@@ -62,17 +62,31 @@
   const root = document.getElementById('root');
   const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  function waLink(phone){
-    // Normalize to international E.164 without +
-    let clean = String(phone||'').replace(/[^\d]/g,'');
-    if (!clean) return null;
+  function normalizeWhatsAppPhone(phone){
+    // WhatsApp expects an international number with digits only, no leading +.
+    let clean = String(phone || '').replace(/[^\d]/g, '');
+    if (!clean) return '';
+    if (clean.startsWith('00')) clean = clean.slice(2);
+    if (clean.startsWith('2550')) clean = '255' + clean.slice(4);
     if (clean.startsWith('0')) clean = '255' + clean.slice(1);      // 0713... -> 255713...
-    if (clean.startsWith('255')) return (isMobile() ? 'whatsapp://send?phone=' : 'https://wa.me/') + clean;
-    return (isMobile() ? 'whatsapp://send?phone=' : 'https://wa.me/') + clean;
+    if (/^[67]\d{8}$/.test(clean)) clean = '255' + clean;          // 713... -> 255713...
+    return /^\d{10,15}$/.test(clean) ? clean : '';
   }
-  function isMobile(){
-    return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  function waLink(phone){
+    const clean = normalizeWhatsAppPhone(phone);
+    if (!clean) return null;
+    // Use WhatsApp's universal HTTPS link; it opens the app on phones and WhatsApp Web on desktop.
+    return `https://wa.me/${clean}`;
   }
+
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-whatsapp-url]');
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    window.open(button.dataset.whatsappUrl, '_blank', 'noopener,noreferrer');
+  });
 
   async function load(){
     if (!id) { root.innerHTML = '<p>Missing landlord id.</p>'; return; }
@@ -114,7 +128,7 @@
             <a class="ll-action ll-call ${phone?'':'disabled'}" href="${phone?`tel:${esc(phone)}`:'#'}">
               <i class="fas fa-phone"></i> Call
             </a>
-            <a class="ll-action ll-wa ${wa?'':'disabled'}" href="${wa||'#'}" ${wa ? 'onclick="event.preventDefault(); window.open(this.href, \'_blank\');"' : ''} target="_blank" rel="noopener">
+            <a class="ll-action ll-wa ${wa?'':'disabled'}" href="${wa||'#'}" ${wa ? `data-whatsapp-url="${esc(wa)}"` : ''} target="_blank" rel="noopener noreferrer">
               <i class="fab fa-whatsapp"></i> WhatsApp
             </a>
             <a class="ll-action ll-mail" href="mailto:?subject=${encodeURIComponent('Inquiry about your listing on Smart House Finder')}">
