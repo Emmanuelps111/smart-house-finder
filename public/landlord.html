@@ -63,11 +63,15 @@
   const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function waLink(phone){
-    // Strip + and non-digits for wa.me / whatsapp://
-    const clean = String(phone||'').replace(/[^\d]/g,'');
+    // Normalize to international E.164 without +
+    let clean = String(phone||'').replace(/[^\d]/g,'');
     if (!clean) return null;
-    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    return isMobile ? `whatsapp://send?phone=${clean}` : `https://wa.me/${clean}`;
+    if (clean.startsWith('0')) clean = '255' + clean.slice(1);      // 0713... -> 255713...
+    if (clean.startsWith('255')) return (isMobile() ? 'whatsapp://send?phone=' : 'https://wa.me/') + clean;
+    return (isMobile() ? 'whatsapp://send?phone=' : 'https://wa.me/') + clean;
+  }
+  function isMobile(){
+    return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   async function load(){
