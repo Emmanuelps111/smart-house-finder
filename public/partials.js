@@ -77,6 +77,11 @@
         '/assets/bg-house-3.jpg',
         '/assets/bg-house-4.jpg',
         '/assets/bg-house-5.jpg',
+        '/assets/bg-house-6.jpg',
+        '/assets/bg-house-7.jpg',
+        '/assets/bg-house-8.jpg',
+        '/assets/bg-house-9.jpg',
+        '/assets/bg-house-10.jpg',
       ];
       bg.innerHTML = imgs.map(src => `<div class="bg-slide" style="background-image:url('${src}')"></div>`).join('');
       document.body.prepend(bg);
