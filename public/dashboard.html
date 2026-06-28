@@ -293,9 +293,31 @@
     preview.querySelectorAll('[data-rmnew]').forEach(b => b.addEventListener('click', () => { pendingPhotos.splice(+b.dataset.rmnew, 1); drawPreviews(); }));
   }
 
+  function drawVideoPreview() {
+    const el = document.getElementById('videoPreview');
+    if (!el) return;
+    if (pendingVideo) {
+      const url = URL.createObjectURL(pendingVideo.file);
+      el.innerHTML = `<div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+        <video src="${url}" controls style="max-width:320px; max-height:200px; border-radius:8px; background:#000;"></video>
+        <div><div style="font-size:.9rem;">${escapeHtml(pendingVideo.name)}</div>
+        <button type="button" id="rmVideo" class="btn btn-outline" style="margin-top:.4rem;">Remove video</button></div></div>`;
+      document.getElementById('rmVideo').addEventListener('click', () => { pendingVideo = null; document.getElementById('p-video').value=''; drawVideoPreview(); });
+    } else if (existingVideoPath) {
+      el.innerHTML = `<div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+        <i class="fas fa-circle-check" style="color:var(--success);"></i>
+        <span style="font-size:.9rem;">Existing video attached</span>
+        <button type="button" id="rmVideoExisting" class="btn btn-outline">Remove video</button></div>`;
+      document.getElementById('rmVideoExisting').addEventListener('click', () => { existingVideoPath = null; drawVideoPreview(); });
+    } else {
+      el.innerHTML = '';
+    }
+  }
+
   function bindForm() {
     const photosInput = document.getElementById('p-photos');
     drawPreviews();
+    drawVideoPreview();
 
     photosInput.addEventListener('change', async () => {
       const files = Array.from(photosInput.files || []);
@@ -308,6 +330,17 @@
       photosInput.value = '';
       drawPreviews();
     });
+
+    const videoInput = document.getElementById('p-video');
+    videoInput.addEventListener('change', () => {
+      const file = (videoInput.files || [])[0];
+      if (!file) return;
+      if (!/^video\//.test(file.type)) { window.toast.error('Please select a video file.'); videoInput.value=''; return; }
+      if (file.size > 100 * 1024 * 1024) { window.toast.error('Video is over 100MB. Please pick a smaller file.'); videoInput.value=''; return; }
+      pendingVideo = { name: file.name, file };
+      drawVideoPreview();
+    });
+
 
     document.getElementById('propForm').addEventListener('submit', async (e) => {
       e.preventDefault();
