@@ -121,6 +121,25 @@
               <div style="color:var(--text-muted); font-size:.9rem;">Loading…</div>
             </div>
           </div>
+
+          <div class="info-card" id="reviewsSection" style="margin-top:1.5rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+              <h3 style="margin:0;">⭐ Reviews</h3>
+              <div id="reviewsSummary" style="font-size:.9rem; color:var(--text-muted);">No reviews yet.</div>
+            </div>
+            <div id="reviewForm" style="margin-top:1rem; padding:1rem; border:1px solid var(--border); border-radius:10px; background:var(--surface);">
+              <div style="font-weight:600; font-size:.9rem; margin-bottom:.4rem;">Your rating</div>
+              <div id="starPicker" style="font-size:1.6rem; cursor:pointer; user-select:none; color:#facc15; letter-spacing:.15rem;">
+                <span data-star="1">☆</span><span data-star="2">☆</span><span data-star="3">☆</span><span data-star="4">☆</span><span data-star="5">☆</span>
+              </div>
+              <textarea id="reviewComment" rows="3" maxlength="500" placeholder="Share your experience with this property…" style="width:100%; margin-top:.6rem; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit;"></textarea>
+              <div style="display:flex; justify-content:flex-end; margin-top:.6rem;">
+                <button id="submitReviewBtn" class="btn btn-primary"><i class="fas fa-paper-plane"></i> <span id="submitReviewLabel">Post review</span></button>
+              </div>
+            </div>
+            <div id="reviewList" style="margin-top:1rem; display:flex; flex-direction:column; gap:.75rem;"></div>
+          </div>
+
         </div>
         <aside>
           <div class="info-card">
