@@ -405,6 +405,8 @@ export type Database = {
         Returns: {
           full_name: string
           id: string
+          phone: string
+          property_count: number
           selfie_url: string
         }[]
       }
