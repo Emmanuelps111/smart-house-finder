@@ -66,10 +66,27 @@
 </div>`;
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Inject background slideshow once
+    if (!document.querySelector('.bg-slideshow')) {
+      const bg = document.createElement('div');
+      bg.className = 'bg-slideshow';
+      bg.setAttribute('aria-hidden', 'true');
+      const imgs = [
+        '/assets/bg-house.jpg',
+        '/assets/bg-house-2.jpg',
+        '/assets/bg-house-3.jpg',
+        '/assets/bg-house-4.jpg',
+        '/assets/bg-house-5.jpg',
+      ];
+      bg.innerHTML = imgs.map(src => `<div class="bg-slide" style="background-image:url('${src}')"></div>`).join('');
+      document.body.prepend(bg);
+    }
+
     const h = document.getElementById('header-mount');
     const f = document.getElementById('footer-mount');
     if (h) h.outerHTML = header;
     if (f) f.outerHTML = footer;
+
 
     // User menu interactions
     document.addEventListener('click', (e) => {
