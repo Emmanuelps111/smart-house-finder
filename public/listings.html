@@ -131,7 +131,7 @@
       </article>`;
     }).join('');
   }
-  [search, bedF, priceF].forEach(el => el.addEventListener('input', render));
+  [search, bedF, priceF, sortEl].forEach(el => el && el.addEventListener('input', render));
   window.addEventListener('shf:listings-updated', render);
   render();
 </script>
