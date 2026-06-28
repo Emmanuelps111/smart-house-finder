@@ -54,7 +54,29 @@
   const params = new URLSearchParams(location.search);
   if (params.get('q')) search.value = params.get('q');
 
+  function isAdmin() {
+    try { const u = JSON.parse(localStorage.getItem('shf-user')||'null'); return !!u && u.role==='admin'; }
+    catch(e){ return false; }
+  }
+
+  async function deleteListing(dbId, title) {
+    if (!confirm(`Delete listing "${title}"?\n\nThis permanently removes it from the database and all renters' listings. This cannot be undone.`)) return;
+    try {
+      const sb = await window.SHFCloud.ready;
+      const { error } = await sb.from('properties').delete().eq('id', dbId);
+      if (error) throw error;
+      window.toast && window.toast.success && window.toast.success('Listing deleted.');
+      window.SHF_LISTINGS = window.SHF_LISTINGS.filter(l => l.dbId !== dbId);
+      render();
+    } catch (e) {
+      const msg = 'Delete failed: ' + (e.message||e);
+      window.toast && window.toast.error ? window.toast.error(msg) : alert(msg);
+    }
+  }
+  window.deleteListing = deleteListing;
+
   function render() {
+    const admin = isAdmin();
     const q = search.value.trim().toLowerCase();
     const minBed = parseInt(bedF.value) || 0;
     const maxPrice = parseInt(priceF.value) || Infinity;
@@ -63,8 +85,14 @@
       l.beds >= minBed && l.price <= maxPrice
     );
     empty.style.display = filtered.length ? 'none' : 'block';
-    grid.innerHTML = filtered.map(l => `
-      <article class="card" onclick="if(!event.target.closest('[data-lightbox]')) location.href='/detail.html?id=${l.id}'" style="cursor:pointer;">
+    grid.innerHTML = filtered.map(l => {
+      const safeTitle = String(l.title||'').replace(/'/g,"\\'");
+      const delBtn = (admin && l.dbId)
+        ? `<button data-no-nav onclick="event.stopPropagation(); deleteListing('${l.dbId}','${safeTitle}')" title="Delete listing" style="position:absolute; top:.6rem; right:.6rem; z-index:5; background:#DC2626; color:#fff; border:none; border-radius:8px; padding:.45rem .7rem; font-size:.8rem; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.25);"><i class="fas fa-trash"></i> Delete</button>`
+        : '';
+      return `
+      <article class="card" onclick="if(!event.target.closest('[data-lightbox]') && !event.target.closest('[data-no-nav]')) location.href='/detail.html?id=${l.id}'" style="cursor:pointer; position:relative;">
+        ${delBtn}
         <img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />
         <div class="card-body">
           <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
@@ -78,7 +106,8 @@
           ${SHF.proximityBadges(l.lat, l.lng)}
           <a href="/detail.html?id=${l.id}" class="btn btn-outline" style="margin-top:.75rem; width:100%; justify-content:center;">View details <i class="fas fa-arrow-right"></i></a>
         </div>
-      </article>`).join('');
+      </article>`;
+    }).join('');
   }
   [search, bedF, priceF].forEach(el => el.addEventListener('input', render));
   window.addEventListener('shf:listings-updated', render);
