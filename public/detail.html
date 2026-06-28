@@ -99,6 +99,10 @@
         <div>
           <img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" />
           ${thumbsHtml}
+          ${l.video_url ? `<div class="info-card" style="margin-top:1.5rem;">
+            <h3 style="margin-top:0;"><i class="fas fa-video"></i> Video tour</h3>
+            <video src="${escapeHtml(l.video_url)}" controls preload="metadata" style="width:100%; max-height:480px; border-radius:8px; background:#000;"></video>
+          </div>` : ''}
           <div class="info-card" style="margin-top:1.5rem;">
             <h3 style="margin-top:0;">About this property</h3>
             <p>${escapeHtml(l.desc) || '<em>No description provided.</em>'}</p>
@@ -106,6 +110,7 @@
             ${amenitiesHtml}
             <div id="detailMap"></div>
           </div>
+
           <div class="info-card" id="roommateSection" style="margin-top:1.5rem;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
               <h3 style="margin:0;">🤝 Roommate Requests</h3>
@@ -358,10 +363,17 @@
       const dbId = id.slice(3);
       const { data: p, error } = await sb
         .from('properties')
-        .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from')
+        .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from, video_url')
         .eq('id', dbId)
         .maybeSingle();
       if (error || !p) return false;
+      let videoUrl = null;
+      if (p.video_url) {
+        try {
+          const { data: signed } = await sb.storage.from('property-videos').createSignedUrl(p.video_url, 60 * 60 * 6);
+          videoUrl = signed?.signedUrl || null;
+        } catch (_) {}
+      }
       const l = {
         id, dbId: p.id, landlord_id: p.landlord_id, isDb: true,
         title: p.title || 'Untitled', price: Number(p.price) || 0,
@@ -376,7 +388,9 @@
         lng: p.lng != null ? Number(p.lng) : null,
         desc: p.description || '',
         occupancy: p.occupancy || 'vacant',
+        video_url: videoUrl,
       };
+
       renderDetail(l);
       return true;
     } catch (e) { return false; }

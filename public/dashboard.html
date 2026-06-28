@@ -64,7 +64,10 @@
   let sb = null, user = null, myListings = [], notifications = [];
   let pendingPhotos = []; // {name, file, dataUrl}
   let existingPhotoUrls = []; // when editing
+  let pendingVideo = null; // {name, file}
+  let existingVideoPath = null;
   let editingId = null;
+
 
   (async function init() {
     sb = await window.SHFCloud.ready;
@@ -246,6 +249,17 @@
         <div class="preview-grid" id="photoPreview"></div>
         <span class="error"></span>
       </div>
+      <div class="form-row">
+        <label>Property video <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional, max 100MB — MP4/WebM/MOV)</span></label>
+        <label class="file-input-wrap" for="p-video">
+          <i class="fas fa-video" style="font-size:1.5rem; color:var(--primary);"></i>
+          <div>Click to upload a short video tour of the house</div>
+          <input id="p-video" type="file" accept="video/*" />
+        </label>
+        <div id="videoPreview" style="margin-top:.5rem;"></div>
+        <span class="error"></span>
+      </div>
+
       <div class="grid-2">
         <div class="form-row"><label>Contact phone</label><input id="p-contact" type="tel" placeholder="+255759996841" value="${escapeHtml(v.contact_phone||'')}" /></div>
         <div class="form-row"><label>Deposit (months)</label><input id="p-deposit" type="number" min="0" max="12" value="${v.deposit_months??2}" /></div>
@@ -259,7 +273,10 @@
 
     existingPhotoUrls = Array.isArray(v.image_urls) ? [...v.image_urls] : [];
     pendingPhotos = [];
+    existingVideoPath = v.video_url || null;
+    pendingVideo = null;
     bindForm();
+
     if (prefill && document.getElementById('cancelEdit')) {
       document.getElementById('cancelEdit').addEventListener('click', () => { editingId = null; renderForm(); });
     }
@@ -276,9 +293,31 @@
     preview.querySelectorAll('[data-rmnew]').forEach(b => b.addEventListener('click', () => { pendingPhotos.splice(+b.dataset.rmnew, 1); drawPreviews(); }));
   }
 
+  function drawVideoPreview() {
+    const el = document.getElementById('videoPreview');
+    if (!el) return;
+    if (pendingVideo) {
+      const url = URL.createObjectURL(pendingVideo.file);
+      el.innerHTML = `<div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+        <video src="${url}" controls style="max-width:320px; max-height:200px; border-radius:8px; background:#000;"></video>
+        <div><div style="font-size:.9rem;">${escapeHtml(pendingVideo.name)}</div>
+        <button type="button" id="rmVideo" class="btn btn-outline" style="margin-top:.4rem;">Remove video</button></div></div>`;
+      document.getElementById('rmVideo').addEventListener('click', () => { pendingVideo = null; document.getElementById('p-video').value=''; drawVideoPreview(); });
+    } else if (existingVideoPath) {
+      el.innerHTML = `<div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+        <i class="fas fa-circle-check" style="color:var(--success);"></i>
+        <span style="font-size:.9rem;">Existing video attached</span>
+        <button type="button" id="rmVideoExisting" class="btn btn-outline">Remove video</button></div>`;
+      document.getElementById('rmVideoExisting').addEventListener('click', () => { existingVideoPath = null; drawVideoPreview(); });
+    } else {
+      el.innerHTML = '';
+    }
+  }
+
   function bindForm() {
     const photosInput = document.getElementById('p-photos');
     drawPreviews();
+    drawVideoPreview();
 
     photosInput.addEventListener('change', async () => {
       const files = Array.from(photosInput.files || []);
@@ -291,6 +330,17 @@
       photosInput.value = '';
       drawPreviews();
     });
+
+    const videoInput = document.getElementById('p-video');
+    videoInput.addEventListener('change', () => {
+      const file = (videoInput.files || [])[0];
+      if (!file) return;
+      if (!/^video\//.test(file.type)) { window.toast.error('Please select a video file.'); videoInput.value=''; return; }
+      if (file.size > 100 * 1024 * 1024) { window.toast.error('Video is over 100MB. Please pick a smaller file.'); videoInput.value=''; return; }
+      pendingVideo = { name: file.name, file };
+      drawVideoPreview();
+    });
+
 
     document.getElementById('propForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -331,6 +381,16 @@
           newUrls.push(pub.publicUrl);
         }
 
+        // Upload new video (if any)
+        let videoPath = existingVideoPath;
+        if (pendingVideo) {
+          const safeVidName = pendingVideo.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const vPath = `${user.id}/${ts}-${safeVidName}`;
+          const { error: vErr } = await sb.storage.from('property-videos').upload(vPath, pendingVideo.file, { contentType: pendingVideo.file.type || 'video/mp4', upsert: false });
+          if (vErr) throw vErr;
+          videoPath = vPath;
+        }
+
         const payload = {
           title: get('p-title'),
           description: get('p-desc'),
@@ -349,9 +409,11 @@
           lng: isNaN(lngRaw) ? null : lngRaw,
           amenities,
           image_urls: [...existingPhotoUrls, ...newUrls],
+          video_url: videoPath,
           property_type: document.getElementById('p-type').value,
           occupancy: document.getElementById('p-occ').value,
         };
+
 
         if (editingId) {
           const { error } = await sb.from('properties').update(payload).eq('id', editingId);
