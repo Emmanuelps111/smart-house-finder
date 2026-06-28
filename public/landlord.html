@@ -63,9 +63,11 @@
   const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function waLink(phone){
-    // Strip + and non-digits for wa.me
+    // Strip + and non-digits for wa.me / whatsapp://
     const clean = String(phone||'').replace(/[^\d]/g,'');
-    return clean ? `https://wa.me/${clean}` : null;
+    if (!clean) return null;
+    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    return isMobile ? `whatsapp://send?phone=${clean}` : `https://wa.me/${clean}`;
   }
 
   async function load(){
