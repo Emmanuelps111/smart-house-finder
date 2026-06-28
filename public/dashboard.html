@@ -270,7 +270,10 @@
 
     existingPhotoUrls = Array.isArray(v.image_urls) ? [...v.image_urls] : [];
     pendingPhotos = [];
+    existingVideoPath = v.video_url || null;
+    pendingVideo = null;
     bindForm();
+
     if (prefill && document.getElementById('cancelEdit')) {
       document.getElementById('cancelEdit').addEventListener('click', () => { editingId = null; renderForm(); });
     }
