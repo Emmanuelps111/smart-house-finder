@@ -83,6 +83,7 @@
   }
   window.deleteListing = deleteListing;
 
+  const sortEl = document.getElementById('sortBy');
   function render() {
     const admin = isAdmin();
     const q = search.value.trim().toLowerCase();
@@ -92,7 +93,20 @@
       (!q || l.title.toLowerCase().includes(q) || l.city.toLowerCase().includes(q)) &&
       l.beds >= minBed && l.price <= maxPrice
     );
+    const sortKey = sortEl ? sortEl.value : 'newest';
+    const ts = l => l.created_at ? new Date(l.created_at).getTime() : 0;
+    filtered.sort((a,b) => {
+      switch (sortKey) {
+        case 'price_asc': return (a.price||0) - (b.price||0);
+        case 'price_desc': return (b.price||0) - (a.price||0);
+        case 'beds_desc': return (b.beds||0) - (a.beds||0);
+        case 'oldest': return ts(a) - ts(b);
+        case 'newest':
+        default: return ts(b) - ts(a);
+      }
+    });
     empty.style.display = filtered.length ? 'none' : 'block';
+
     grid.innerHTML = filtered.map(l => {
       const safeTitle = String(l.title||'').replace(/'/g,"\\'");
       const delBtn = (admin && l.dbId)
