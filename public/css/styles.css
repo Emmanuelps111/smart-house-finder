@@ -345,7 +345,7 @@ body { background-color: var(--bg); }
   position: absolute; inset: 0;
   background-size: cover; background-position: center center;
   background-repeat: no-repeat;
-  opacity: 0; animation: bgFade 25s infinite;
+  opacity: 0; animation: bgFade 50s infinite;
   will-change: opacity;
 }
 .bg-slideshow .bg-slide:nth-child(1) { animation-delay: 0s; }
@@ -353,11 +353,16 @@ body { background-color: var(--bg); }
 .bg-slideshow .bg-slide:nth-child(3) { animation-delay: 10s; }
 .bg-slideshow .bg-slide:nth-child(4) { animation-delay: 15s; }
 .bg-slideshow .bg-slide:nth-child(5) { animation-delay: 20s; }
+.bg-slideshow .bg-slide:nth-child(6) { animation-delay: 25s; }
+.bg-slideshow .bg-slide:nth-child(7) { animation-delay: 30s; }
+.bg-slideshow .bg-slide:nth-child(8) { animation-delay: 35s; }
+.bg-slideshow .bg-slide:nth-child(9) { animation-delay: 40s; }
+.bg-slideshow .bg-slide:nth-child(10) { animation-delay: 45s; }
 @keyframes bgFade {
   0%   { opacity: 0; }
-  4%   { opacity: 1; }
-  20%  { opacity: 1; }
-  24%  { opacity: 0; }
+  2%   { opacity: 1; }
+  10%  { opacity: 1; }
+  12%  { opacity: 0; }
   100% { opacity: 0; }
 }
 /* Keep section backgrounds transparent so the houses show through */
