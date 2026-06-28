@@ -143,13 +143,14 @@
             </button>
             <hr style="border:none; border-top:1px solid var(--border); margin:1.25rem 0;" />
             <h4 style="margin:0 0 .5rem;">Listed by</h4>
-            <div id="landlordBlock" style="display:flex; align-items:center; gap:.75rem;">
+            <a id="landlordBlock" href="javascript:void(0)" style="display:flex; align-items:center; gap:.75rem; text-decoration:none; color:inherit; padding:.5rem; border-radius:10px; transition:background .15s;" onmouseover="this.style.background='rgba(59,130,246,.08)'" onmouseout="this.style.background='transparent'">
               <div style="width:48px; height:48px; border-radius:50%; background:#e5e7eb; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#9ca3af;"></i></div>
               <div>
                 <div style="font-weight:600;">Loading…</div>
                 <div style="font-size:.85rem; color:var(--text-muted);"><i class="fas fa-circle-check" style="color:var(--primary);"></i> Verified Landlord</div>
               </div>
-            </div>
+            </a>
+
           </div>
         </aside>
       </div>`;
