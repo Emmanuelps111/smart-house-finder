@@ -404,6 +404,16 @@ function AdminPage() {
                   ))}
                 </div>
               )}
+              {selected.video_url && (
+                <div>
+                  <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Video tour</div>
+                  {selectedVideoUrl ? (
+                    <video src={selectedVideoUrl} controls preload="metadata" className="w-full max-h-[480px] rounded bg-black" />
+                  ) : (
+                    <div className="text-xs text-muted-foreground">Loading video…</div>
+                  )}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Status">{selected.status}</Field>
                 <Field label="Occupancy">{selected.occupancy}</Field>
