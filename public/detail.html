@@ -80,8 +80,8 @@
   async function renderDetail(l){
     rendered = true;
     document.title = `${l.title} — Smart House Finder`;
-    const gallery = (Array.isArray(l.image_urls) && l.image_urls.length) ? l.image_urls : (l.img ? [l.img] : []);
-    const heroSrc = gallery[0] || 'https://placehold.co/900x600?text=No+photo';
+    const gallery = (Array.isArray(l.image_urls) && l.image_urls.length) ? l.image_urls : [];
+    const heroSrc = gallery[0] || '';
 
     const amenitiesHtml = (Array.isArray(l.amenities) && l.amenities.length)
       ? `<ul class="feature-list">${l.amenities.map(a => {
@@ -94,10 +94,16 @@
       ? `<div class="thumb-row">${gallery.slice(0,8).map(g => `<img src="${escapeHtml(g)}" alt="thumbnail" data-thumb />`).join('')}</div>`
       : '';
 
+    const heroHtml = heroSrc
+      ? `<img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" />`
+      : (l.video_url
+          ? `<video class="hero-img" src="${escapeHtml(l.video_url)}" controls preload="metadata" style="width:100%; max-height:480px; background:#000; border-radius:var(--radius);"></video>`
+          : `<div class="hero-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#1E3A8A,#3B82F6); color:#fff; gap:.6rem; min-height:320px; border-radius:var(--radius);"><i class="fas fa-house" style="font-size:3rem;"></i><span style="font-weight:600;">No media uploaded</span></div>`);
+
     root.innerHTML = `
       <div class="detail-grid">
         <div>
-          <img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" />
+          ${heroHtml}
           ${thumbsHtml}
           ${l.video_url ? `<div class="info-card" style="margin-top:1.5rem;">
             <h3 style="margin-top:0;"><i class="fas fa-video"></i> Video tour</h3>
