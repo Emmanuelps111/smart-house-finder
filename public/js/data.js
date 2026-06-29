@@ -112,7 +112,8 @@ window.SHF.fetchDbListings = async function () {
       contact_phone: p.contact_phone,
       available_from: p.available_from,
       created_at: p.created_at,
-    }));
+    });
+    });
 
     // Replace any prior db-* entries (so updates reflect)
     window.SHF_LISTINGS = window.SHF_LISTINGS.filter(l => !(typeof l.id === 'string' && l.id.startsWith('db-')));
