@@ -145,10 +145,16 @@ function AdminPage() {
     return () => { active = false; };
   }, [loadData]);
 
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
   const openProperty = async (p: Property) => {
     setSelected(p);
+    setSelectedVideoUrl(null);
     const { data } = await supabase.from("profiles").select("*").eq("id", p.landlord_id).maybeSingle();
     setSelectedLandlord((data as unknown as Profile) || null);
+    if (p.video_url) {
+      const { data: signed } = await supabase.storage.from("property-videos").createSignedUrl(p.video_url, 60 * 60 * 6);
+      if (signed?.signedUrl) setSelectedVideoUrl(signed.signedUrl);
+    }
   };
 
   const moderate = async (id: string, status: "approved" | "rejected") => {
