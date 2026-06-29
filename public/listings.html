@@ -145,7 +145,7 @@
           <div class="card-meta" style="margin-top:.35rem;"><span><i class="fas fa-bed"></i> ${l.beds} beds</span><span><i class="fas fa-bath"></i> ${l.baths} baths</span><span><i class="fas fa-ruler-combined"></i> ${l.area}</span><span><i class="fas fa-location-dot"></i> ${l.city}</span></div>
           ${SHF.proximityBadges(l.lat, l.lng)}
           <div style="margin-top:auto; padding-top:.75rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.75rem;">
-            <span style="font-size:.85rem; color:var(--text-muted);">Listed ${l.created_at ? new Date(l.created_at).toLocaleDateString() : 'recently'}</span>
+            <span style="font-size:.85rem; color:var(--text-muted);">Listed ${SHF.timeAgo(l.created_at)}</span>
             <a href="/detail.html?id=${l.id}" class="btn btn-primary" data-no-nav onclick="event.stopPropagation();" style="padding:.6rem 1.2rem;">View details <i class="fas fa-arrow-right"></i></a>
           </div>
         </div>
