@@ -335,6 +335,26 @@ section { padding: 5rem 0; }
   .price-card.featured { transform: none; }
 }
 
+/* Phone-specific header compaction */
+@media (max-width: 640px) {
+  .nav { padding: 0 .75rem; gap: .4rem; }
+  .logo { font-size: 1rem; gap: .4rem; }
+  .logo i { font-size: 1.2rem; }
+  .nav-actions { gap: .35rem; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 9px; }
+  /* Collapse the user menu button to just the avatar icon */
+  .user-menu .btn[data-user-toggle] { padding: .4rem .5rem !important; gap: 0 !important; }
+  .user-menu .btn[data-user-toggle] span,
+  .user-menu .btn[data-user-toggle] .fa-chevron-down { display: none !important; }
+  .nav-actions .btn-primary { padding: .45rem .7rem !important; font-size: .85rem; }
+}
+@media (max-width: 380px) {
+  .logo span, .logo { font-size: .9rem; }
+  .nav-actions { gap: .25rem; }
+  .icon-btn { width: 34px; height: 34px; }
+}
+
+
 /* ===== House background slideshow (global, fixed) ===== */
 body { background-color: var(--bg); }
 .bg-slideshow {
