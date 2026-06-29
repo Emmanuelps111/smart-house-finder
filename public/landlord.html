@@ -163,9 +163,11 @@
           </div>
 
           <div class="ll-section">
-            <h3 style="margin:0 0 .5rem;">Reviews</h3>
-            <div style="padding:1.25rem; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center;">
-              <i class="fas fa-star" style="opacity:.4;"></i> No reviews yet. Be the first after your viewing.
+            <h3 style="margin:0 0 .5rem;">Reviews <span style="font-weight:400; color:var(--text-muted); font-size:.9rem;">— ${rating.count ? `${rating.avg.toFixed(1)} average across ${rating.count} review${rating.count==1?'':'s'}` : 'no reviews yet'}</span></h3>
+            <div id="llReviewsList" style="display:flex; flex-direction:column; gap:.75rem;">
+              <div style="padding:1.25rem; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center;">
+                <i class="fas fa-star" style="opacity:.4;"></i> Loading reviews…
+              </div>
             </div>
           </div>
         </div>`;
