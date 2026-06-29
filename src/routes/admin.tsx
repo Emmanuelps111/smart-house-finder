@@ -200,6 +200,34 @@ function AdminPage() {
     setSelectedUser((u) => (u && u.id === userId ? { ...u, ...patch } as Profile : u));
   };
 
+  const toggleMatchSelect = (id: string) => {
+    setMatchSelection((sel) => sel.includes(id) ? sel.filter(x => x !== id) : sel.length < 2 ? [...sel, id] : [sel[1], id]);
+  };
+
+  const matchSelected = async () => {
+    if (matchSelection.length !== 2) { toast.error("Select exactly two requests to match."); return; }
+    const [a, b] = matchSelection;
+    const { error } = await supabase.rpc("match_roommate_requests", { _a: a, _b: b });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Matched! Both students have been notified.");
+    setMatchSelection([]);
+    await loadData();
+  };
+
+  const sendAnnouncement = async () => {
+    if (!announceTitle.trim() || !announceBody.trim()) { toast.error("Title and message are required."); return; }
+    setSendingAnnounce(true);
+    const { data, error } = await supabase.rpc("send_announcement", {
+      _title: announceTitle.trim(), _body: announceBody.trim(),
+      _link: announceLink.trim() || null,
+    });
+    setSendingAnnounce(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Announcement sent to ${data ?? 0} users.`);
+    setAnnounceTitle(""); setAnnounceBody(""); setAnnounceLink("");
+  };
+
+
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
   if (authState === "unauthenticated") return (
     <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-br from-blue-50 to-white">
