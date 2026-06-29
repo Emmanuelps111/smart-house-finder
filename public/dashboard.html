@@ -238,9 +238,10 @@
         <div class="form-row"><label>Latitude <small style="color:var(--text-muted);">— supports decimals & negatives</small></label><input id="p-lat" type="number" step="any" placeholder="-6.7741" value="${v.lat??''}" /></div>
         <div class="form-row"><label>Longitude</label><input id="p-lng" type="number" step="any" placeholder="39.2417" value="${v.lng??''}" /></div>
       </div>
-      <div class="form-row"><label>Description <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional)</span></label><textarea id="p-desc" rows="4" maxlength="800" placeholder="Additional information about the property — neighbourhood, rules, nearby amenities, anything renters should know.">${escapeHtml(v.description||'')}</textarea><span class="error"></span></div>
+      <div class="form-row"><label>Description <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional — required if you don't upload any photos or a video)</span></label><textarea id="p-desc" rows="4" maxlength="800" placeholder="Additional information about the property — neighbourhood, rules, nearby amenities, anything renters should know.">${escapeHtml(v.description||'')}</textarea><span class="error"></span></div>
+      <p style="font-size:.85rem; color:var(--text-muted); margin:.25rem 0 .5rem;"><i class="fas fa-circle-info"></i> Photos and video are both optional, but you must provide at least one of: photos, a video, or a written description.</p>
       <div class="form-row">
-        <label>Property photos * (at least 1, up to 8) — only photos you upload will be shown</label>
+        <label>Property photos <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional, up to 8)</span></label>
         <label class="file-input-wrap" for="p-photos">
           <i class="fas fa-camera-retro" style="font-size:1.5rem; color:var(--primary);"></i>
           <div>Click to upload photos — JPG or PNG (max 3MB each)</div>
@@ -351,8 +352,15 @@
       if (!get('p-title')) { setErr('p-title','Title is required'); ok = false; }
       if (!get('p-city')) { setErr('p-city','City is required'); ok = false; }
       if (!get('p-price') || +get('p-price') < 10000) { setErr('p-price','Enter a valid rent'); ok = false; }
-      // description is optional
-      if ((existingPhotoUrls.length + pendingPhotos.length) === 0) { setErr('p-photos','Please add at least one photo'); ok = false; }
+      // Need at least one of: photos, video, or description
+      const hasPhotos = (existingPhotoUrls.length + pendingPhotos.length) > 0;
+      const hasVideo = !!(pendingVideo || existingVideoPath);
+      const hasDesc = !!get('p-desc');
+      if (!hasPhotos && !hasVideo && !hasDesc) {
+        setErr('p-desc','Please add at least one photo, a video, or a written description');
+        setErr('p-photos','Add photos, a video, or write a description');
+        ok = false;
+      }
       const phone = get('p-contact');
       if (phone && !/^\+255\d{9}$/.test(phone)) { setErr('p-contact','Phone must be +255 followed by 9 digits'); ok = false; }
       if (!ok) return;
