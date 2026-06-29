@@ -68,14 +68,29 @@
   <script src="/partials.js"></script>
   <script>
     (async () => {
-      const sb = await window.SHFCloud.ready;
-      const { data: { user } } = await sb.auth.getUser();
       const list = document.getElementById('notifList');
       const markBtn = document.getElementById('markAllBtn');
       const subtitle = document.getElementById('notifSubtitle');
+      const showEmpty = (icon, msg) => { list.innerHTML = `<div class="empty"><i class="${icon}"></i><div>${msg}</div></div>`; };
+
+      let sb, user;
+      try {
+        sb = await Promise.race([
+          window.SHFCloud.ready,
+          new Promise((_, rej) => setTimeout(() => rej(new Error('Connection timeout')), 8000))
+        ]);
+        const sess = await sb.auth.getSession();
+        user = sess.data.session && sess.data.session.user;
+      } catch (e) {
+        console.error('[notifications] init failed', e);
+        showEmpty('fas fa-triangle-exclamation', "Couldn't connect. Please refresh the page.");
+        markBtn.style.display = 'none';
+        return;
+      }
 
       if (!user) {
-        list.innerHTML = `<div class="empty"><i class="fas fa-lock"></i><div>Please <a href="/login.html" style="color:#3b82f6;">sign in</a> to view notifications.</div></div>`;
+        showEmpty('fas fa-lock', 'Please <a href="/login.html" style="color:#3b82f6;">sign in</a> to view your notifications.');
+        subtitle.textContent = 'Sign in to see your activity.';
         markBtn.style.display = 'none';
         return;
       }
