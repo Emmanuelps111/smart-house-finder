@@ -121,14 +121,21 @@ function AdminPage() {
   const [selectedLandlord, setSelectedLandlord] = useState<Profile | null>(null);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [roommates, setRoommates] = useState<RoommateRequest[]>([]);
+  const [matchSelection, setMatchSelection] = useState<string[]>([]);
+  const [announceTitle, setAnnounceTitle] = useState("");
+  const [announceBody, setAnnounceBody] = useState("");
+  const [announceLink, setAnnounceLink] = useState("");
+  const [sendingAnnounce, setSendingAnnounce] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [allProps, profs, bookings, roles, msgs] = await Promise.all([
+    const [allProps, profs, bookings, roles, msgs, rooms] = await Promise.all([
       supabase.from("properties").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("bookings").select("id", { count: "exact", head: true }),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("contact_messages").select("*").order("created_at", { ascending: false }),
+      supabase.from("roommate_requests").select("*").order("created_at", { ascending: false }),
     ]);
     if (allProps.data) setAllProperties(allProps.data as unknown as Property[]);
     if (profs.data) setProfiles(profs.data as unknown as Profile[]);
@@ -141,7 +148,9 @@ function AdminPage() {
       setRolesByUser(map);
     }
     if (msgs.data) setMessages(msgs.data as unknown as ContactMessage[]);
+    if (rooms.data) setRoommates(rooms.data as unknown as RoommateRequest[]);
   }, []);
+
 
   useEffect(() => {
     let active = true;
