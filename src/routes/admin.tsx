@@ -445,7 +445,124 @@ function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="roommates" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <CardTitle className="text-blue-900">Roommate requests</CardTitle>
+                  <div className="flex gap-2 items-center text-sm">
+                    <span className="text-blue-700/80">Selected: <strong>{matchSelection.length}/2</strong></span>
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={matchSelection.length !== 2} onClick={matchSelected}>
+                      🤝 Match selected & notify
+                    </Button>
+                    {matchSelection.length > 0 && (
+                      <Button size="sm" variant="outline" onClick={() => setMatchSelection([])}>Clear</Button>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {roommates.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No roommate requests yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {(() => {
+                      // group by property
+                      const groups: Record<string, RoommateRequest[]> = {};
+                      for (const r of roommates) {
+                        const key = (r.property_id || r.property_key || 'unknown') as string;
+                        (groups[key] ||= []).push(r);
+                      }
+                      return Object.entries(groups).map(([key, items]) => {
+                        const title = items[0]?.details?.property_title
+                          || allProperties.find(p => p.id === items[0].property_id)?.title
+                          || `Property ${key.slice(0,8)}`;
+                        const searching = items.filter(i => i.status === 'searching');
+                        const matched = items.filter(i => i.status === 'matched');
+                        return (
+                          <div key={key} className="border border-blue-200 rounded-lg overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-600 to-sky-500 text-white px-4 py-2 flex items-center justify-between flex-wrap gap-2">
+                              <div className="font-semibold">🏠 {title}</div>
+                              <div className="text-xs opacity-90">{searching.length} searching · {matched.length} matched</div>
+                            </div>
+                            <div className="divide-y divide-blue-100">
+                              {items.map(r => {
+                                const prof = profiles.find(p => p.id === r.student_id);
+                                const d = r.details || {};
+                                const selected = matchSelection.includes(r.id);
+                                return (
+                                  <div key={r.id} className={`p-3 flex items-start gap-3 ${selected ? 'bg-emerald-50' : ''}`}>
+                                    {r.status === 'searching' && (
+                                      <input type="checkbox" checked={selected} onChange={() => toggleMatchSelect(r.id)} className="mt-1 h-4 w-4 accent-emerald-600" />
+                                    )}
+                                    {prof?.selfie_url
+                                      ? <img src={prof.selfie_url} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-blue-200" />
+                                      : <div className="w-12 h-12 rounded-full bg-blue-100 grid place-items-center text-blue-400">👤</div>}
+                                    <div className="flex-1 text-sm min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <strong className="text-blue-900">{d.name || prof?.full_name || '—'}</strong>
+                                        <Badge className={r.status === 'matched' ? 'bg-emerald-600' : 'bg-amber-500'}>{r.status}</Badge>
+                                        {d.cleanliness && <Badge variant="outline" className="text-xs">🧹 {d.cleanliness}</Badge>}
+                                        {d.sleep && <Badge variant="outline" className="text-xs">😴 {d.sleep}</Badge>}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground mt-0.5">📞 {d.phone || prof?.phone || '—'} · {new Date(r.created_at).toLocaleString()}</div>
+                                      {d.bio && <div className="text-xs mt-1 italic text-slate-700">"{d.bio}"</div>}
+                                      {d.notes && <div className="text-xs mt-1 text-slate-800"><strong>Notes:</strong> {d.notes}</div>}
+                                    </div>
+                                    <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50" onClick={async () => {
+                                      if (!window.confirm('Delete this request?')) return;
+                                      const { error } = await supabase.from('roommate_requests').delete().eq('id', r.id);
+                                      if (error) { toast.error(error.message); return; }
+                                      setRoommates(arr => arr.filter(x => x.id !== r.id));
+                                    }}>Delete</Button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="announce" className="mt-6">
+            <Card className="border-blue-200 max-w-2xl">
+              <CardHeader>
+                <CardTitle className="text-blue-900 flex items-center gap-2">📣 Send an announcement to all users</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <label className="text-xs font-semibold uppercase text-blue-700/70">Title</label>
+                  <input value={announceTitle} onChange={e => setAnnounceTitle(e.target.value)} maxLength={120}
+                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="e.g. New listings added this week" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase text-blue-700/70">Message</label>
+                  <textarea value={announceBody} onChange={e => setAnnounceBody(e.target.value)} rows={4} maxLength={600}
+                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 font-sans"
+                    placeholder="Share important updates, maintenance windows, new features…" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase text-blue-700/70">Link (optional)</label>
+                  <input value={announceLink} onChange={e => setAnnounceLink(e.target.value)} maxLength={200}
+                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="/listings.html or /home.html#features" />
+                </div>
+                <Button onClick={sendAnnouncement} disabled={sendingAnnounce} className="bg-blue-600 hover:bg-blue-700">
+                  {sendingAnnounce ? "Sending…" : `📣 Send to ${profiles.length} users`}
+                </Button>
+                <p className="text-xs text-muted-foreground">Each user will get a notification in their bell + notifications page.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
       </main>
 
       <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setSelectedLandlord(null); setSelectedVideoUrl(null); } }}>
