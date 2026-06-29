@@ -44,6 +44,7 @@ type Property = {
   lng: number | null;
   amenities: string[] | null;
   image_urls: string[] | null;
+  video_url: string | null;
   property_type: string | null;
   created_at: string;
 };
@@ -144,10 +145,16 @@ function AdminPage() {
     return () => { active = false; };
   }, [loadData]);
 
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
   const openProperty = async (p: Property) => {
     setSelected(p);
+    setSelectedVideoUrl(null);
     const { data } = await supabase.from("profiles").select("*").eq("id", p.landlord_id).maybeSingle();
     setSelectedLandlord((data as unknown as Profile) || null);
+    if (p.video_url) {
+      const { data: signed } = await supabase.storage.from("property-videos").createSignedUrl(p.video_url, 60 * 60 * 6);
+      if (signed?.signedUrl) setSelectedVideoUrl(signed.signedUrl);
+    }
   };
 
   const moderate = async (id: string, status: "approved" | "rejected") => {
@@ -385,7 +392,7 @@ function AdminPage() {
         </Tabs>
       </main>
 
-      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setSelectedLandlord(null); } }}>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setSelectedLandlord(null); setSelectedVideoUrl(null); } }}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{selected?.title}</DialogTitle></DialogHeader>
           {selected && (
@@ -395,6 +402,16 @@ function AdminPage() {
                   {selected.image_urls.map((u, i) => (
                     <a key={i} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" className="w-full aspect-square object-cover rounded" /></a>
                   ))}
+                </div>
+              )}
+              {selected.video_url && (
+                <div>
+                  <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Video tour</div>
+                  {selectedVideoUrl ? (
+                    <video src={selectedVideoUrl} controls preload="metadata" className="w-full max-h-[480px] rounded bg-black" />
+                  ) : (
+                    <div className="text-xs text-muted-foreground">Loading video…</div>
+                  )}
                 </div>
               )}
               <div className="grid grid-cols-2 gap-3">

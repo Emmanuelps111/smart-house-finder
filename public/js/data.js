@@ -76,14 +76,15 @@ window.SHF.fetchDbListings = async function () {
     const sb = await window.SHFCloud.ready;
     const { data, error } = await sb
       .from('properties')
-      .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from, created_at')
+      .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from, created_at, video_url')
       .eq('status', 'approved')
       .order('created_at', { ascending: false });
     if (error) { console.warn('[SHF] properties fetch failed:', error.message); return; }
     if (!data || !data.length) return;
 
-    const placeholder = 'https://placehold.co/900x600?text=No+photo';
-    const mapped = data.map(p => ({
+    const mapped = data.map(p => {
+      const photos = Array.isArray(p.image_urls) ? p.image_urls.filter(Boolean) : [];
+      return ({
       id: 'db-' + p.id,
       dbId: p.id,
       landlord_id: p.landlord_id,
@@ -100,8 +101,9 @@ window.SHF.fetchDbListings = async function () {
       tag: p.property_type || 'Property',
       furnishing: p.furnishing || '',
       amenities: Array.isArray(p.amenities) ? p.amenities : [],
-      image_urls: Array.isArray(p.image_urls) ? p.image_urls.filter(Boolean) : [],
-      img: (Array.isArray(p.image_urls) && p.image_urls[0]) || placeholder,
+      image_urls: photos,
+      img: photos[0] || '',
+      has_video: !!p.video_url,
       lat: p.lat != null ? Number(p.lat) : null,
       lng: p.lng != null ? Number(p.lng) : null,
       desc: p.description || '',
@@ -110,7 +112,8 @@ window.SHF.fetchDbListings = async function () {
       contact_phone: p.contact_phone,
       available_from: p.available_from,
       created_at: p.created_at,
-    }));
+    });
+    });
 
     // Replace any prior db-* entries (so updates reflect)
     window.SHF_LISTINGS = window.SHF_LISTINGS.filter(l => !(typeof l.id === 'string' && l.id.startsWith('db-')));
