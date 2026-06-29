@@ -44,6 +44,7 @@ type Property = {
   lng: number | null;
   amenities: string[] | null;
   image_urls: string[] | null;
+  video_url: string | null;
   property_type: string | null;
   created_at: string;
 };
