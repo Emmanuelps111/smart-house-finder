@@ -497,6 +497,7 @@
         <div class="info">
           <h4>${escapeHtml(l.title)} ${statusBadge(l.status)} ${occBadge(l.occupancy)}</h4>
           <div class="meta">${fmt(l.price)} / month · ${l.beds || '-'} bd · ${escapeHtml(l.city || l.address || '')}</div>
+          <div style="font-size:.78rem; color:var(--text-muted); margin-top:.25rem;"><i class="fas fa-clock"></i> Listed ${SHF.timeAgo(l.created_at)}</div>
           <label style="display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;margin-top:.3rem;cursor:pointer;">
             <input type="checkbox" data-occ="${l.id}" ${l.occupancy==='occupied'?'checked':''} /> Mark as occupied (rented)
           </label>
