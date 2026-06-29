@@ -8,6 +8,28 @@ window.SHF.formatPrice = function (n) {
   catch (e) { return 'TSh ' + n; }
 };
 
+window.SHF.timeAgo = function (date) {
+  if (!date) return 'recently';
+  const then = new Date(date).getTime();
+  if (isNaN(then)) return 'recently';
+  const seconds = Math.floor((Date.now() - then) / 1000);
+  if (seconds < 0) return 'just now';
+  const intervals = [
+    { label: 'year', seconds: 31536000 },
+    { label: 'month', seconds: 2592000 },
+    { label: 'week', seconds: 604800 },
+    { label: 'day', seconds: 86400 },
+    { label: 'hour', seconds: 3600 },
+    { label: 'minute', seconds: 60 },
+    { label: 'second', seconds: 1 }
+  ];
+  for (const i of intervals) {
+    const count = Math.floor(seconds / i.seconds);
+    if (count >= 1) return `${count} ${i.label}${count > 1 ? 's' : ''} ago`;
+  }
+  return 'just now';
+};
+
 // === Proximity & Commute Cost Calculator ===
 window.SHF.CAMPUS = { name: 'UDSM Main Campus', lat: -6.7741, lng: 39.2417 };
 window.SHF.haversineKm = function (lat1, lng1, lat2, lng2) {
