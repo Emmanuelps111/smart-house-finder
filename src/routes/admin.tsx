@@ -392,7 +392,7 @@ function AdminPage() {
         </Tabs>
       </main>
 
-      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setSelectedLandlord(null); } }}>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setSelectedLandlord(null); setSelectedVideoUrl(null); } }}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{selected?.title}</DialogTitle></DialogHeader>
           {selected && (
