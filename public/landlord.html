@@ -109,6 +109,7 @@
       const phone = ll.phone || '';
       const wa = waLink(phone);
       const count = props ? props.length : 0;
+      const rating = await SHF.getLandlordRating(id);
 
       root.innerHTML = `
         <div class="ll-card">
@@ -116,9 +117,10 @@
             ${av}
             <div style="flex:1; min-width:200px;">
               <h1 class="ll-name">${name}</h1>
-              <div style="margin-top:.4rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+              <div style="margin-top:.4rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
                 <span class="ll-stat"><i class="fas fa-circle-check"></i> Verified Landlord</span>
                 <span class="ll-stat"><i class="fas fa-house"></i> ${count} listing${count==1?'':'s'}</span>
+                ${SHF.ratingBadge(rating.avg, rating.count)}
               </div>
               ${phone ? `<div style="margin-top:.5rem; color:var(--text-muted); font-size:.95rem;"><i class="fas fa-phone"></i> ${esc(phone)}</div>` : ''}
             </div>
