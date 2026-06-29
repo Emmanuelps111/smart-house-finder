@@ -5,6 +5,13 @@
   let user = null;
   try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
 
+  const bellBlock = user
+    ? `<a href="/notifications.html" class="icon-btn shf-bell" aria-label="Notifications" style="position:relative;">
+         <i class="fas fa-bell"></i>
+         <span class="shf-bell-badge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; color:#fff; font-size:.65rem; font-weight:700; min-width:18px; height:18px; padding:0 4px; border-radius:9px; line-height:18px; text-align:center; box-shadow:0 2px 6px rgba(239,68,68,.5);"></span>
+       </a>`
+    : '';
+
   const authBlock = user
     ? `<div class="user-menu" style="position:relative;">
          <button class="btn btn-outline" data-user-toggle style="padding:.5rem .9rem; display:inline-flex; align-items:center; gap:.5rem;">
@@ -18,6 +25,7 @@
              <div style="font-size:.8rem; color:var(--text-muted);">${user.email}</div>
              <div style="font-size:.75rem; color:var(--primary); margin-top:.2rem; text-transform:capitalize;"><i class="fas fa-circle-check"></i> ${user.role}</div>
            </div>
+           <a href="/notifications.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-bell"></i> Notifications</a>
            ${user.role === 'landlord' ? `<a href="/dashboard.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-gauge-high"></i> Landlord dashboard</a>` : ''}
            ${user.role === 'admin' ? `<a href="/admin" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-shield-halved"></i> Admin dashboard</a>` : ''}
            <a href="/listings.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-house"></i> Browse listings</a>
@@ -25,6 +33,7 @@
          </div>
        </div>`
     : `<a href="/login.html" class="btn btn-primary" style="padding:.55rem 1.1rem;">Sign In</a>`;
+
 
   const header = `
 <div id="preloader"><div class="spinner"></div></div>
