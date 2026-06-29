@@ -219,7 +219,7 @@ function AdminPage() {
     setSendingAnnounce(true);
     const { data, error } = await supabase.rpc("send_announcement", {
       _title: announceTitle.trim(), _body: announceBody.trim(),
-      _link: announceLink.trim() || null,
+      _link: announceLink.trim() || undefined,
     });
     setSendingAnnounce(false);
     if (error) { toast.error(error.message); return; }
