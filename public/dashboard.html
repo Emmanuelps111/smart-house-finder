@@ -352,8 +352,15 @@
       if (!get('p-title')) { setErr('p-title','Title is required'); ok = false; }
       if (!get('p-city')) { setErr('p-city','City is required'); ok = false; }
       if (!get('p-price') || +get('p-price') < 10000) { setErr('p-price','Enter a valid rent'); ok = false; }
-      // description is optional
-      if ((existingPhotoUrls.length + pendingPhotos.length) === 0) { setErr('p-photos','Please add at least one photo'); ok = false; }
+      // Need at least one of: photos, video, or description
+      const hasPhotos = (existingPhotoUrls.length + pendingPhotos.length) > 0;
+      const hasVideo = !!(pendingVideo || existingVideoPath);
+      const hasDesc = !!get('p-desc');
+      if (!hasPhotos && !hasVideo && !hasDesc) {
+        setErr('p-desc','Please add at least one photo, a video, or a written description');
+        setErr('p-photos','Add photos, a video, or write a description');
+        ok = false;
+      }
       const phone = get('p-contact');
       if (phone && !/^\+255\d{9}$/.test(phone)) { setErr('p-contact','Phone must be +255 followed by 9 digits'); ok = false; }
       if (!ok) return;
