@@ -105,7 +105,7 @@
         <div>
           ${heroHtml}
           ${thumbsHtml}
-          ${l.video_url ? `<div class="info-card" style="margin-top:1.5rem;">
+          ${l.video_url && heroSrc ? `<div class="info-card" style="margin-top:1.5rem;">
             <h3 style="margin-top:0;"><i class="fas fa-video"></i> Video tour</h3>
             <video src="${escapeHtml(l.video_url)}" controls preload="metadata" style="width:100%; max-height:480px; border-radius:8px; background:#000;"></video>
           </div>` : ''}
