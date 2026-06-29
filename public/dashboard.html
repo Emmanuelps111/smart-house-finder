@@ -462,7 +462,7 @@
     };
     list.innerHTML = myListings.map(l => `
       <div class="my-listing">
-        <img src="${(l.image_urls && l.image_urls[0]) || 'https://placehold.co/160?text=No+photo'}" alt="${escapeHtml(l.title)}">
+        ${(l.image_urls && l.image_urls[0]) ? `<img src="${l.image_urls[0]}" alt="${escapeHtml(l.title)}">` : `<div style="width:96px; height:96px; flex-shrink:0; border-radius:8px; background:linear-gradient(135deg,#1E3A8A,#3B82F6); display:flex; align-items:center; justify-content:center; color:#fff;"><i class="fas ${l.video_url ? 'fa-circle-play' : 'fa-house'}" style="font-size:1.6rem;"></i></div>`}
         <div class="info">
           <h4>${escapeHtml(l.title)} ${statusBadge(l.status)} ${occBadge(l.occupancy)}</h4>
           <div class="meta">${fmt(l.price)} / month · ${l.beds || '-'} bd · ${escapeHtml(l.city || l.address || '')}</div>
