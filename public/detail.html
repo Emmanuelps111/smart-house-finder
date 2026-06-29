@@ -206,11 +206,13 @@
             : `<div style="width:48px; height:48px; border-radius:50%; background:#e5e7eb; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#9ca3af;"></i></div>`;
           const block = document.getElementById('landlordBlock');
           block.href = `/landlord.html?id=${encodeURIComponent(l.landlord_id)}`;
+          const rating = await SHF.getLandlordRating(l.landlord_id);
           block.innerHTML = `
             ${av}
             <div>
               <div style="font-weight:600;">${name} <i class="fas fa-arrow-right" style="font-size:.7rem; color:var(--primary); margin-left:.25rem;"></i></div>
               <div style="font-size:.85rem; color:var(--text-muted);"><i class="fas fa-circle-check" style="color:var(--primary);"></i> Verified Landlord · ${row.property_count||0} listing${row.property_count==1?'':'s'}</div>
+              <div style="margin-top:.35rem;">${SHF.ratingBadge(rating.avg, rating.count)}</div>
             </div>`;
         }
       } catch (e) { console.warn('landlord fetch', e); }
