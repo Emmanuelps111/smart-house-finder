@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications · Smart House Finder</title>
+  <meta name="description" content="Your notifications: roommate matches, landlord replies, and platform announcements." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .notif-wrap { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+    .notif-hero {
+      background: linear-gradient(135deg,#2563eb,#3b82f6,#06b6d4);
+      color:#fff; border-radius:18px; padding:1.5rem 1.6rem; margin-bottom:1.2rem;
+      box-shadow:0 10px 30px -10px rgba(37,99,235,.5);
+      display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+    }
+    .notif-hero h1{margin:0;font-size:1.4rem;display:flex;align-items:center;gap:.55rem;}
+    .notif-hero p{margin:.25rem 0 0;opacity:.9;font-size:.9rem;}
+    .notif-hero .btn{background:#fff;color:#2563eb;border:none;padding:.55rem 1rem;border-radius:10px;font-weight:600;cursor:pointer;}
+    .notif-hero .btn:hover{background:#eff6ff;}
+    .notif-card{
+      background:var(--surface); border:1px solid var(--border); border-radius:14px;
+      padding:1rem 1.1rem; margin-bottom:.7rem; display:flex; gap:.9rem; align-items:flex-start;
+      transition:transform .15s, box-shadow .15s;
+    }
+    .notif-card:hover{transform:translateY(-1px); box-shadow:0 8px 24px -12px rgba(0,0,0,.15);}
+    .notif-card.unread{border-left:4px solid #3b82f6; background:linear-gradient(90deg,rgba(59,130,246,.08),transparent 30%);}
+    .notif-icon{
+      width:42px; height:42px; border-radius:12px; flex-shrink:0;
+      display:grid; place-items:center; color:#fff; font-size:1.05rem;
+    }
+    .ic-announcement{background:linear-gradient(135deg,#8b5cf6,#6366f1);}
+    .ic-roommate_match{background:linear-gradient(135deg,#10b981,#06b6d4);}
+    .ic-viewing_response{background:linear-gradient(135deg,#f59e0b,#ef4444);}
+    .ic-system{background:linear-gradient(135deg,#3b82f6,#0ea5e9);}
+    .notif-body{flex:1; min-width:0;}
+    .notif-title{font-weight:600; color:var(--text); margin:0 0 .15rem; font-size:.97rem;}
+    .notif-msg{font-size:.88rem; color:var(--text-muted); margin:0; line-height:1.4; word-wrap:break-word;}
+    .notif-time{font-size:.75rem; color:var(--text-muted); margin-top:.35rem; display:block;}
+    .notif-actions{display:flex; gap:.4rem; align-items:center; flex-shrink:0;}
+    .notif-actions button{background:transparent; border:1px solid var(--border); color:var(--text-muted); padding:.35rem .55rem; border-radius:8px; cursor:pointer; font-size:.8rem;}
+    .notif-actions button:hover{color:#ef4444; border-color:#ef4444;}
+    .empty{
+      text-align:center; padding:3rem 1rem; color:var(--text-muted);
+      background:var(--surface); border:1px dashed var(--border); border-radius:14px;
+    }
+    .empty i{font-size:2.5rem; color:#3b82f6; margin-bottom:.6rem;}
+    @media (max-width:520px){ .notif-card{padding:.85rem;} .notif-icon{width:36px;height:36px;} }
+  </style>
+</head>
+<body>
+  <div id="header-mount"></div>
+
+  <main class="notif-wrap">
+    <div class="notif-hero">
+      <div>
+        <h1><i class="fas fa-bell"></i> Notifications</h1>
+        <p id="notifSubtitle">Updates about your activity will appear here.</p>
+      </div>
+      <button class="btn" id="markAllBtn"><i class="fas fa-check-double"></i> Mark all read</button>
+    </div>
+    <div id="notifList"><div class="empty"><i class="fas fa-spinner fa-spin"></i><div>Loading…</div></div></div>
+  </main>
+
+  <div id="footer-mount"></div>
+  <script src="/js/cloud.js"></script>
+  <script src="/partials.js"></script>
+  <script>
+    (async () => {
+      const sb = await window.SHFCloud.ready;
+      const { data: { user } } = await sb.auth.getUser();
+      const list = document.getElementById('notifList');
+      const markBtn = document.getElementById('markAllBtn');
+      const subtitle = document.getElementById('notifSubtitle');
+
+      if (!user) {
+        list.innerHTML = `<div class="empty"><i class="fas fa-lock"></i><div>Please <a href="/login.html" style="color:#3b82f6;">sign in</a> to view notifications.</div></div>`;
+        markBtn.style.display = 'none';
+        return;
+      }
+
+      const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const ago = ts => {
+        const d = (Date.now() - new Date(ts).getTime())/1000;
+        if (d < 60) return 'just now';
+        if (d < 3600) return Math.floor(d/60) + 'm ago';
+        if (d < 86400) return Math.floor(d/3600) + 'h ago';
+        if (d < 2592000) return Math.floor(d/86400) + 'd ago';
+        return new Date(ts).toLocaleDateString();
+      };
+      const iconFor = t => ({
+        announcement: 'bullhorn',
+        roommate_match: 'user-group',
+        viewing_response: 'calendar-check',
+      }[t] || 'circle-info');
+
+      async function load() {
+        const { data, error } = await sb.from('notifications')
+          .select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100);
+        if (error) { list.innerHTML = `<div class="empty">Couldn't load: ${esc(error.message)}</div>`; return; }
+        if (!data.length) {
+          list.innerHTML = `<div class="empty"><i class="far fa-bell-slash"></i><div>You're all caught up — no notifications yet.</div></div>`;
+          subtitle.textContent = "You're all caught up.";
+          return;
+        }
+        const unread = data.filter(n => !n.read).length;
+        subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
+        list.innerHTML = data.map(n => `
+          <div class="notif-card ${n.read?'':'unread'}" data-id="${n.id}" data-link="${esc(n.link||'')}">
+            <div class="notif-icon ic-${esc(n.type)}"><i class="fas fa-${iconFor(n.type)}"></i></div>
+            <div class="notif-body">
+              <p class="notif-title">${esc(n.title)}</p>
+              <p class="notif-msg">${esc(n.body||'')}</p>
+              <span class="notif-time">${ago(n.created_at)}</span>
+            </div>
+            <div class="notif-actions">
+              <button data-del="${n.id}" title="Delete"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>`).join('');
+        list.querySelectorAll('.notif-card').forEach(c => {
+          c.addEventListener('click', async (e) => {
+            if (e.target.closest('[data-del]')) return;
+            const id = c.dataset.id, link = c.dataset.link;
+            if (c.classList.contains('unread')) {
+              await sb.from('notifications').update({ read: true }).eq('id', id);
+            }
+            if (link) location.href = link;
+          });
+        });
+        list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = b.dataset.del;
+          await sb.from('notifications').delete().eq('id', id);
+          load();
+        }));
+      }
+
+      markBtn.addEventListener('click', async () => {
+        await sb.rpc('mark_all_notifications_read');
+        window.toast.success('All notifications marked as read');
+        load();
+      });
+
+      load();
+    })();
+  </script>
+</body>
+</html>
