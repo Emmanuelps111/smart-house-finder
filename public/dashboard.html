@@ -118,15 +118,8 @@
     myListings = data || [];
   }
 
-  async function loadNotifications() {
-    const { data, error } = await sb
-      .from('viewing_requests')
-      .select('id, contact_phone, message, seen, created_at, property_id, renter_id, properties:property_id(title)')
-      .eq('landlord_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (!error) notifications = data || [];
-  }
+
+
 
   function renderDashboard() {
     const activeCount = myListings.filter(l => l.status === 'approved').length;
