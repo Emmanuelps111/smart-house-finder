@@ -142,6 +142,7 @@
           <div class="stat"><div class="num">${activeCount}</div><div class="lbl">Approved</div></div>
           <div class="stat"><div class="num">${pendingCount}</div><div class="lbl">Pending review</div></div>
           <div class="stat"><div class="num">${unseen}</div><div class="lbl">New viewing requests</div></div>
+          <div class="stat"><div class="num" id="llAvgRating">—</div><div class="lbl">Avg rating <span id="llRatingStars" style="color:#F59E0B;"></span><span id="llRatingCount" style="color:var(--text-muted); font-weight:400;"></span></div></div>
         </div>
 
         <div class="panel">
@@ -163,6 +164,21 @@
     renderForm();
     renderMine();
     renderNotifs();
+    loadAvgRating();
+  }
+
+  async function loadAvgRating() {
+    try {
+      const rating = await SHF.getLandlordRating(user.id);
+      const numEl = document.getElementById('llAvgRating');
+      const starsEl = document.getElementById('llRatingStars');
+      const cntEl = document.getElementById('llRatingCount');
+      if (!numEl) return;
+      if (!rating.count) { numEl.textContent = '—'; starsEl.textContent = ''; cntEl.textContent = ' (no reviews yet)'; return; }
+      numEl.textContent = rating.avg.toFixed(1);
+      starsEl.textContent = ' ' + SHF.starString(rating.avg);
+      cntEl.textContent = ` · ${rating.count} review${rating.count==1?'':'s'}`;
+    } catch (e) {}
   }
 
   function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }

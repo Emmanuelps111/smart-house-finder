@@ -109,6 +109,7 @@
       const phone = ll.phone || '';
       const wa = waLink(phone);
       const count = props ? props.length : 0;
+      const rating = await SHF.getLandlordRating(id);
 
       root.innerHTML = `
         <div class="ll-card">
@@ -116,9 +117,10 @@
             ${av}
             <div style="flex:1; min-width:200px;">
               <h1 class="ll-name">${name}</h1>
-              <div style="margin-top:.4rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+              <div style="margin-top:.4rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
                 <span class="ll-stat"><i class="fas fa-circle-check"></i> Verified Landlord</span>
                 <span class="ll-stat"><i class="fas fa-house"></i> ${count} listing${count==1?'':'s'}</span>
+                ${SHF.ratingBadge(rating.avg, rating.count)}
               </div>
               ${phone ? `<div style="margin-top:.5rem; color:var(--text-muted); font-size:.95rem;"><i class="fas fa-phone"></i> ${esc(phone)}</div>` : ''}
             </div>
@@ -161,12 +163,53 @@
           </div>
 
           <div class="ll-section">
-            <h3 style="margin:0 0 .5rem;">Reviews</h3>
-            <div style="padding:1.25rem; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center;">
-              <i class="fas fa-star" style="opacity:.4;"></i> No reviews yet. Be the first after your viewing.
+            <h3 style="margin:0 0 .5rem;">Reviews <span style="font-weight:400; color:var(--text-muted); font-size:.9rem;">— ${rating.count ? `${rating.avg.toFixed(1)} average across ${rating.count} review${rating.count==1?'':'s'}` : 'no reviews yet'}</span></h3>
+            <div id="llReviewsList" style="display:flex; flex-direction:column; gap:.75rem;">
+              <div style="padding:1.25rem; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center;">
+                <i class="fas fa-star" style="opacity:.4;"></i> Loading reviews…
+              </div>
             </div>
           </div>
         </div>`;
+
+      // Populate the reviews list with every review across this landlord's properties.
+      try {
+        const listEl = document.getElementById('llReviewsList');
+        const propIds = (props || []).map(p => p.id);
+        if (!propIds.length) {
+          listEl.innerHTML = '<div style="padding:1.25rem; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center;"><i class="fas fa-star" style="opacity:.4;"></i> No reviews yet.</div>';
+        } else {
+          const { data: revs } = await sb
+            .from('property_reviews')
+            .select('id, rating, comment, created_at, property_id, profiles:reviewer_id ( full_name, selfie_url )')
+            .in('property_id', propIds)
+            .order('created_at', { ascending: false });
+          if (!revs || !revs.length) {
+            listEl.innerHTML = '<div style="padding:1.25rem; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center;"><i class="fas fa-star" style="opacity:.4;"></i> No reviews yet.</div>';
+          } else {
+            const titleById = Object.fromEntries((props || []).map(p => [p.id, p.title]));
+            listEl.innerHTML = revs.map(r => {
+              const rn = esc((r.profiles && r.profiles.full_name) || 'Renter');
+              const av = r.profiles && r.profiles.selfie_url
+                ? `<img src="${esc(r.profiles.selfie_url)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" />`
+                : `<div style="width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="color:#9ca3af;"></i></div>`;
+              const when = new Date(r.created_at).toLocaleDateString();
+              return `<div style="padding:.85rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--surface);">
+                <div style="display:flex; gap:.6rem; align-items:center;">
+                  ${av}
+                  <div style="flex:1;">
+                    <div style="font-weight:600;">${rn}</div>
+                    <div style="font-size:.78rem; color:var(--text-muted);">${esc(titleById[r.property_id]||'Listing')} · ${when}</div>
+                  </div>
+                  <div style="color:#F59E0B; font-weight:600;">${SHF.starString(r.rating)} <span style="color:var(--text);">${r.rating}</span></div>
+                </div>
+                ${r.comment ? `<div style="margin-top:.5rem; color:var(--text); font-size:.92rem;">${esc(r.comment)}</div>` : ''}
+              </div>`;
+            }).join('');
+          }
+        }
+      } catch (e) { console.warn('reviews list', e); }
+
     } catch (e) {
       console.error(e);
       root.innerHTML = '<p>Could not load landlord profile.</p>';

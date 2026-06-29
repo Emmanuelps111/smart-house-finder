@@ -48,6 +48,31 @@ window.SHF.proximityBadges = function (lat, lng) {
   </div>`;
 };
 
+window.SHF.starString = function (rating, max) {
+  max = max || 5;
+  const r = Math.round(rating || 0);
+  return '★'.repeat(r) + '☆'.repeat(Math.max(0, max - r));
+};
+
+window.SHF.ratingBadge = function (avg, count) {
+  if (!count) return `<span class="badge" style="background:#F3F4F6;color:#6B7280;border:none;"><i class="far fa-star"></i> No ratings yet</span>`;
+  return `<span class="badge" style="background:#FEF3C7;color:#92400E;border:none;font-weight:600;"><span style="color:#F59E0B;">${window.SHF.starString(avg)}</span> ${Number(avg).toFixed(1)} <span style="opacity:.7;font-weight:500;">(${count})</span></span>`;
+};
+
+window.SHF.getLandlordRating = async function (landlordId) {
+  try {
+    if (!landlordId || !window.SHFCloud) return { avg: 0, count: 0 };
+    const sb = await window.SHFCloud.ready;
+    const { data: props } = await sb.from('properties').select('id').eq('landlord_id', landlordId);
+    if (!props || !props.length) return { avg: 0, count: 0 };
+    const ids = props.map(p => p.id);
+    const { data: revs, error } = await sb.from('property_reviews').select('rating').in('property_id', ids);
+    if (error || !revs || !revs.length) return { avg: 0, count: 0 };
+    const sum = revs.reduce((s, r) => s + (Number(r.rating) || 0), 0);
+    return { avg: sum / revs.length, count: revs.length };
+  } catch (e) { return { avg: 0, count: 0 }; }
+};
+
 window.SHF.occupancyBadge = function (occ) {
   const isOcc = occ === 'occupied';
   return `<span class="badge" style="background:${isOcc?'#FEE2E2':'#DCFCE7'};color:${isOcc?'#B91C1C':'#166534'};border:none;">${isOcc?'🔴 Occupied':'🟢 Vacant'}</span>`;
