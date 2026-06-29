@@ -85,6 +85,19 @@ type ContactMessage = {
   created_at: string;
 };
 
+type RoommateDetails = { name?: string; phone?: string; cleanliness?: string; sleep?: string; bio?: string; notes?: string; property_title?: string };
+type RoommateRequest = {
+  id: string;
+  student_id: string;
+  property_id: string | null;
+  property_key: string | null;
+  status: "searching" | "matched";
+  match_partner_id: string | null;
+  details: RoommateDetails | null;
+  created_at: string;
+};
+
+
 type AuthState = "loading" | "unauthenticated" | "forbidden" | "ok";
 
 function displayRoles(roles: AppRole[] | undefined, fallback: string): string {
