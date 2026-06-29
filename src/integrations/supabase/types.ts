@@ -95,6 +95,47 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -312,7 +353,9 @@ export type Database = {
       roommate_requests: {
         Row: {
           created_at: string
+          details: Json | null
           id: string
+          match_partner_id: string | null
           property_id: string | null
           property_key: string | null
           status: Database["public"]["Enums"]["roommate_request_status"]
@@ -321,7 +364,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          details?: Json | null
           id?: string
+          match_partner_id?: string | null
           property_id?: string | null
           property_key?: string | null
           status?: Database["public"]["Enums"]["roommate_request_status"]
@@ -330,7 +375,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          details?: Json | null
           id?: string
+          match_partner_id?: string | null
           property_id?: string | null
           property_key?: string | null
           status?: Database["public"]["Enums"]["roommate_request_status"]
@@ -338,6 +385,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "roommate_requests_match_partner_id_fkey"
+            columns: ["match_partner_id"]
+            isOneToOne: false
+            referencedRelation: "roommate_requests"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "roommate_requests_property_id_fkey"
             columns: ["property_id"]
@@ -381,9 +435,11 @@ export type Database = {
           created_at: string
           id: string
           landlord_id: string
+          landlord_response: string | null
           message: string | null
           property_id: string
           renter_id: string
+          responded_at: string | null
           seen: boolean
           updated_at: string
         }
@@ -392,9 +448,11 @@ export type Database = {
           created_at?: string
           id?: string
           landlord_id: string
+          landlord_response?: string | null
           message?: string | null
           property_id: string
           renter_id: string
+          responded_at?: string | null
           seen?: boolean
           updated_at?: string
         }
@@ -403,9 +461,11 @@ export type Database = {
           created_at?: string
           id?: string
           landlord_id?: string
+          landlord_response?: string | null
           message?: string | null
           property_id?: string
           renter_id?: string
+          responded_at?: string | null
           seen?: boolean
           updated_at?: string
         }
@@ -457,6 +517,19 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_verified: { Args: { _user_id: string }; Returns: boolean }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
+      match_roommate_requests: {
+        Args: { _a: string; _b: string }
+        Returns: undefined
+      }
+      respond_viewing_request: {
+        Args: { _message: string; _req: string }
+        Returns: undefined
+      }
+      send_announcement: {
+        Args: { _body: string; _link?: string; _title: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "student" | "landlord" | "admin" | "renter"

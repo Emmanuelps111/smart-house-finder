@@ -118,15 +118,8 @@
     myListings = data || [];
   }
 
-  async function loadNotifications() {
-    const { data, error } = await sb
-      .from('viewing_requests')
-      .select('id, contact_phone, message, seen, created_at, property_id, renter_id, properties:property_id(title)')
-      .eq('landlord_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (!error) notifications = data || [];
-  }
+
+
 
   function renderDashboard() {
     const activeCount = myListings.filter(l => l.status === 'approved').length;
@@ -183,6 +176,16 @@
 
   function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+  async function loadNotifications() {
+    const { data, error } = await sb
+      .from('viewing_requests')
+      .select('id, contact_phone, message, seen, created_at, property_id, renter_id, landlord_response, responded_at, properties:property_id(title)')
+      .eq('landlord_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (!error) notifications = data || [];
+  }
+
   function renderNotifs() {
     const el = document.getElementById('notifList');
     if (!notifications.length) {
@@ -190,18 +193,30 @@
       return;
     }
     el.innerHTML = notifications.map(n => `
-      <div class="notif ${n.seen?'':'new'}" data-id="${n.id}">
+      <div class="notif ${n.seen?'':'new'}" data-id="${n.id}" style="border-left:4px solid ${n.responded_at?'#10b981':n.seen?'#94a3b8':'#3b82f6'}; padding-left:.85rem;">
         <div class="who">📞 ${escapeHtml(n.contact_phone)} requested a viewing</div>
         <div style="font-size:.85rem; margin:.2rem 0;">on <strong>${escapeHtml(n.properties?.title || 'a property')}</strong>${n.message?` — "${escapeHtml(n.message)}"`:''}</div>
         <div class="when">${new Date(n.created_at).toLocaleString()}</div>
-        ${n.seen?'':'<button class="btn btn-outline" style="margin-top:.4rem; padding:.3rem .7rem; font-size:.8rem;" data-mark="'+n.id+'">Mark as seen</button>'}
+        ${n.responded_at
+          ? `<div style="margin-top:.5rem; padding:.5rem .65rem; background:rgba(16,185,129,.1); border-radius:8px; font-size:.85rem;"><i class="fas fa-circle-check" style="color:#10b981;"></i> <strong>You replied:</strong> ${escapeHtml(n.landlord_response||'')}</div>`
+          : `<div style="margin-top:.5rem; display:flex; gap:.4rem; flex-wrap:wrap;">
+               <textarea data-reply-input="${n.id}" rows="2" placeholder="Reply to the renter (e.g. 'Confirmed — meet Sat 10am. I'll call you.')" style="flex:1; min-width:240px; padding:.5rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:.85rem;"></textarea>
+               <button class="btn btn-primary" data-reply="${n.id}" style="padding:.45rem .9rem; font-size:.85rem;"><i class="fas fa-paper-plane"></i> Send reply</button>
+             </div>`}
       </div>`).join('');
-    el.querySelectorAll('[data-mark]').forEach(b => b.addEventListener('click', async () => {
-      const id = b.dataset.mark;
-      await sb.from('viewing_requests').update({ seen: true }).eq('id', id);
+    el.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', async () => {
+      const id = b.dataset.reply;
+      const ta = el.querySelector(`[data-reply-input="${id}"]`);
+      const msg = (ta?.value || '').trim();
+      if (!msg) { window.toast.error('Write a short message first.'); return; }
+      b.disabled = true;
+      const { error } = await sb.rpc('respond_viewing_request', { _req: id, _message: msg });
+      if (error) { window.toast.error(error.message); b.disabled = false; return; }
+      window.toast.success('Reply sent — the renter will get a notification.');
       await loadNotifications(); renderDashboard();
     }));
   }
+
 
   function renderForm(prefill) {
     const f = document.getElementById('propForm');
