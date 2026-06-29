@@ -141,10 +141,14 @@
             <p style="color:var(--text-muted); margin:0;">${count} approved propert${count==1?'y':'ies'}.</p>
             <div class="ll-listings">
               ${(props||[]).map(p => {
-                const img = (Array.isArray(p.image_urls) && p.image_urls[0]) || 'https://placehold.co/400x280?text=No+photo';
+                const img = (Array.isArray(p.image_urls) && p.image_urls[0]) || '';
+                const hasVideo = !!p.video_url;
                 const loc = [p.neighbourhood, p.city].filter(Boolean).join(', ');
+                const media = img
+                  ? `<img src="${esc(img)}" alt="${esc(p.title)}" loading="lazy" />`
+                  : `<div style="width:100%; aspect-ratio:4/3; background:linear-gradient(135deg,#1E3A8A,#3B82F6); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; gap:.35rem;"><i class="fas ${hasVideo?'fa-circle-play':'fa-house'}" style="font-size:1.8rem;"></i><span style="font-size:.7rem; font-weight:600; letter-spacing:.5px;">${hasVideo?'VIDEO TOUR':'NO PHOTOS'}</span></div>`;
                 return `<div class="ll-list-card" onclick="location.href='/detail.html?id=db-${p.id}'">
-                  <img src="${esc(img)}" alt="${esc(p.title)}" loading="lazy" />
+                  ${media}
                   <div class="ll-list-body">
                     <div style="font-weight:600; font-size:.95rem;">${esc(p.title||'Untitled')}</div>
                     <div style="color:var(--primary); font-weight:600; margin:.25rem 0;">${SHF.formatPrice(p.price)}<small style="color:var(--text-muted); font-weight:400;"> /mo</small></div>
@@ -152,6 +156,7 @@
                   </div>
                 </div>`;
               }).join('') || '<div style="color:var(--text-muted); padding:1rem 0;">No active listings.</div>'}
+
             </div>
           </div>
 
