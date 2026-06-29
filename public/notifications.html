@@ -111,14 +111,18 @@
       }[t] || 'circle-info');
 
       async function load() {
-        const { data, error } = await sb.from('notifications')
-          .select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100);
-        if (error) { list.innerHTML = `<div class="empty">Couldn't load: ${esc(error.message)}</div>`; return; }
-        if (!data.length) {
-          list.innerHTML = `<div class="empty"><i class="far fa-bell-slash"></i><div>You're all caught up — no notifications yet.</div></div>`;
-          subtitle.textContent = "You're all caught up.";
-          return;
-        }
+        try {
+          const { data, error } = await sb.from('notifications')
+            .select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100);
+          if (error) { showEmpty('fas fa-triangle-exclamation', "Couldn't load: " + esc(error.message)); return; }
+          if (!data || !data.length) {
+            showEmpty('far fa-bell-slash', "No notifications for you yet. We'll let you know when something arrives.");
+            subtitle.textContent = "You're all caught up.";
+            return;
+          }
+          const unread = data.filter(n => !n.read).length;
+          subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
+          list.innerHTML = data.map(n => `
         const unread = data.filter(n => !n.read).length;
         subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
         list.innerHTML = data.map(n => `
