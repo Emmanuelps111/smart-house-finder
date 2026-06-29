@@ -127,5 +127,30 @@
       }
       if (dd && !e.target.closest('.user-menu')) dd.style.display = 'none';
     });
+
+    // Live unread notification count on bell
+    if (user && window.SHFCloud) {
+      (async () => {
+        try {
+          const sb = await window.SHFCloud.ready;
+          const refresh = async () => {
+            const { count } = await sb.from('notifications')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', user.id).eq('read', false);
+            const badge = document.querySelector('.shf-bell-badge');
+            if (!badge) return;
+            if (count && count > 0) { badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'inline-block'; }
+            else { badge.style.display = 'none'; }
+          };
+          refresh();
+          // Realtime updates
+          sb.channel('notif-bell-' + user.id)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, refresh)
+            .subscribe();
+          setInterval(refresh, 60000);
+        } catch (_) {}
+      })();
+    }
   });
+
 })();
