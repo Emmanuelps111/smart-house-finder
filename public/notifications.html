@@ -68,14 +68,29 @@
   <script src="/partials.js"></script>
   <script>
     (async () => {
-      const sb = await window.SHFCloud.ready;
-      const { data: { user } } = await sb.auth.getUser();
       const list = document.getElementById('notifList');
       const markBtn = document.getElementById('markAllBtn');
       const subtitle = document.getElementById('notifSubtitle');
+      const showEmpty = (icon, msg) => { list.innerHTML = `<div class="empty"><i class="${icon}"></i><div>${msg}</div></div>`; };
+
+      let sb, user;
+      try {
+        sb = await Promise.race([
+          window.SHFCloud.ready,
+          new Promise((_, rej) => setTimeout(() => rej(new Error('Connection timeout')), 8000))
+        ]);
+        const sess = await sb.auth.getSession();
+        user = sess.data.session && sess.data.session.user;
+      } catch (e) {
+        console.error('[notifications] init failed', e);
+        showEmpty('fas fa-triangle-exclamation', "Couldn't connect. Please refresh the page.");
+        markBtn.style.display = 'none';
+        return;
+      }
 
       if (!user) {
-        list.innerHTML = `<div class="empty"><i class="fas fa-lock"></i><div>Please <a href="/login.html" style="color:#3b82f6;">sign in</a> to view notifications.</div></div>`;
+        showEmpty('fas fa-lock', 'Please <a href="/login.html" style="color:#3b82f6;">sign in</a> to view your notifications.');
+        subtitle.textContent = 'Sign in to see your activity.';
         markBtn.style.display = 'none';
         return;
       }
@@ -96,44 +111,49 @@
       }[t] || 'circle-info');
 
       async function load() {
-        const { data, error } = await sb.from('notifications')
-          .select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100);
-        if (error) { list.innerHTML = `<div class="empty">Couldn't load: ${esc(error.message)}</div>`; return; }
-        if (!data.length) {
-          list.innerHTML = `<div class="empty"><i class="far fa-bell-slash"></i><div>You're all caught up — no notifications yet.</div></div>`;
-          subtitle.textContent = "You're all caught up.";
-          return;
-        }
-        const unread = data.filter(n => !n.read).length;
-        subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
-        list.innerHTML = data.map(n => `
-          <div class="notif-card ${n.read?'':'unread'}" data-id="${n.id}" data-link="${esc(n.link||'')}">
-            <div class="notif-icon ic-${esc(n.type)}"><i class="fas fa-${iconFor(n.type)}"></i></div>
-            <div class="notif-body">
-              <p class="notif-title">${esc(n.title)}</p>
-              <p class="notif-msg">${esc(n.body||'')}</p>
-              <span class="notif-time">${ago(n.created_at)}</span>
-            </div>
-            <div class="notif-actions">
-              <button data-del="${n.id}" title="Delete"><i class="fas fa-trash"></i></button>
-            </div>
-          </div>`).join('');
-        list.querySelectorAll('.notif-card').forEach(c => {
-          c.addEventListener('click', async (e) => {
-            if (e.target.closest('[data-del]')) return;
-            const id = c.dataset.id, link = c.dataset.link;
-            if (c.classList.contains('unread')) {
-              await sb.from('notifications').update({ read: true }).eq('id', id);
-            }
-            if (link) location.href = link;
+        try {
+          const { data, error } = await sb.from('notifications')
+            .select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100);
+          if (error) { showEmpty('fas fa-triangle-exclamation', "Couldn't load: " + esc(error.message)); return; }
+          if (!data || !data.length) {
+            showEmpty('far fa-bell-slash', "No notifications for you yet. We'll let you know when something arrives.");
+            subtitle.textContent = "You're all caught up.";
+            return;
+          }
+          const unread = data.filter(n => !n.read).length;
+          subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
+          list.innerHTML = data.map(n => `
+            <div class="notif-card ${n.read?'':'unread'}" data-id="${n.id}" data-link="${esc(n.link||'')}">
+              <div class="notif-icon ic-${esc(n.type)}"><i class="fas fa-${iconFor(n.type)}"></i></div>
+              <div class="notif-body">
+                <p class="notif-title">${esc(n.title)}</p>
+                <p class="notif-msg">${esc(n.body||'')}</p>
+                <span class="notif-time">${ago(n.created_at)}</span>
+              </div>
+              <div class="notif-actions">
+                <button data-del="${n.id}" title="Delete"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>`).join('');
+          list.querySelectorAll('.notif-card').forEach(c => {
+            c.addEventListener('click', async (e) => {
+              if (e.target.closest('[data-del]')) return;
+              const id = c.dataset.id, link = c.dataset.link;
+              if (c.classList.contains('unread')) {
+                await sb.from('notifications').update({ read: true }).eq('id', id);
+              }
+              if (link) location.href = link;
+            });
           });
-        });
-        list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const id = b.dataset.del;
-          await sb.from('notifications').delete().eq('id', id);
-          load();
-        }));
+          list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = b.dataset.del;
+            await sb.from('notifications').delete().eq('id', id);
+            load();
+          }));
+        } catch (e) {
+          console.error('[notifications] load failed', e);
+          showEmpty('fas fa-triangle-exclamation', "Something went wrong loading your inbox. Please try again.");
+        }
       }
 
       markBtn.addEventListener('click', async () => {
