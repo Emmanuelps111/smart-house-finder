@@ -802,7 +802,8 @@
       const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
       window.toast.success(`Welcome back${cached.name ? ', ' + cached.name : ''}!`);
 
-      const nextParam = new URLSearchParams(location.search).get('next');
+      const sp = new URLSearchParams(location.search);
+      const nextParam = sp.get('next') || sp.get('redirect');
       const target = nextParam
         || (isAdmin ? '/admin'
           : supabaseRole === 'landlord' ? '/dashboard.html'

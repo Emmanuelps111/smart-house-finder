@@ -128,6 +128,42 @@
       if (dd && !e.target.closest('.user-menu')) dd.style.display = 'none';
     });
 
+    // Guest interaction guard: signed-out users can browse listings but any
+    // interaction (opening detail pages, CTAs, lightbox on cards) bounces to login.
+    if (!user) {
+      const goLogin = (msg) => {
+        if (window.toast) window.toast.info(msg);
+        location.href = '/login.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+      };
+      document.addEventListener('click', (e) => {
+        const t = e.target;
+        if (!t || !t.closest) return;
+        // Always allow: header, footer, theme toggle, hamburger, auth links, explicit guest-ok elements
+        if (t.closest('.site-header, .site-footer, [data-theme-toggle], [data-menu-toggle], [data-guest-ok]')) return;
+        if (t.closest('a[href^="/login"], a[href^="/signup"], a[href^="#"]')) return;
+
+        const detailLink = t.closest('a[href*="/detail.html"]');
+        const card = t.closest('.card, .listing-row');
+        const requiresAuth = t.closest('[data-requires-auth]');
+
+        if (detailLink) {
+          e.preventDefault(); e.stopImmediatePropagation();
+          if (window.toast) window.toast.info('Please sign in to view listing details.');
+          location.href = '/login.html?redirect=' + encodeURIComponent(detailLink.getAttribute('href'));
+          return;
+        }
+        if (card) {
+          e.preventDefault(); e.stopImmediatePropagation();
+          goLogin('Please sign in to interact with listings.');
+          return;
+        }
+        if (requiresAuth) {
+          e.preventDefault(); e.stopImmediatePropagation();
+          goLogin('Please sign in to continue.');
+        }
+      }, true);
+    }
+
     // Live unread notification count on bell
     if (user && window.SHFCloud) {
       (async () => {
