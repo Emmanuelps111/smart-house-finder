@@ -56,10 +56,11 @@
       <button data-role="landlord"><i class="fas fa-key"></i> Landlord</button>
     </div>
 
-    <div class="tabs">
+    <div class="tabs" style="display:none;">
       <button class="active" data-tab="signin">Sign In</button>
       <button data-tab="signup">Sign Up</button>
     </div>
+    <h3 id="modeTitle" style="text-align:center; margin:.75rem 0 1rem; font-size:1.15rem;">Sign In</h3>
 
     <form id="authForm" class="form" novalidate>
       <!-- Common -->
@@ -247,6 +248,10 @@
 
       <button class="btn btn-primary" type="submit" style="width:100%; justify-content:center;" id="submitBtn">Sign In as Student</button>
       <p style="text-align:center; margin-top:1rem; font-size:.9rem;"><a href="#" id="forgotLink">Forgot password?</a></p>
+      <p id="switchModeWrap" style="text-align:center; margin-top:.5rem; font-size:.9rem; color:var(--muted,#6b7280);">
+        <span id="switchModePrompt">New here?</span>
+        <a href="#" id="switchModeLink" style="font-weight:600;">Sign up</a>
+      </p>
     </form>
   </div>
 </div>
@@ -271,7 +276,15 @@
     document.body.classList.toggle('is-renter', role === 'renter');
     document.body.classList.toggle('is-signup', tab === 'signup');
     const action = tab === 'signin' ? 'Sign In' : (role === 'landlord' ? 'Submit for Verification' : 'Sign Up');
-    submit.textContent = tab === 'signin' ? `${action} as ${roleLabel(role)}` : action;
+    submit.textContent = tab === 'signin' ? `${action} as ${roleLabel(role)}` : `${action} as ${roleLabel(role)}`;
+    const title = document.getElementById('modeTitle');
+    if (title) title.textContent = tab === 'signin' ? `Sign In as ${roleLabel(role)}` : `Sign Up as ${roleLabel(role)}`;
+    const prompt = document.getElementById('switchModePrompt');
+    const link = document.getElementById('switchModeLink');
+    if (prompt && link) {
+      if (tab === 'signin') { prompt.textContent = 'New here?'; link.textContent = 'Sign up'; }
+      else { prompt.textContent = 'Already have an account?'; link.textContent = 'Sign in'; }
+    }
   }
 
   document.querySelectorAll('.role-toggle button').forEach(b => b.addEventListener('click', () => {
@@ -286,6 +299,14 @@
     tab = b.dataset.tab;
     refresh();
   }));
+  document.getElementById('switchModeLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    tab = tab === 'signin' ? 'signup' : 'signin';
+    document.querySelectorAll('.tabs button').forEach(x => {
+      x.classList.toggle('active', x.dataset.tab === tab);
+    });
+    refresh();
+  });
 
   function bindFile(inputId, labelId) {
     const inp = document.getElementById(inputId);
