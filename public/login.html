@@ -308,6 +308,29 @@
     refresh();
   });
 
+  // ============ Forgot password ============
+  document.getElementById('forgotLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const prefill = (document.querySelector('input[type="email"]')?.value || '').trim();
+    const email = window.prompt("Enter the email address for your account. We'll send you a password reset link.", prefill);
+    if (!email) return;
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      window.toast?.error?.('Please enter a valid email address.');
+      return;
+    }
+    try {
+      const sb = await window.SHFCloud.ready;
+      const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin + '/reset-password.html'
+      });
+      if (error) throw error;
+      window.toast?.success?.('Check your email for a reset link. It may take a minute to arrive.');
+    } catch (err) {
+      console.error(err);
+      window.toast?.error?.(err.message || 'Could not send reset email. Please try again.');
+    }
+  });
+
   function bindFile(inputId, labelId) {
     const inp = document.getElementById(inputId);
     const lbl = document.getElementById(labelId);
