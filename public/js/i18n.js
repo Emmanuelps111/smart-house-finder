@@ -578,12 +578,12 @@
 
   // Apply after partials mount their header/footer.
   function boot() {
+    hookDialogs();
     applyLang(currentLang());
     observe();
-    // Re-apply a few times to catch async content (data.js listings, dashboards).
-    setTimeout(() => applyLang(currentLang()), 400);
-    setTimeout(() => applyLang(currentLang()), 1200);
-    setTimeout(() => applyLang(currentLang()), 3000);
+    setTimeout(() => { hookDialogs(); applyLang(currentLang()); }, 400);
+    setTimeout(() => { hookDialogs(); applyLang(currentLang()); }, 1200);
+    setTimeout(() => { hookDialogs(); applyLang(currentLang()); }, 3000);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 50));
