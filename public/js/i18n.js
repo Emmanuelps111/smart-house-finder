@@ -556,10 +556,23 @@
   };
 
   // Translate a raw string used in toasts/alerts/confirms.
+  // Supports exact dictionary hits + a few dynamic templates.
+  const DYNAMIC_SW = [
+    [/^Welcome back(?:,\s*(.+))?!$/, (m) => 'Karibu tena' + (m[1] ? ', ' + m[1] : '') + '!'],
+    [/^Your existing account is now also a (.+) account\.$/, (m) => 'Akaunti yako sasa pia ni akaunti ya ' + (DICT_SW[m[1]] || m[1]) + '.'],
+    [/^Marked as (.+)\.$/, (m) => 'Imewekwa kama ' + m[1] + '.'],
+    [/^(.+) is over 3MB and was skipped\.$/, (m) => m[1] + ' inazidi 3MB na imerukwa.'],
+    [/^Could not load listings:\s*(.+)$/, (m) => 'Haikuwezekana kupakia matangazo: ' + m[1]],
+  ];
   function tr(s) {
     if (currentLang() !== 'sw' || typeof s !== 'string') return s;
     const t = s.trim();
-    return DICT_SW[t] ? s.replace(t, DICT_SW[t]) : s;
+    if (DICT_SW[t]) return s.replace(t, DICT_SW[t]);
+    for (const [re, fn] of DYNAMIC_SW) {
+      const m = t.match(re);
+      if (m) return s.replace(t, fn(m));
+    }
+    return s;
   }
   window.SHFi18n.tr = tr;
 
