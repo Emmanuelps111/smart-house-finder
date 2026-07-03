@@ -65,6 +65,21 @@
     'Please sign in to view listing details.': 'Tafadhali ingia ili kuona maelezo ya tangazo.',
     'Please sign in to interact with listings.': 'Tafadhali ingia ili kushirikiana na matangazo.',
     'Please sign in to continue.': 'Tafadhali ingia ili kuendelea.',
+    'Incorrect account type selected for this email.': 'Aina ya akaunti iliyochaguliwa si sahihi kwa barua pepe hii.',
+    'Something went wrong. Please try again.': 'Kuna hitilafu imetokea. Tafadhali jaribu tena.',
+    'All notifications marked as read': 'Arifa zote zimewekwa alama ya kusomwa',
+    'Listing deleted.': 'Tangazo limefutwa.',
+    'Invalid login credentials': 'Taarifa za kuingia si sahihi.',
+    'Email not confirmed': 'Barua pepe haijathibitishwa.',
+    'User already registered': 'Mtumiaji tayari amesajiliwa.',
+    'Password should be at least 6 characters.': 'Nywila iwe na herufi 6 au zaidi.',
+    'Please fill in all required fields.': 'Tafadhali jaza sehemu zote zinazohitajika.',
+    'Passwords do not match.': 'Nywila hazifanani.',
+    'Account created! Please check your email to confirm.': 'Akaunti imetengenezwa! Tafadhali angalia barua pepe kuthibitisha.',
+    'Signed out.': 'Umetoka.',
+    'Please sign in.': 'Tafadhali ingia.',
+    'Access denied.': 'Ufikiaji umekataliwa.',
+    'You do not have permission to view this page.': 'Huna ruhusa ya kuona ukurasa huu.',
 
     // ── Navigation & shell ──────────────────────────────────────────────
 
@@ -541,10 +556,23 @@
   };
 
   // Translate a raw string used in toasts/alerts/confirms.
+  // Supports exact dictionary hits + a few dynamic templates.
+  const DYNAMIC_SW = [
+    [/^Welcome back(?:,\s*(.+))?!$/, (m) => 'Karibu tena' + (m[1] ? ', ' + m[1] : '') + '!'],
+    [/^Your existing account is now also a (.+) account\.$/, (m) => 'Akaunti yako sasa pia ni akaunti ya ' + (DICT_SW[m[1]] || m[1]) + '.'],
+    [/^Marked as (.+)\.$/, (m) => 'Imewekwa kama ' + m[1] + '.'],
+    [/^(.+) is over 3MB and was skipped\.$/, (m) => m[1] + ' inazidi 3MB na imerukwa.'],
+    [/^Could not load listings:\s*(.+)$/, (m) => 'Haikuwezekana kupakia matangazo: ' + m[1]],
+  ];
   function tr(s) {
     if (currentLang() !== 'sw' || typeof s !== 'string') return s;
     const t = s.trim();
-    return DICT_SW[t] ? s.replace(t, DICT_SW[t]) : s;
+    if (DICT_SW[t]) return s.replace(t, DICT_SW[t]);
+    for (const [re, fn] of DYNAMIC_SW) {
+      const m = t.match(re);
+      if (m) return s.replace(t, fn(m));
+    }
+    return s;
   }
   window.SHFi18n.tr = tr;
 
