@@ -51,10 +51,12 @@
     </ul>
     <div class="nav-actions">
       <button class="icon-btn" data-theme-toggle aria-label="Toggle theme"><i data-theme-icon class="fas fa-moon"></i></button>
+      <button class="icon-btn" data-lang-toggle aria-label="Language" title="Language" data-no-i18n style="font-weight:700; font-size:.8rem; width:auto; padding:0 .55rem;"><i class="fas fa-globe" style="margin-right:.3rem;"></i><span data-lang-label>EN</span></button>
       ${bellBlock}
       ${authBlock}
       <button class="icon-btn hamburger" data-menu-toggle aria-label="Menu"><i class="fas fa-bars"></i></button>
     </div>
+
 
   </nav>
 </header>`;
@@ -77,7 +79,14 @@
 </div>`;
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Inject background slideshow once
+    // Auto-load i18n helper on every page
+    if (!document.querySelector('script[data-i18n-script]')) {
+      const s = document.createElement('script');
+      s.src = '/js/i18n.js';
+      s.setAttribute('data-i18n-script', '1');
+      document.head.appendChild(s);
+    }
+
     if (!document.querySelector('.bg-slideshow')) {
       const bg = document.createElement('div');
       bg.className = 'bg-slideshow';
@@ -106,7 +115,13 @@
 
     // User menu interactions
     document.addEventListener('click', (e) => {
+      const langBtn = e.target.closest('[data-lang-toggle]');
+      if (langBtn) {
+        if (window.SHFi18n) window.SHFi18n.toggle();
+        return;
+      }
       const toggle = e.target.closest('[data-user-toggle]');
+
       const dd = document.querySelector('.user-dropdown');
       if (toggle && dd) {
         dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
