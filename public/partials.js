@@ -79,7 +79,14 @@
 </div>`;
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Inject background slideshow once
+    // Auto-load i18n helper on every page
+    if (!document.querySelector('script[data-i18n-script]')) {
+      const s = document.createElement('script');
+      s.src = '/js/i18n.js';
+      s.setAttribute('data-i18n-script', '1');
+      document.head.appendChild(s);
+    }
+
     if (!document.querySelector('.bg-slideshow')) {
       const bg = document.createElement('div');
       bg.className = 'bg-slideshow';
