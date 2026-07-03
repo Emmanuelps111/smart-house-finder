@@ -540,6 +540,42 @@
     translate: translateNode,
   };
 
+  // Translate a raw string used in toasts/alerts/confirms.
+  function tr(s) {
+    if (currentLang() !== 'sw' || typeof s !== 'string') return s;
+    const t = s.trim();
+    return DICT_SW[t] ? s.replace(t, DICT_SW[t]) : s;
+  }
+  window.SHFi18n.tr = tr;
+
+  // Hook toast + native dialogs so dynamic messages get translated too.
+  function hookDialogs() {
+    if (window.toast && !window.toast.__i18n) {
+      const orig = window.toast;
+      const t = (m, type, ms) => orig(tr(m), type, ms);
+      t.success = (m) => orig(tr(m), 'success');
+      t.error   = (m) => orig(tr(m), 'error');
+      t.info    = (m) => orig(tr(m), 'info');
+      t.__i18n = true;
+      window.toast = t;
+    }
+    if (!window.alert.__i18n) {
+      const oa = window.alert.bind(window);
+      const w = (m) => oa(tr(m));
+      w.__i18n = true; window.alert = w;
+    }
+    if (!window.confirm.__i18n) {
+      const oc = window.confirm.bind(window);
+      const w = (m) => oc(tr(m));
+      w.__i18n = true; window.confirm = w;
+    }
+    if (!window.prompt.__i18n) {
+      const op = window.prompt.bind(window);
+      const w = (m, d) => op(tr(m), d);
+      w.__i18n = true; window.prompt = w;
+    }
+  }
+
   // Apply after partials mount their header/footer.
   function boot() {
     applyLang(currentLang());
