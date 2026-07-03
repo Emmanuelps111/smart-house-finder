@@ -51,10 +51,12 @@
     </ul>
     <div class="nav-actions">
       <button class="icon-btn" data-theme-toggle aria-label="Toggle theme"><i data-theme-icon class="fas fa-moon"></i></button>
+      <button class="icon-btn" data-lang-toggle aria-label="Language" title="Language" data-no-i18n style="font-weight:700; font-size:.8rem; width:auto; padding:0 .55rem;"><i class="fas fa-globe" style="margin-right:.3rem;"></i><span data-lang-label>EN</span></button>
       ${bellBlock}
       ${authBlock}
       <button class="icon-btn hamburger" data-menu-toggle aria-label="Menu"><i class="fas fa-bars"></i></button>
     </div>
+
 
   </nav>
 </header>`;
