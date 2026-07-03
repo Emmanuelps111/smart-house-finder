@@ -115,7 +115,13 @@
 
     // User menu interactions
     document.addEventListener('click', (e) => {
+      const langBtn = e.target.closest('[data-lang-toggle]');
+      if (langBtn) {
+        if (window.SHFi18n) window.SHFi18n.toggle();
+        return;
+      }
       const toggle = e.target.closest('[data-user-toggle]');
+
       const dd = document.querySelector('.user-dropdown');
       if (toggle && dd) {
         dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
