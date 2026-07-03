@@ -9,7 +9,65 @@
   // English -> Swahili dictionary.
   // Add exact phrases as they appear in the UI. Matching is on trimmed text.
   const DICT_SW = {
+    // ── Long marketing / hero copy ──────────────────────────────────────
+    'Browse verified listings, message landlords, and explore neighborhoods on an interactive map — built for students and renters.':
+      'Vinjari matangazo yaliyothibitishwa, tuma ujumbe kwa wamiliki, na chunguza mitaa kwenye ramani ya mwingiliano — imejengwa kwa wanafunzi na wapangaji.',
+    '"I found my student flat in Mwenge in just two days. The map view made comparing neighborhoods around UDSM so easy."':
+      '"Nilipata chumba changu Mwenge ndani ya siku mbili tu. Mtazamo wa ramani ulirahisisha kulinganisha mitaa karibu na UDSM."',
+    '"As a landlord in Kinondoni, I had three viewings booked within a week. Far better than older platforms."':
+      '"Kama mmiliki Kinondoni, nilipata maombi matatu ya kuangalia ndani ya wiki moja. Bora zaidi kuliko mifumo ya zamani."',
+    '"Verified badges gave me confidence when renting near SUA. No scams, no time wasted, great support."':
+      '"Alama za uthibitisho zilinipa imani nilipopanga karibu na SUA. Hakuna ulaghai, hakuna wakati uliopotea, msaada mzuri."',
+
+    // ── Login helpers ───────────────────────────────────────────────────
+    "Still can't access your account?": 'Bado huwezi kufikia akaunti yako?',
+    'Message us on WhatsApp': 'Tutumie ujumbe WhatsApp',
+    'Sign In as Student': 'Ingia kama Mwanafunzi',
+    'Sign In as Renter': 'Ingia kama Mpangaji',
+    'Sign In as Landlord': 'Ingia kama Mmiliki',
+    'Sign Up as Student': 'Jisajili kama Mwanafunzi',
+    'Sign Up as Renter': 'Jisajili kama Mpangaji',
+    'Sign Up as Landlord': 'Jisajili kama Mmiliki',
+    'student': 'mwanafunzi',
+    'renter': 'mpangaji',
+    'landlord': 'mmiliki',
+    'admin': 'msimamizi',
+
+    // ── Price suffix variants ───────────────────────────────────────────
+    '/month': '/mwezi',
+    ' /month': ' /mwezi',
+    '/ month': '/ mwezi',
+
+    // ── Toasts / alerts / dynamic messages ──────────────────────────────
+    'Please sign in first.': 'Tafadhali ingia kwanza.',
+    'Please sign in to request a roommate.': 'Tafadhali ingia ili kuomba mwenzi.',
+    'Please sign in to leave a review.': 'Tafadhali ingia ili kuacha tathmini.',
+    'Please fill all required fields.': 'Tafadhali jaza sehemu zote zinazohitajika.',
+    'Enter a valid phone number.': 'Weka namba sahihi ya simu.',
+    'Please enter a valid email address.': 'Tafadhali weka barua pepe sahihi.',
+    'Phone must be in the format +255XXXXXXXXX (9 digits after +255).': 'Simu lazima iwe katika muundo +255XXXXXXXXX (nambari 9 baada ya +255).',
+    'Pick a star rating first.': 'Chagua ukadiriaji wa nyota kwanza.',
+    'Write a short message first.': 'Andika ujumbe mfupi kwanza.',
+    'Please select a video file.': 'Tafadhali chagua faili la video.',
+    'Video is over 100MB. Please pick a smaller file.': 'Video inazidi 100MB. Tafadhali chagua faili dogo.',
+    'Viewing request sent to the landlord!': 'Ombi la kuangalia limetumwa kwa mmiliki!',
+    'Request sent! Admin will notify you when a match is found.': 'Ombi limetumwa! Msimamizi atakujulisha ukipata mwenzi.',
+    'Listing updated!': 'Tangazo limesasishwa!',
+    'Listing submitted for review!': 'Tangazo limewasilishwa kwa ukaguzi!',
+    'Listing deleted.': 'Tangazo limefutwa.',
+    'Reply sent — the renter will get a notification.': 'Jibu limetumwa — mpangaji atapata arifa.',
+    'Review deleted.': 'Tathmini imefutwa.',
+    'Review updated.': 'Tathmini imesasishwa.',
+    'Thanks for your review!': 'Asante kwa tathmini yako!',
+    'Could not save listing.': 'Haikuwezekana kuhifadhi tangazo.',
+    'Could not post review.': 'Haikuwezekana kuchapisha tathmini.',
+    'Could not post your request.': 'Haikuwezekana kuchapisha ombi lako.',
+    'Please sign in to view listing details.': 'Tafadhali ingia ili kuona maelezo ya tangazo.',
+    'Please sign in to interact with listings.': 'Tafadhali ingia ili kushirikiana na matangazo.',
+    'Please sign in to continue.': 'Tafadhali ingia ili kuendelea.',
+
     // ── Navigation & shell ──────────────────────────────────────────────
+
     'Home': 'Nyumbani',
     'Listings': 'Matangazo',
     'All Listings': 'Matangazo Yote',
@@ -482,14 +540,50 @@
     translate: translateNode,
   };
 
+  // Translate a raw string used in toasts/alerts/confirms.
+  function tr(s) {
+    if (currentLang() !== 'sw' || typeof s !== 'string') return s;
+    const t = s.trim();
+    return DICT_SW[t] ? s.replace(t, DICT_SW[t]) : s;
+  }
+  window.SHFi18n.tr = tr;
+
+  // Hook toast + native dialogs so dynamic messages get translated too.
+  function hookDialogs() {
+    if (window.toast && !window.toast.__i18n) {
+      const orig = window.toast;
+      const t = (m, type, ms) => orig(tr(m), type, ms);
+      t.success = (m) => orig(tr(m), 'success');
+      t.error   = (m) => orig(tr(m), 'error');
+      t.info    = (m) => orig(tr(m), 'info');
+      t.__i18n = true;
+      window.toast = t;
+    }
+    if (!window.alert.__i18n) {
+      const oa = window.alert.bind(window);
+      const w = (m) => oa(tr(m));
+      w.__i18n = true; window.alert = w;
+    }
+    if (!window.confirm.__i18n) {
+      const oc = window.confirm.bind(window);
+      const w = (m) => oc(tr(m));
+      w.__i18n = true; window.confirm = w;
+    }
+    if (!window.prompt.__i18n) {
+      const op = window.prompt.bind(window);
+      const w = (m, d) => op(tr(m), d);
+      w.__i18n = true; window.prompt = w;
+    }
+  }
+
   // Apply after partials mount their header/footer.
   function boot() {
+    hookDialogs();
     applyLang(currentLang());
     observe();
-    // Re-apply a few times to catch async content (data.js listings, dashboards).
-    setTimeout(() => applyLang(currentLang()), 400);
-    setTimeout(() => applyLang(currentLang()), 1200);
-    setTimeout(() => applyLang(currentLang()), 3000);
+    setTimeout(() => { hookDialogs(); applyLang(currentLang()); }, 400);
+    setTimeout(() => { hookDialogs(); applyLang(currentLang()); }, 1200);
+    setTimeout(() => { hookDialogs(); applyLang(currentLang()); }, 3000);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 50));
