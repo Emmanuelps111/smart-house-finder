@@ -332,7 +332,7 @@
         async function refresh(){
           const { data, error } = await sb
             .from('roommate_requests')
-            .select('id, student_id, status, created_at, profiles:student_id ( full_name, cleanliness_preference, sleep_schedule, bio )')
+            .select('id, student_id, status, created_at, details')
             .eq('property_key', propertyKey)
             .eq('status', 'searching')
             .order('created_at', { ascending: false });
