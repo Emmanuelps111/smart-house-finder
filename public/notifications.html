@@ -129,21 +129,30 @@
           }
           const unread = data.filter(n => !n.read).length;
           subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
-          list.innerHTML = data.map(n => `
+          list.innerHTML = data.map(n => {
+            const isConnect = typeof n.type === 'string' && n.type.startsWith('roommate_connect_request:');
+            const iconKey = isConnect ? 'roommate_match' : n.type;
+            const senderId = isConnect ? n.type.split(':')[1] : '';
+            const actionHtml = isConnect
+              ? `<button class="btn btn-primary" data-accept="${esc(senderId)}" data-notif="${n.id}" style="font-size:.78rem; padding:.35rem .7rem; margin-top:.4rem;"><i class="fas fa-check"></i> Accept & share contact</button>`
+              : '';
+            return `
             <div class="notif-card ${n.read?'':'unread'}" data-id="${n.id}" data-link="${esc(n.link||'')}">
-              <div class="notif-icon ic-${esc(n.type)}"><i class="fas fa-${iconFor(n.type)}"></i></div>
+              <div class="notif-icon ic-${esc(iconKey)}"><i class="fas fa-${iconFor(iconKey)}"></i></div>
               <div class="notif-body">
                 <p class="notif-title">${esc(n.title)}</p>
                 <p class="notif-msg">${esc(n.body||'')}</p>
+                ${actionHtml}
                 <span class="notif-time">${ago(n.created_at)}</span>
               </div>
               <div class="notif-actions">
                 <button data-del="${n.id}" title="Delete"><i class="fas fa-trash"></i></button>
               </div>
-            </div>`).join('');
+            </div>`;
+          }).join('');
           list.querySelectorAll('.notif-card').forEach(c => {
             c.addEventListener('click', async (e) => {
-              if (e.target.closest('[data-del]')) return;
+              if (e.target.closest('[data-del]') || e.target.closest('[data-accept]')) return;
               const id = c.dataset.id, link = c.dataset.link;
               if (c.classList.contains('unread')) {
                 await sb.from('notifications').update({ read: true }).eq('id', id);
@@ -151,6 +160,17 @@
               if (link) location.href = link;
             });
           });
+          list.querySelectorAll('[data-accept]').forEach(b => b.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const sender = b.dataset.accept;
+            const notifId = b.dataset.notif;
+            b.disabled = true;
+            const { error } = await sb.rpc('accept_roommate_connect', { _sender: sender });
+            if (error){ window.toast.error(error.message || 'Could not accept.'); b.disabled = false; return; }
+            await sb.from('notifications').update({ read: true }).eq('id', notifId);
+            window.toast.success('Accepted! Contacts have been shared with both of you.');
+            load();
+          }));
           list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async (e) => {
             e.stopPropagation();
             const id = b.dataset.del;
