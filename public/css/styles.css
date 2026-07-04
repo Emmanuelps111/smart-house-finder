@@ -184,23 +184,6 @@ section { padding: 5rem 0; }
   margin-bottom: 1rem;
 }
 
-/* Pricing */
-.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-.price-card {
-  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 2.5rem 2rem; text-align: center; box-shadow: var(--shadow-sm);
-  transition: transform var(--transition);
-}
-.price-card.featured { border-color: var(--primary); border-width: 2px; transform: scale(1.03); position: relative; }
-.price-card.featured::before {
-  content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  background: var(--primary); color: #fff; padding: .25rem .8rem; border-radius: 999px; font-size: .75rem; font-weight: 600;
-}
-.price { font-size: 3rem; font-weight: 700; color: var(--text); margin: 1rem 0; }
-.price small { font-size: 1rem; color: var(--text-muted); font-weight: 400; }
-.price-features { list-style: none; padding: 0; margin: 1.5rem 0; text-align: left; }
-.price-features li { padding: .5rem 0; color: var(--text-muted); display: flex; align-items: center; gap: .6rem; }
-.price-features i { color: var(--primary); }
 
 /* FAQ */
 .faq { max-width: 800px; margin: 0 auto; }
