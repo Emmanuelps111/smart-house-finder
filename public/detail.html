@@ -358,13 +358,57 @@
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem; overflow-y:auto;';
           overlay.innerHTML = `
-            <div style="background:var(--surface,#fff); border-radius:16px; padding:1.5rem; max-width:480px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
+            <div style="background:var(--surface,#fff); border-radius:16px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
               <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;">🙋 Find a Roommate</h3>
-              <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.9rem;">Share your details — the admin reviews requests and notifies you when a match is found.</p>
+              <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.88rem;">Set your preferences. Your phone is saved privately to your profile and is <strong>never shown</strong> to other students — it's only shared when both of you accept a connect request.</p>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Your name</label>
               <input id="rm_name" type="text" value="${escapeHtml(prof?.full_name||'')}" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;" />
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Phone (for the admin to share with your match)</label>
+
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Phone <small style="color:var(--text-muted); font-weight:400;">— private, saved to your profile only</small></label>
               <input id="rm_phone" type="tel" placeholder="+255…" value="${escapeHtml(prof?.phone||'')}" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;" />
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Your Gender</label>
+                  <select id="rm_gender" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                    <option value="">Select…</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Preferred Roommate Gender</label>
+                  <select id="rm_pref_gender" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                    <option value="">Select…</option>
+                    <option>Same Gender Only</option>
+                    <option>Any</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Number of Roommates Needed</label>
+                  <select id="rm_count" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                    <option value="">Select…</option>
+                    <option>1</option><option>2</option><option>3</option><option>4+</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Maximum Rent Budget</label>
+                  <input id="rm_budget" type="number" min="0" placeholder="TSh per Month/Semester" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;" />
+                </div>
+              </div>
+
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Smoking / Alcohol Tolerance</label>
+              <select id="rm_smoking" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
+                <option value="">Select…</option>
+                <option>No Smoking/Drinking</option>
+                <option>Allowed Outside</option>
+                <option>No Preference</option>
+              </select>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Cleanliness preference</label>
               <select id="rm_clean" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
                 <option value="">Select…</option>
@@ -372,6 +416,7 @@
                 <option ${prof?.cleanliness_preference==='Medium'?'selected':''}>Medium</option>
                 <option ${prof?.cleanliness_preference==='Flexible'?'selected':''}>Flexible</option>
               </select>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Sleep schedule</label>
               <select id="rm_sleep" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
                 <option value="">Select…</option>
@@ -379,13 +424,13 @@
                 <option ${prof?.sleep_schedule==='Night Owl'?'selected':''}>Night Owl</option>
                 <option ${prof?.sleep_schedule==='Flexible'?'selected':''}>Flexible</option>
               </select>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Short bio</label>
               <textarea id="rm_bio" rows="2" maxlength="280" placeholder="A few words about you…" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit; margin-bottom:.85rem;">${escapeHtml(prof?.bio||'')}</textarea>
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Notes for the admin <small style="color:var(--text-muted); font-weight:400;">— optional</small></label>
-              <textarea id="rm_notes" rows="2" maxlength="400" placeholder="e.g. budget, move-in date, gender preference…" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit;"></textarea>
+
               <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem;">
                 <button id="rm_cancel" class="btn btn-outline">Cancel</button>
-                <button id="rm_send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send Request</button>
+                <button id="rm_send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Post Roommate Request</button>
               </div>
             </div>`;
           document.body.appendChild(overlay);
@@ -395,23 +440,36 @@
           overlay.querySelector('#rm_send').addEventListener('click', async () => {
             const name = overlay.querySelector('#rm_name').value.trim();
             const phone = overlay.querySelector('#rm_phone').value.trim();
+            const gender = overlay.querySelector('#rm_gender').value;
+            const preferred_gender = overlay.querySelector('#rm_pref_gender').value;
+            const roommates_needed = overlay.querySelector('#rm_count').value;
+            const max_budget = overlay.querySelector('#rm_budget').value;
+            const smoking = overlay.querySelector('#rm_smoking').value;
             const cleanliness = overlay.querySelector('#rm_clean').value;
             const sleep = overlay.querySelector('#rm_sleep').value;
             const bio = overlay.querySelector('#rm_bio').value.trim();
-            const notes = overlay.querySelector('#rm_notes').value.trim();
-            if (!name || !phone || !cleanliness || !sleep || !bio){ window.toast.error('Please fill all required fields.'); return; }
+            if (!name || !phone || !gender || !preferred_gender || !roommates_needed || !max_budget || !smoking || !cleanliness || !sleep || !bio){
+              window.toast.error('Please fill all fields.'); return;
+            }
             if (!/^\+?\d[\d\s-]{7,}$/.test(phone)){ window.toast.error('Enter a valid phone number.'); return; }
             const sendBtn = overlay.querySelector('#rm_send'); sendBtn.disabled = true;
+            // Phone stays private — update profiles only, do NOT put phone in the public details JSON.
             const { error: pErr } = await sb.from('profiles').update({
               full_name: name, phone, cleanliness_preference: cleanliness, sleep_schedule: sleep, bio,
             }).eq('id', userId);
             if (pErr){ window.toast.error(pErr.message); sendBtn.disabled = false; return; }
-            const details = { name, phone, cleanliness, sleep, bio, notes, property_title: l.title || null, submitted_at: new Date().toISOString() };
+            const details = {
+              name, gender, preferred_gender, roommates_needed,
+              max_budget: Number(max_budget) || null,
+              smoking, cleanliness, sleep, bio,
+              property_title: l.title || null,
+              submitted_at: new Date().toISOString(),
+            };
             const { error } = await sb.from('roommate_requests').insert({
               student_id: userId, property_key: propertyKey, status: 'searching', details,
             });
             if (error){ window.toast.error(error.message || 'Could not post your request.'); sendBtn.disabled = false; return; }
-            window.toast.success('Request sent! Admin will notify you when a match is found.');
+            window.toast.success('Posted! Other students can now send you connect requests.');
             close();
             refresh();
           });
