@@ -276,18 +276,31 @@
       const btn = document.getElementById('findRoommateBtn');
       const cached = JSON.parse(localStorage.getItem('shf-user') || 'null');
 
+      function tag(txt){ return `<span style="display:inline-block; padding:.15rem .5rem; border-radius:999px; background:rgba(59,130,246,.1); color:var(--primary); font-size:.72rem; font-weight:600;">${escapeHtml(txt)}</span>`; }
+
       function renderCards(rows){
         if (!rows || !rows.length){
           listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">No one has requested a roommate here yet. Be the first!</div>';
           return;
         }
         listEl.innerHTML = rows.map(r => {
-          const p = r.profiles || {};
-          const name = escapeHtml(p.full_name || 'Student');
-          const clean = escapeHtml(p.cleanliness_preference || '—');
-          const sleep = escapeHtml(p.sleep_schedule || '—');
-          const bio = escapeHtml(p.bio || 'No bio yet.');
+          const d = r.details || {};
+          const name = escapeHtml(d.name || 'Student');
+          const clean = escapeHtml(d.cleanliness || '—');
+          const sleep = escapeHtml(d.sleep || '—');
+          const bio = escapeHtml(d.bio || 'No bio yet.');
           const av = `https://i.pravatar.cc/64?u=${encodeURIComponent(r.student_id)}`;
+          const isMe = cached && cached.id === r.student_id;
+          const tags = [
+            d.gender ? tag('👤 ' + d.gender) : '',
+            d.preferred_gender ? tag('🎯 ' + d.preferred_gender) : '',
+            d.roommates_needed ? tag('👥 Needs ' + d.roommates_needed) : '',
+            d.max_budget ? tag('💰 ≤ TSh ' + Number(d.max_budget).toLocaleString()) : '',
+            d.smoking ? tag('🚭 ' + d.smoking) : '',
+          ].filter(Boolean).join(' ');
+          const action = isMe
+            ? `<div style="font-size:.78rem; color:var(--text-muted); margin-top:.6rem;"><i class="fas fa-check"></i> This is your listing</div>`
+            : `<button class="btn btn-primary" data-connect="${r.student_id}" style="width:100%; margin-top:.6rem; font-size:.82rem; padding:.45rem;"><i class="fas fa-handshake"></i> Send Connect Request</button>`;
           return `<div style="border:1px solid var(--border); border-radius:12px; padding:.9rem; background:var(--surface);">
             <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.5rem;">
               <img src="${av}" alt="" style="width:42px;height:42px;border-radius:50%;" />
@@ -296,9 +309,22 @@
             <div style="font-size:.82rem; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.5rem;">
               <span>🧽 ${clean}</span><span>🌙 ${sleep}</span>
             </div>
+            ${tags ? `<div style="display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.5rem;">${tags}</div>` : ''}
             <div style="font-size:.88rem; line-height:1.35;">${bio}</div>
+            ${action}
           </div>`;
         }).join('');
+
+        listEl.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', async () => {
+          const target = b.getAttribute('data-connect');
+          if (!cached){ window.toast.error('Please sign in to send a connect request.'); return; }
+          b.disabled = true;
+          const sb2 = await window.SHFCloud.ready;
+          const { error } = await sb2.rpc('send_roommate_connect', { _target: target, _property_key: propertyKey });
+          if (error){ window.toast.error(error.message || 'Could not send request.'); b.disabled = false; return; }
+          b.innerHTML = '<i class="fas fa-check"></i> Request sent';
+          window.toast.success('Connect request sent. Contacts share only when they accept.');
+        }));
       }
 
       try {
@@ -306,7 +332,7 @@
         async function refresh(){
           const { data, error } = await sb
             .from('roommate_requests')
-            .select('id, student_id, status, created_at, profiles:student_id ( full_name, cleanliness_preference, sleep_schedule, bio )')
+            .select('id, student_id, status, created_at, details')
             .eq('property_key', propertyKey)
             .eq('status', 'searching')
             .order('created_at', { ascending: false });
@@ -332,13 +358,57 @@
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem; overflow-y:auto;';
           overlay.innerHTML = `
-            <div style="background:var(--surface,#fff); border-radius:16px; padding:1.5rem; max-width:480px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
+            <div style="background:var(--surface,#fff); border-radius:16px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
               <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;">🙋 Find a Roommate</h3>
-              <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.9rem;">Share your details — the admin reviews requests and notifies you when a match is found.</p>
+              <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.88rem;">Set your preferences. Your phone is saved privately to your profile and is <strong>never shown</strong> to other students — it's only shared when both of you accept a connect request.</p>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Your name</label>
               <input id="rm_name" type="text" value="${escapeHtml(prof?.full_name||'')}" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;" />
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Phone (for the admin to share with your match)</label>
+
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Phone <small style="color:var(--text-muted); font-weight:400;">— private, saved to your profile only</small></label>
               <input id="rm_phone" type="tel" placeholder="+255…" value="${escapeHtml(prof?.phone||'')}" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;" />
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Your Gender</label>
+                  <select id="rm_gender" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                    <option value="">Select…</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Preferred Roommate Gender</label>
+                  <select id="rm_pref_gender" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                    <option value="">Select…</option>
+                    <option>Same Gender Only</option>
+                    <option>Any</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Number of Roommates Needed</label>
+                  <select id="rm_count" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                    <option value="">Select…</option>
+                    <option>1</option><option>2</option><option>3</option><option>4+</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Maximum Rent Budget</label>
+                  <input id="rm_budget" type="number" min="0" placeholder="TSh per Month/Semester" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;" />
+                </div>
+              </div>
+
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Smoking / Alcohol Tolerance</label>
+              <select id="rm_smoking" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
+                <option value="">Select…</option>
+                <option>No Smoking/Drinking</option>
+                <option>Allowed Outside</option>
+                <option>No Preference</option>
+              </select>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Cleanliness preference</label>
               <select id="rm_clean" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
                 <option value="">Select…</option>
@@ -346,6 +416,7 @@
                 <option ${prof?.cleanliness_preference==='Medium'?'selected':''}>Medium</option>
                 <option ${prof?.cleanliness_preference==='Flexible'?'selected':''}>Flexible</option>
               </select>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Sleep schedule</label>
               <select id="rm_sleep" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
                 <option value="">Select…</option>
@@ -353,13 +424,13 @@
                 <option ${prof?.sleep_schedule==='Night Owl'?'selected':''}>Night Owl</option>
                 <option ${prof?.sleep_schedule==='Flexible'?'selected':''}>Flexible</option>
               </select>
+
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Short bio</label>
               <textarea id="rm_bio" rows="2" maxlength="280" placeholder="A few words about you…" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit; margin-bottom:.85rem;">${escapeHtml(prof?.bio||'')}</textarea>
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Notes for the admin <small style="color:var(--text-muted); font-weight:400;">— optional</small></label>
-              <textarea id="rm_notes" rows="2" maxlength="400" placeholder="e.g. budget, move-in date, gender preference…" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit;"></textarea>
+
               <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem;">
                 <button id="rm_cancel" class="btn btn-outline">Cancel</button>
-                <button id="rm_send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send Request</button>
+                <button id="rm_send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Post Roommate Request</button>
               </div>
             </div>`;
           document.body.appendChild(overlay);
@@ -369,23 +440,36 @@
           overlay.querySelector('#rm_send').addEventListener('click', async () => {
             const name = overlay.querySelector('#rm_name').value.trim();
             const phone = overlay.querySelector('#rm_phone').value.trim();
+            const gender = overlay.querySelector('#rm_gender').value;
+            const preferred_gender = overlay.querySelector('#rm_pref_gender').value;
+            const roommates_needed = overlay.querySelector('#rm_count').value;
+            const max_budget = overlay.querySelector('#rm_budget').value;
+            const smoking = overlay.querySelector('#rm_smoking').value;
             const cleanliness = overlay.querySelector('#rm_clean').value;
             const sleep = overlay.querySelector('#rm_sleep').value;
             const bio = overlay.querySelector('#rm_bio').value.trim();
-            const notes = overlay.querySelector('#rm_notes').value.trim();
-            if (!name || !phone || !cleanliness || !sleep || !bio){ window.toast.error('Please fill all required fields.'); return; }
+            if (!name || !phone || !gender || !preferred_gender || !roommates_needed || !max_budget || !smoking || !cleanliness || !sleep || !bio){
+              window.toast.error('Please fill all fields.'); return;
+            }
             if (!/^\+?\d[\d\s-]{7,}$/.test(phone)){ window.toast.error('Enter a valid phone number.'); return; }
             const sendBtn = overlay.querySelector('#rm_send'); sendBtn.disabled = true;
+            // Phone stays private — update profiles only, do NOT put phone in the public details JSON.
             const { error: pErr } = await sb.from('profiles').update({
               full_name: name, phone, cleanliness_preference: cleanliness, sleep_schedule: sleep, bio,
             }).eq('id', userId);
             if (pErr){ window.toast.error(pErr.message); sendBtn.disabled = false; return; }
-            const details = { name, phone, cleanliness, sleep, bio, notes, property_title: l.title || null, submitted_at: new Date().toISOString() };
+            const details = {
+              name, gender, preferred_gender, roommates_needed,
+              max_budget: Number(max_budget) || null,
+              smoking, cleanliness, sleep, bio,
+              property_title: l.title || null,
+              submitted_at: new Date().toISOString(),
+            };
             const { error } = await sb.from('roommate_requests').insert({
               student_id: userId, property_key: propertyKey, status: 'searching', details,
             });
             if (error){ window.toast.error(error.message || 'Could not post your request.'); sendBtn.disabled = false; return; }
-            window.toast.success('Request sent! Admin will notify you when a match is found.');
+            window.toast.success('Posted! Other students can now send you connect requests.');
             close();
             refresh();
           });

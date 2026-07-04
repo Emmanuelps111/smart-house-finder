@@ -498,6 +498,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_roommate_connect: { Args: { _sender: string }; Returns: undefined }
       get_landlord_public: {
         Args: { _landlord_id: string }
         Returns: {
@@ -529,6 +530,10 @@ export type Database = {
       send_announcement: {
         Args: { _body: string; _link?: string; _title: string }
         Returns: number
+      }
+      send_roommate_connect: {
+        Args: { _property_key: string; _target: string }
+        Returns: undefined
       }
     }
     Enums: {
