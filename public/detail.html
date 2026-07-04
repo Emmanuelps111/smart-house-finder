@@ -122,11 +122,37 @@
               <h3 style="margin:0;">🤝 Roommate Requests</h3>
               <button id="findRoommateBtn" class="btn btn-primary"><i class="fas fa-hand"></i> 🙋‍♂️ Find a Roommate to Split Cost</button>
             </div>
-            <p style="color:var(--text-muted); margin:.5rem 0 1rem;">Students looking to co-tenant this property.</p>
-            <div id="roommateList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:.85rem;">
-              <div style="color:var(--text-muted); font-size:.9rem;">Loading…</div>
-            </div>
+            <details id="roommateAccordion" open style="margin-top:.85rem; border:1px solid var(--border); border-radius:12px; background:var(--surface); overflow:hidden;">
+              <summary id="roommateAccordionSummary" style="cursor:pointer; padding:.85rem 1rem; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:.75rem; list-style:none; user-select:none;">
+                <span>👥 Roommate Requests <span id="roommateCountLabel" style="color:var(--text-muted); font-weight:500;">(0 Students Looking)</span></span>
+                <span style="color:var(--text-muted); font-size:.85rem;">▾</span>
+              </summary>
+              <div id="roommateList" style="display:flex; flex-direction:column; gap:.5rem; padding:.5rem .75rem .85rem;">
+                <div style="color:var(--text-muted); font-size:.9rem; padding:.5rem;">Loading…</div>
+              </div>
+            </details>
           </div>
+          <style>
+            #roommateAccordion summary::-webkit-details-marker{display:none;}
+            .rm-row{border:1px solid var(--border); border-radius:10px; background:#fff; overflow:hidden; transition:box-shadow .2s;}
+            .rm-row:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
+            .rm-head{display:flex; align-items:center; gap:.65rem; padding:.6rem .75rem; cursor:pointer; user-select:none;}
+            .rm-head .rm-caret{margin-left:auto; color:var(--text-muted); transition:transform .25s ease;}
+            .rm-row.open .rm-caret{transform:rotate(180deg);}
+            .rm-body{max-height:0; overflow:hidden; transition:max-height .35s ease, padding .25s ease; padding:0 .9rem;}
+            .rm-row.open .rm-body{max-height:1000px; padding:.25rem .9rem 1rem;}
+            .rm-avatar{width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:.95rem; flex-shrink:0; letter-spacing:.5px;}
+            .rm-avatar-lg{width:52px; height:52px; font-size:1.25rem;}
+            .rm-name{font-weight:600; font-size:.95rem;}
+            .rm-inline-tags{display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; font-size:.75rem; color:var(--text-muted);}
+            .rm-chip{display:inline-block; padding:.15rem .5rem; border-radius:999px; background:rgba(59,130,246,.1); color:var(--primary); font-size:.72rem; font-weight:600;}
+            .rm-habits{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.4rem; margin:.65rem 0;}
+            .rm-habit{background:#F8FAFC; border:1px solid var(--border); border-radius:8px; padding:.45rem .6rem; font-size:.8rem;}
+            .rm-money{display:inline-block; margin:.25rem 0 .5rem; padding:.35rem .65rem; border-radius:8px; background:#ECFDF5; color:#065F46; font-weight:600; font-size:.82rem; border:1px solid #A7F3D0;}
+            .rm-quote{background:#F9FAFB; border-left:3px solid var(--primary); padding:.6rem .8rem; border-radius:6px; font-style:italic; color:#374151; font-size:.88rem; line-height:1.4; margin:.5rem 0;}
+            .rm-summary{font-weight:600; font-size:.92rem; margin:.35rem 0 .5rem;}
+            .rm-own{display:inline-block; padding:.4rem .7rem; border-radius:8px; background:#F3F4F6; color:var(--text-muted); font-size:.82rem; font-weight:500;}
+          </style>
 
           <div class="info-card" id="reviewsSection" style="margin-top:1.5rem;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
@@ -276,46 +302,82 @@
       const btn = document.getElementById('findRoommateBtn');
       const cached = JSON.parse(localStorage.getItem('shf-user') || 'null');
 
-      function tag(txt){ return `<span style="display:inline-block; padding:.15rem .5rem; border-radius:999px; background:rgba(59,130,246,.1); color:var(--primary); font-size:.72rem; font-weight:600;">${escapeHtml(txt)}</span>`; }
+      function tag(txt){ return `<span class="rm-chip">${escapeHtml(txt)}</span>`; }
+
+      const AVATAR_PALETTE = ['#3B82F6','#8B5CF6','#EC4899','#F97316','#10B981','#0EA5E9','#F59E0B','#EF4444','#14B8A6','#6366F1'];
+      function initialFor(name){ const s=(name||'?').trim(); return (s[0]||'?').toUpperCase(); }
+      function colorFor(seed){ let h=0; for (const c of (seed||'x')) h=(h*31+c.charCodeAt(0))>>>0; return AVATAR_PALETTE[h%AVATAR_PALETTE.length]; }
+      function avatarHtml(name, seed, big){
+        const cls = 'rm-avatar' + (big ? ' rm-avatar-lg' : '');
+        return `<div class="${cls}" style="background:${colorFor(seed||name)};">${escapeHtml(initialFor(name))}</div>`;
+      }
+
+      const countLabel = document.getElementById('roommateCountLabel');
 
       function renderCards(rows){
         if (!rows || !rows.length){
-          listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">No one has requested a roommate here yet. Be the first!</div>';
+          if (countLabel) countLabel.textContent = '(0 Students Looking)';
+          listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem; padding:.5rem;">No one has requested a roommate here yet. Be the first!</div>';
           return;
         }
-        listEl.innerHTML = rows.map(r => {
+        if (countLabel) countLabel.textContent = `(${rows.length} Student${rows.length===1?'':'s'} Looking)`;
+        listEl.innerHTML = rows.map((r,idx) => {
           const d = r.details || {};
           const name = escapeHtml(d.name || 'Student');
           const clean = escapeHtml(d.cleanliness || '—');
           const sleep = escapeHtml(d.sleep || '—');
+          const smoking = escapeHtml(d.smoking || '—');
           const bio = escapeHtml(d.bio || 'No bio yet.');
-          const av = `https://i.pravatar.cc/64?u=${encodeURIComponent(r.student_id)}`;
+          const gender = d.gender || '—';
+          const pref = d.preferred_gender || 'Any';
+          const needed = d.roommates_needed || '1';
+          const budget = d.max_budget ? Number(d.max_budget).toLocaleString() : null;
           const isMe = cached && cached.id === r.student_id;
-          const tags = [
-            d.gender ? tag('👤 ' + d.gender) : '',
-            d.preferred_gender ? tag('🎯 ' + d.preferred_gender) : '',
-            d.roommates_needed ? tag('👥 Needs ' + d.roommates_needed) : '',
-            d.max_budget ? tag('💰 ≤ TSh ' + Number(d.max_budget).toLocaleString()) : '',
-            d.smoking ? tag('🚭 ' + d.smoking) : '',
+          const compactTags = [
+            `<span class="rm-chip">👤 ${escapeHtml(gender)}</span>`,
+            budget ? `<span class="rm-chip">💰 ≤ TSh ${budget}</span>` : '',
           ].filter(Boolean).join(' ');
+          const rulesText = /no|non|never/i.test(smoking) ? '🚫 No Smoking/Drinking' : `🍃 Smoking/Drinking: ${smoking}`;
+          const summary = `${escapeHtml(gender)} student looking for ${escapeHtml(String(needed))} co-tenant (${escapeHtml(pref)})`;
           const action = isMe
-            ? `<div style="font-size:.78rem; color:var(--text-muted); margin-top:.6rem;"><i class="fas fa-check"></i> This is your listing</div>`
-            : `<button class="btn btn-primary" data-connect="${r.student_id}" style="width:100%; margin-top:.6rem; font-size:.82rem; padding:.45rem;"><i class="fas fa-handshake"></i> Send Connect Request</button>`;
-          return `<div style="border:1px solid var(--border); border-radius:12px; padding:.9rem; background:var(--surface);">
-            <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.5rem;">
-              <img src="${av}" alt="" style="width:42px;height:42px;border-radius:50%;" />
-              <div style="font-weight:600;">${name}</div>
+            ? `<div class="rm-own">✓ This is your listing</div>`
+            : `<button class="btn btn-primary" data-connect="${r.student_id}" style="font-size:.85rem; padding:.5rem .85rem;">🤝 Request to Team Up</button>`;
+          return `<div class="rm-row" data-rm-idx="${idx}">
+            <div class="rm-head" data-rm-toggle>
+              ${avatarHtml(d.name||'Student', r.student_id)}
+              <div style="min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:.4rem;">
+                <span class="rm-name">${name}</span>
+                <span class="rm-inline-tags">${compactTags}</span>
+              </div>
+              <span class="rm-caret">▾</span>
             </div>
-            <div style="font-size:.82rem; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.5rem;">
-              <span>🧽 ${clean}</span><span>🌙 ${sleep}</span>
+            <div class="rm-body">
+              <div style="display:flex; align-items:center; gap:.75rem; margin-top:.4rem;">
+                ${avatarHtml(d.name||'Student', r.student_id, true)}
+                <div style="min-width:0;">
+                  <div class="rm-name" style="font-size:1.02rem;">${name}</div>
+                  <div class="rm-summary">${summary}</div>
+                </div>
+              </div>
+              <div class="rm-habits">
+                <div class="rm-habit">🧼 Cleanliness: <strong>${clean}</strong></div>
+                <div class="rm-habit">🌙 Sleep: <strong>${sleep}</strong></div>
+                <div class="rm-habit">${rulesText}</div>
+              </div>
+              ${budget ? `<div class="rm-money">💰 Rent Contribution Limit: ≤ TSh ${budget}</div>` : ''}
+              <div class="rm-quote">“${bio}”</div>
+              <div style="margin-top:.5rem;">${action}</div>
             </div>
-            ${tags ? `<div style="display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.5rem;">${tags}</div>` : ''}
-            <div style="font-size:.88rem; line-height:1.35;">${bio}</div>
-            ${action}
           </div>`;
         }).join('');
 
-        listEl.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', async () => {
+        listEl.querySelectorAll('[data-rm-toggle]').forEach(h => h.addEventListener('click', (e) => {
+          if (e.target.closest('button,a')) return;
+          h.parentElement.classList.toggle('open');
+        }));
+
+        listEl.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', async (e) => {
+          e.stopPropagation();
           const target = b.getAttribute('data-connect');
           if (!cached){ window.toast.error('Please sign in to send a connect request.'); return; }
           b.disabled = true;
@@ -326,6 +388,7 @@
           window.toast.success('Connect request sent. Contacts share only when they accept.');
         }));
       }
+
 
       try {
         const sb = await window.SHFCloud.ready;
