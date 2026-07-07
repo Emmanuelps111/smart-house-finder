@@ -45,8 +45,6 @@
       <li><a href="/listings.html" class="${path==='listings.html'?'active':''}">Listings</a></li>
       <li><a href="/map.html" class="${path==='map.html'?'active':''}">Map</a></li>
       <li><a href="/contact.html" class="${path==='contact.html'?'active':''}">Contact</a></li>
-      
-      <li><a href="/contact.html" class="${path==='contact.html'?'active':''}">Contact</a></li>
       ${user && user.role === 'admin' ? `<li><a href="/admin" style="color:var(--primary); font-weight:600;"><i class="fas fa-shield-halved"></i> Admin</a></li>` : ''}
     </ul>
     <div class="nav-actions">
@@ -61,17 +59,77 @@
   </nav>
 </header>`;
   const footer = `
-<footer class="site-footer">
-  <div class="container footer-row">
-    <p>&copy; 2026 Smart House Finder. All rights reserved.</p>
-    <div class="social">
-      <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-      <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-      <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-      <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+<footer class="site-footer shf-footer">
+  <div class="container shf-footer-inner">
+    <div class="shf-footer-grid">
+      <div class="shf-foot-brand">
+        <a href="/home.html" class="shf-foot-logo"><i class="fas fa-home"></i> Smart House Finder</a>
+        <p class="shf-foot-tag">Tanzania's premier rental directory — connecting students and general renters with verified homes, campus-proximity insights, and trusted landlords nationwide.</p>
+      </div>
+      <div class="shf-foot-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about.html">About Us</a></li>
+          <li><a href="/how-it-works.html">How It Works</a></li>
+          <li><a href="/contact.html">Contact Support</a></li>
+        </ul>
+      </div>
+      <div class="shf-foot-col">
+        <h4>Discover</h4>
+        <ul>
+          <li><a href="/listings.html?portal=renter">Renter Portal</a></li>
+          <li><a href="/listings.html?portal=student">Student Portal</a></li>
+          <li><a href="/dashboard.html">List Your Property</a></li>
+        </ul>
+      </div>
+      <div class="shf-foot-col">
+        <h4>Legal &amp; Safety</h4>
+        <ul>
+          <li><a href="/terms.html">Terms of Service</a></li>
+          <li><a href="/privacy.html">Privacy Policy</a></li>
+          <li><a href="/safety.html">Tenant Safety Advice</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="shf-foot-divider"></div>
+    <div class="shf-foot-bottom">
+      <p class="shf-foot-copy">&copy; 2026 Smart House Finder. All rights reserved.</p>
+      <div class="shf-foot-social">
+        <a href="https://x.com/" target="_blank" rel="noopener noreferrer" aria-label="X">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.244 2H21l-6.52 7.45L22 22h-6.79l-4.77-6.24L4.8 22H2l7.03-8.03L2 2h6.9l4.32 5.72L18.244 2Zm-1.19 18h1.87L7.03 4H5.1l11.955 16Z"/></svg>
+        </a>
+        <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+      </div>
     </div>
   </div>
 </footer>
+<style>
+  .shf-footer{background:#0b1220;color:#cbd5e1;margin-top:4rem;border-top:1px solid rgba(255,255,255,.05);}
+  .shf-footer-inner{padding:4rem 1.25rem 1.75rem;}
+  .shf-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:2.5rem;}
+  .shf-foot-brand .shf-foot-logo{display:inline-flex;align-items:center;gap:.5rem;color:#fff;font-family:'Poppins',sans-serif;font-weight:700;font-size:1.15rem;text-decoration:none;}
+  .shf-foot-brand .shf-foot-logo i{color:#3B82F6;}
+  .shf-foot-tag{margin-top:.85rem;color:#94a3b8;font-size:.9rem;line-height:1.55;max-width:340px;}
+  .shf-foot-col h4{font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:700;color:#60a5fa;margin:0 0 1rem;}
+  .shf-foot-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.55rem;}
+  .shf-foot-col a{color:#cbd5e1;font-size:.9rem;text-decoration:none;opacity:.85;transition:opacity .2s ease,color .2s ease;}
+  .shf-foot-col a:hover{opacity:1;color:#fff;}
+  .shf-foot-divider{height:1px;background:rgba(255,255,255,.08);margin:2.5rem 0 1.25rem;}
+  .shf-foot-bottom{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .shf-foot-copy{margin:0;color:#64748b;font-size:.8rem;}
+  .shf-foot-social{display:flex;gap:.55rem;align-items:center;}
+  .shf-foot-social a{width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);color:#60a5fa;font-size:.9rem;transition:all .2s ease;text-decoration:none;}
+  .shf-foot-social a:hover{background:#3B82F6;color:#fff;transform:translateY(-2px);}
+  @media (max-width: 900px){
+    .shf-footer-grid{grid-template-columns:1fr;text-align:center;gap:2rem;}
+    .shf-foot-tag{margin-left:auto;margin-right:auto;}
+    .shf-foot-col ul{align-items:center;}
+    .shf-foot-bottom{justify-content:center;text-align:center;}
+  }
+</style>
+
 <button id="backTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 <div class="lightbox" role="dialog" aria-label="Image viewer">
   <button class="lightbox-close" aria-label="Close"><i class="fas fa-times"></i></button>
