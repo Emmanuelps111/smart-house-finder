@@ -128,26 +128,42 @@
 <script>
   // Render featured listings
   const f = document.getElementById('featured');
+  function occPill(occ) {
+    const isOcc = occ === 'occupied';
+    return `<span class="lc-occ ${isOcc?'occupied':'vacant'}">${isOcc?'🔴 Occupied':'🟢 Vacant'}</span>`;
+  }
   function renderFeatured() {
     if (!f) return;
-    f.innerHTML = SHF_LISTINGS.slice(0,6).map(l => `
-      <article class="card reveal" onclick="if(!event.target.closest('[data-lightbox]')) location.href='/detail.html?id=${l.id}'" style="cursor:pointer;">
-        <img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />
-        <div class="card-body">
-          <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
-            <span class="badge">${l.tag}</span>
-            ${SHF.occupancyBadge(l.occupancy)}
+    f.innerHTML = SHF_LISTINGS.slice(0,6).map(l => {
+      const media = l.img
+        ? `<img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />`
+        : `<div class="lc-empty"><i class="fas ${l.has_video ? 'fa-circle-play' : 'fa-house'}"></i><span>${l.has_video ? 'VIDEO TOUR' : 'NO PHOTOS'}</span></div>`;
+      const playOverlay = (l.has_video && l.img) ? `<div class="lc-play"><i class="fas fa-play"></i></div>` : '';
+      const prox = SHF.proximityBadges(l.lat, l.lng);
+      return `
+      <article class="list-card" tabindex="0" role="link"
+        onclick="if(!event.target.closest('[data-lightbox]') && !event.target.closest('[data-no-nav]')) location.href='/detail.html?id=${l.id}'"
+        onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('[data-no-nav]')){event.preventDefault();location.href='/detail.html?id=${l.id}'}">
+        <div class="lc-media">${media}${occPill(l.occupancy)}${playOverlay}</div>
+        <div class="lc-body">
+          <div class="lc-location"><i class="fas fa-location-dot"></i> ${l.city||''}</div>
+          <h3 class="lc-title">${l.title}</h3>
+          <div class="lc-price">${SHF.formatPrice(l.price)} <small>/ month</small></div>
+          <div class="lc-meta">
+            <span>🛏️ ${l.beds} Bed${l.beds===1?'':'s'}</span><span class="dot">•</span>
+            <span>🚿 ${l.baths} Bath${l.baths===1?'':'s'}</span><span class="dot">•</span>
+            <span>📐 ${l.area}</span>
           </div>
-          <h3 style="margin:.6rem 0 .25rem;">${l.title}</h3>
-          <div class="card-price">${SHF.formatPrice(l.price)}<small style="color:var(--text-muted);font-weight:400;font-size:.85rem;"> /month</small></div>
-          <div class="card-meta"><span><i class="fas fa-bed"></i> ${l.beds}</span><span><i class="fas fa-bath"></i> ${l.baths}</span><span><i class="fas fa-location-dot"></i> ${l.city}</span></div>
-          <div style="font-size:.78rem; color:var(--text-muted); margin-top:.35rem;"><i class="fas fa-clock"></i> Listed ${SHF.timeAgo(l.created_at)}</div>
-          ${SHF.proximityBadges(l.lat, l.lng)}
+          <p class="lc-desc">${l.desc || ''}</p>
+          <div class="lc-spacer"></div>
+          ${prox ? `<div class="lc-prox">${prox.replace(/<div[^>]*>|<\/div>/g,'')}</div>` : ''}
+          <div class="lc-foot">
+            <span>Listed ${SHF.timeAgo(l.created_at)}</span>
+            <a class="lc-view" href="/detail.html?id=${l.id}" data-no-nav onclick="event.stopPropagation();">View Details <i class="fas fa-arrow-right"></i></a>
+          </div>
         </div>
-      </article>`).join('');
-    document.querySelectorAll('#featured .reveal').forEach(el => {
-      new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');o.disconnect();}}),{threshold:.1}).observe(el);
-    });
+      </article>`;
+    }).join('');
   }
   renderFeatured();
   window.addEventListener('shf:listings-updated', renderFeatured);
