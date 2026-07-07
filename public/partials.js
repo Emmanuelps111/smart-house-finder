@@ -45,8 +45,6 @@
       <li><a href="/listings.html" class="${path==='listings.html'?'active':''}">Listings</a></li>
       <li><a href="/map.html" class="${path==='map.html'?'active':''}">Map</a></li>
       <li><a href="/contact.html" class="${path==='contact.html'?'active':''}">Contact</a></li>
-      
-      <li><a href="/contact.html" class="${path==='contact.html'?'active':''}">Contact</a></li>
       ${user && user.role === 'admin' ? `<li><a href="/admin" style="color:var(--primary); font-weight:600;"><i class="fas fa-shield-halved"></i> Admin</a></li>` : ''}
     </ul>
     <div class="nav-actions">
