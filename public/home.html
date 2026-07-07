@@ -10,6 +10,37 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .listings-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.5rem; align-items:stretch; }
+  @media (max-width:1024px){ .listings-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:640px){ .listings-grid{ grid-template-columns:1fr; } }
+  .list-card { position:relative; display:flex; flex-direction:column; height:100%; background:var(--bg); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:var(--shadow-sm); cursor:pointer; transition:transform var(--transition),box-shadow var(--transition); }
+  .list-card:hover { transform:translateY(-4px); box-shadow:var(--shadow); }
+  .list-card:focus-visible { outline:2px solid #3B82F6; outline-offset:2px; }
+  .lc-media { position:relative; width:100%; aspect-ratio:4/3; background:var(--surface); overflow:hidden; }
+  .lc-media img { width:100%; height:100%; object-fit:cover; display:block; }
+  .lc-media .lc-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4rem; color:var(--text-muted); background:linear-gradient(135deg,var(--surface),var(--bg)); }
+  .lc-media .lc-empty i { font-size:2rem; opacity:.5; }
+  .lc-media .lc-empty span { font-size:.75rem; font-weight:600; letter-spacing:.5px; }
+  .lc-occ { position:absolute; top:.75rem; left:.75rem; z-index:2; padding:.3rem .65rem; font-size:.72rem; font-weight:600; border-radius:999px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); background:rgba(255,255,255,.85); box-shadow:0 2px 8px rgba(0,0,0,.08); }
+  .lc-occ.vacant { color:#166534; } .lc-occ.occupied { color:#B91C1C; }
+  .lc-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,.35); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.5); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.15rem; box-shadow:0 4px 16px rgba(0,0,0,.25); pointer-events:none; }
+  .lc-play i { margin-left:3px; }
+  .lc-body { display:flex; flex-direction:column; padding:1rem 1.1rem 1.1rem; gap:.5rem; flex:1; }
+  .lc-location { font-size:.78rem; color:var(--text-muted); display:flex; align-items:center; gap:.3rem; }
+  .lc-title { font-size:1.1rem; font-weight:700; line-height:1.3; margin:0; color:var(--text); }
+  .lc-price { font-size:1.05rem; font-weight:700; color:#3B82F6; margin:0; }
+  .lc-price small { font-size:.78rem; font-weight:500; color:var(--text-muted); }
+  .lc-meta { display:flex; flex-wrap:wrap; gap:.35rem .5rem; font-size:.82rem; color:var(--text-muted); align-items:center; }
+  .lc-meta .dot { opacity:.45; }
+  .lc-desc { font-size:.85rem; line-height:1.5; color:var(--text-muted); margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; }
+  .lc-spacer { flex:1; }
+  .lc-prox { display:flex; flex-wrap:wrap; gap:.35rem; padding:.55rem .65rem; background:color-mix(in oklab, var(--text) 5%, transparent); border-radius:10px; margin-top:.5rem; }
+  .lc-prox .badge { background:transparent !important; color:var(--text) !important; padding:.1rem .35rem !important; font-size:.72rem !important; font-weight:500 !important; border:none !important; opacity:.85; }
+  .lc-foot { display:flex; align-items:center; justify-content:space-between; margin-top:.5rem; padding-top:.6rem; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-muted); }
+  .lc-view { color:#3B82F6; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem; font-size:.85rem; }
+  .lc-view:hover { text-decoration:underline; }
+</style>
 </head>
 <body>
 <div id="header-mount"></div>
