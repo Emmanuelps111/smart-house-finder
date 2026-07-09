@@ -95,8 +95,8 @@
     <div class="shf-foot-bottom">
       <p class="shf-foot-copy">&copy; 2026 Smart House Finder. All rights reserved.</p>
       <div class="shf-foot-social">
-        <a href="https://x.com/" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.244 2H21l-6.52 7.45L22 22h-6.79l-4.77-6.24L4.8 22H2l7.03-8.03L2 2h6.9l4.32 5.72L18.244 2Zm-1.19 18h1.87L7.03 4H5.1l11.955 16Z"/></svg>
+        <a href="https://wa.me/255713686105" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="Contact Customer Support">
+          <i class="fab fa-whatsapp"></i>
         </a>
         <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
         <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
