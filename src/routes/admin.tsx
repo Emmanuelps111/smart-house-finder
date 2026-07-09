@@ -233,6 +233,20 @@ function AdminPage() {
     setAnnounceTitle(""); setAnnounceBody(""); setAnnounceLink("");
   };
 
+  const approveAgency = async (userId: string) => {
+    const { error } = await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).rpc("approve_agency", { _user_id: userId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Agency approved");
+    setPendingAgencies((arr) => arr.filter((a) => a.id !== userId));
+  };
+  const declineAgency = async (userId: string) => {
+    const { error } = await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).rpc("decline_agency", { _user_id: userId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Agency request declined");
+    setPendingAgencies((arr) => arr.filter((a) => a.id !== userId));
+  };
+
+
 
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
   if (authState === "unauthenticated") return (
