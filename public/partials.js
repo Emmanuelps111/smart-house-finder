@@ -282,6 +282,86 @@
         })();
         return;
       }
+
+      // ---- Account Settings & Agency Upgrade modals ----
+      const openModal = (id) => { const m = document.getElementById(id); if (m) m.style.display = 'flex'; if (dd) dd.style.display = 'none'; };
+      const closeModal = (m) => { if (m) m.style.display = 'none'; };
+
+      if (e.target.closest('[data-account-settings]')) {
+        const nameInput = document.getElementById('shf-acc-name');
+        const phoneInput = document.getElementById('shf-acc-phone');
+        if (nameInput) nameInput.value = user.name || '';
+        if (phoneInput) phoneInput.value = user.phone || '';
+        openModal('shf-modal-account');
+        return;
+      }
+      if (e.target.closest('[data-agency-request]')) {
+        openModal('shf-modal-agency');
+        return;
+      }
+      const closer = e.target.closest('[data-modal-close]');
+      if (closer) { closeModal(closer.closest('.shf-modal')); return; }
+
+      if (e.target.closest('#shf-acc-save')) {
+        (async () => {
+          const btn = e.target.closest('#shf-acc-save');
+          if (!window.SHFCloud) return;
+          const name = document.getElementById('shf-acc-name').value.trim();
+          const phone = document.getElementById('shf-acc-phone').value.trim();
+          if (!name) { window.toast?.error('Name cannot be empty.'); return; }
+          btn.disabled = true;
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { error } = await sb.from('profiles').update({ full_name: name, phone }).eq('id', user.id);
+            if (error) throw error;
+            const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
+            cached.name = name; cached.phone = phone;
+            localStorage.setItem('shf-user', JSON.stringify(cached));
+            window.toast?.success('Profile updated.');
+            closeModal(document.getElementById('shf-modal-account'));
+            setTimeout(() => location.reload(), 600);
+          } catch (err) {
+            window.toast?.error(err.message || 'Failed to update profile.');
+          } finally { btn.disabled = false; }
+        })();
+        return;
+      }
+      if (e.target.closest('#shf-acc-change-pw')) {
+        (async () => {
+          if (!user.email || !window.SHFCloud) return;
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { error } = await sb.auth.resetPasswordForEmail(user.email, {
+              redirectTo: window.location.origin + '/reset-password',
+            });
+            if (error) throw error;
+            window.toast?.success('Password reset email sent.');
+          } catch (err) { window.toast?.error(err.message || 'Failed to send reset email.'); }
+        })();
+        return;
+      }
+      if (e.target.closest('#shf-agency-submit')) {
+        (async () => {
+          const btn = e.target.closest('#shf-agency-submit');
+          if (!window.SHFCloud) return;
+          btn.disabled = true;
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { error } = await sb.from('profiles').update({ agency_status: 'pending' }).eq('id', user.id);
+            if (error) throw error;
+            const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
+            cached.agency_status = 'pending';
+            localStorage.setItem('shf-user', JSON.stringify(cached));
+            window.toast?.success('Application submitted — under review.');
+            closeModal(document.getElementById('shf-modal-agency'));
+            setTimeout(() => location.reload(), 700);
+          } catch (err) {
+            window.toast?.error(err.message || 'Failed to submit application.');
+          } finally { btn.disabled = false; }
+        })();
+        return;
+      }
+
       if (dd && !e.target.closest('.user-menu')) dd.style.display = 'none';
     });
 
