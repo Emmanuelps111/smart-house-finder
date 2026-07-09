@@ -584,6 +584,37 @@ function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="agencies" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader><CardTitle className="text-blue-900">Agency Verification Requests</CardTitle></CardHeader>
+              <CardContent>
+                {pendingAgencies.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending agency requests.</p>
+                ) : (
+                  <Table>
+                    <TableHeader><TableRow className="bg-blue-50">
+                      <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Email</TableHead><TableHead>Requested</TableHead><TableHead className="text-right">Actions</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {pendingAgencies.map((a) => (
+                        <TableRow key={a.id} className="hover:bg-blue-50/50">
+                          <TableCell className="font-medium">{a.full_name ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{a.phone ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{a.email ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground text-xs">{new Date(a.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => approveAgency(a.id)}>Approve Agency</Button>
+                            <Button size="sm" variant="destructive" onClick={() => declineAgency(a.id)}>Decline</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
       </main>
