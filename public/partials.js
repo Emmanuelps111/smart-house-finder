@@ -151,11 +151,74 @@
   [data-theme="dark"] #backTop { background: var(--primary); color: #fff; }
 </style>
 
-<button id="backTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
+  <button id="backTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 <div class="lightbox" role="dialog" aria-label="Image viewer">
   <button class="lightbox-close" aria-label="Close"><i class="fas fa-times"></i></button>
   <img src="" alt="Preview" />
-</div>`;
+</div>
+
+<!-- Account Settings Modal -->
+<div id="shf-modal-account" class="shf-modal" role="dialog" aria-modal="true" aria-label="Account settings" style="display:none;">
+  <div class="shf-modal-backdrop" data-modal-close></div>
+  <div class="shf-modal-card">
+    <div class="shf-modal-head">
+      <h3><i class="fas fa-cog"></i> Account Settings</h3>
+      <button class="shf-modal-x" data-modal-close aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="shf-modal-body">
+      <label class="shf-field"><span>Display Name</span><input type="text" id="shf-acc-name" placeholder="Your name" /></label>
+      <label class="shf-field"><span>Contact Phone Number</span><input type="tel" id="shf-acc-phone" placeholder="+255..." /></label>
+      <button type="button" class="shf-link-btn" id="shf-acc-change-pw"><i class="fas fa-key"></i> Change Password</button>
+    </div>
+    <div class="shf-modal-foot">
+      <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+      <button type="button" class="btn btn-primary" id="shf-acc-save">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agency Upgrade Modal -->
+<div id="shf-modal-agency" class="shf-modal" role="dialog" aria-modal="true" aria-label="Agency upgrade" style="display:none;">
+  <div class="shf-modal-backdrop" data-modal-close></div>
+  <div class="shf-modal-card">
+    <div class="shf-modal-head">
+      <h3><i class="fas fa-chart-line"></i> Manage Multiple Properties?</h3>
+      <button class="shf-modal-x" data-modal-close aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="shf-modal-body">
+      <p style="color:var(--text-muted); line-height:1.55; margin:0;">
+        Are you a corporate real estate agency or a property manager handling 5+ listings?
+        Apply to unlock multi-property spreadsheet bulk uploading tools.
+      </p>
+    </div>
+    <div class="shf-modal-foot">
+      <button type="button" class="btn btn-outline" data-modal-close>Not now</button>
+      <button type="button" class="shf-btn-green" id="shf-agency-submit"><i class="fas fa-paper-plane"></i> Submit Upgrade Application</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .shf-modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .shf-modal-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .55); backdrop-filter: blur(3px); }
+  .shf-modal-card { position: relative; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 460px; box-shadow: 0 25px 60px -20px rgba(0,0,0,.35); overflow: hidden; animation: shfModalIn .18s ease-out; }
+  @keyframes shfModalIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+  .shf-modal-head { display:flex; align-items:center; justify-content:space-between; padding: 1rem 1.15rem; border-bottom: 1px solid var(--border); }
+  .shf-modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:.5rem; }
+  .shf-modal-head h3 i { color: var(--primary); }
+  .shf-modal-x { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1rem; padding:.35rem .5rem; border-radius:6px; }
+  .shf-modal-x:hover { background: var(--border); color: var(--text); }
+  .shf-modal-body { padding: 1.15rem; display:flex; flex-direction:column; gap: .9rem; }
+  .shf-field { display:flex; flex-direction:column; gap:.35rem; font-size:.85rem; color:var(--text-muted); }
+  .shf-field input { padding:.6rem .75rem; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
+  .shf-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+  .shf-link-btn { align-self: flex-start; background:none; border:none; color:var(--primary); font:inherit; font-weight:600; cursor:pointer; padding:.25rem 0; display:inline-flex; align-items:center; gap:.4rem; }
+  .shf-link-btn:hover { text-decoration: underline; }
+  .shf-modal-foot { display:flex; justify-content:flex-end; gap:.6rem; padding: .9rem 1.15rem; border-top: 1px solid var(--border); background: var(--bg); }
+  .shf-btn-green { background:#10b981; color:#fff; border:none; padding:.6rem 1.1rem; border-radius:8px; font:inherit; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; transition: background .15s ease; }
+  .shf-btn-green:hover { background:#059669; }
+  .shf-btn-green:disabled { opacity:.6; cursor:not-allowed; }
+</style>`;
 
   document.addEventListener('DOMContentLoaded', () => {
     // Auto-load i18n helper on every page
