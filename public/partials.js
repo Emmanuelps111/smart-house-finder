@@ -28,6 +28,14 @@
            <a href="/notifications.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-bell"></i> Notifications</a>
            ${user.role === 'landlord' ? `<a href="/dashboard.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-gauge-high"></i> Landlord dashboard</a>` : ''}
            ${user.role === 'admin' ? `<a href="/admin" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-shield-halved"></i> Admin dashboard</a>` : ''}
+           <button type="button" data-account-settings style="display:block; width:100%; text-align:left; padding:.6rem 1rem; background:none; border:none; color:var(--text); cursor:pointer; font:inherit;"><i class="fas fa-cog"></i> Account Settings</button>
+           ${user.role === 'landlord' ? (
+             user.agency_status === 'approved'
+               ? `<div style="display:block; padding:.6rem 1rem; color:#059669; background:rgba(16,185,129,.08); font-size:.9rem;"><i class="fas fa-circle-check"></i> Verified Agency Account</div>`
+               : user.agency_status === 'pending'
+                 ? `<div style="display:block; padding:.6rem 1rem; color:var(--text-muted); font-size:.9rem;"><i class="fas fa-hourglass-half"></i> Agency Review Pending</div>`
+                 : `<button type="button" data-agency-request style="display:block; width:100%; text-align:left; padding:.6rem 1rem; background:none; border:none; color:var(--text); cursor:pointer; font:inherit;"><i class="fas fa-chart-line"></i> Request Agency Upgrade</button>`
+           ) : ''}
            <a href="/listings.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-house"></i> Browse listings</a>
            <button data-logout style="display:block; width:100%; text-align:left; padding:.6rem 1rem; background:none; border:none; color:var(--text); cursor:pointer; font:inherit;"><i class="fas fa-sign-out-alt"></i> Log out</button>
          </div>
