@@ -28,6 +28,14 @@
            <a href="/notifications.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-bell"></i> Notifications</a>
            ${user.role === 'landlord' ? `<a href="/dashboard.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-gauge-high"></i> Landlord dashboard</a>` : ''}
            ${user.role === 'admin' ? `<a href="/admin" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-shield-halved"></i> Admin dashboard</a>` : ''}
+           <button type="button" data-account-settings style="display:block; width:100%; text-align:left; padding:.6rem 1rem; background:none; border:none; color:var(--text); cursor:pointer; font:inherit;"><i class="fas fa-cog"></i> Account Settings</button>
+           ${user.role === 'landlord' ? (
+             user.agency_status === 'approved'
+               ? `<div style="display:block; padding:.6rem 1rem; color:#059669; background:rgba(16,185,129,.08); font-size:.9rem;"><i class="fas fa-circle-check"></i> Verified Agency Account</div>`
+               : user.agency_status === 'pending'
+                 ? `<div style="display:block; padding:.6rem 1rem; color:var(--text-muted); font-size:.9rem;"><i class="fas fa-hourglass-half"></i> Agency Review Pending</div>`
+                 : `<button type="button" data-agency-request style="display:block; width:100%; text-align:left; padding:.6rem 1rem; background:none; border:none; color:var(--text); cursor:pointer; font:inherit;"><i class="fas fa-chart-line"></i> Request Agency Upgrade</button>`
+           ) : ''}
            <a href="/listings.html" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-house"></i> Browse listings</a>
            <button data-logout style="display:block; width:100%; text-align:left; padding:.6rem 1rem; background:none; border:none; color:var(--text); cursor:pointer; font:inherit;"><i class="fas fa-sign-out-alt"></i> Log out</button>
          </div>
@@ -143,11 +151,74 @@
   [data-theme="dark"] #backTop { background: var(--primary); color: #fff; }
 </style>
 
-<button id="backTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
+  <button id="backTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 <div class="lightbox" role="dialog" aria-label="Image viewer">
   <button class="lightbox-close" aria-label="Close"><i class="fas fa-times"></i></button>
   <img src="" alt="Preview" />
-</div>`;
+</div>
+
+<!-- Account Settings Modal -->
+<div id="shf-modal-account" class="shf-modal" role="dialog" aria-modal="true" aria-label="Account settings" style="display:none;">
+  <div class="shf-modal-backdrop" data-modal-close></div>
+  <div class="shf-modal-card">
+    <div class="shf-modal-head">
+      <h3><i class="fas fa-cog"></i> Account Settings</h3>
+      <button class="shf-modal-x" data-modal-close aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="shf-modal-body">
+      <label class="shf-field"><span>Display Name</span><input type="text" id="shf-acc-name" placeholder="Your name" /></label>
+      <label class="shf-field"><span>Contact Phone Number</span><input type="tel" id="shf-acc-phone" placeholder="+255..." /></label>
+      <button type="button" class="shf-link-btn" id="shf-acc-change-pw"><i class="fas fa-key"></i> Change Password</button>
+    </div>
+    <div class="shf-modal-foot">
+      <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+      <button type="button" class="btn btn-primary" id="shf-acc-save">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agency Upgrade Modal -->
+<div id="shf-modal-agency" class="shf-modal" role="dialog" aria-modal="true" aria-label="Agency upgrade" style="display:none;">
+  <div class="shf-modal-backdrop" data-modal-close></div>
+  <div class="shf-modal-card">
+    <div class="shf-modal-head">
+      <h3><i class="fas fa-chart-line"></i> Manage Multiple Properties?</h3>
+      <button class="shf-modal-x" data-modal-close aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="shf-modal-body">
+      <p style="color:var(--text-muted); line-height:1.55; margin:0;">
+        Are you a corporate real estate agency or a property manager handling 5+ listings?
+        Apply to unlock multi-property spreadsheet bulk uploading tools.
+      </p>
+    </div>
+    <div class="shf-modal-foot">
+      <button type="button" class="btn btn-outline" data-modal-close>Not now</button>
+      <button type="button" class="shf-btn-green" id="shf-agency-submit"><i class="fas fa-paper-plane"></i> Submit Upgrade Application</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .shf-modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .shf-modal-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .55); backdrop-filter: blur(3px); }
+  .shf-modal-card { position: relative; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 460px; box-shadow: 0 25px 60px -20px rgba(0,0,0,.35); overflow: hidden; animation: shfModalIn .18s ease-out; }
+  @keyframes shfModalIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+  .shf-modal-head { display:flex; align-items:center; justify-content:space-between; padding: 1rem 1.15rem; border-bottom: 1px solid var(--border); }
+  .shf-modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:.5rem; }
+  .shf-modal-head h3 i { color: var(--primary); }
+  .shf-modal-x { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1rem; padding:.35rem .5rem; border-radius:6px; }
+  .shf-modal-x:hover { background: var(--border); color: var(--text); }
+  .shf-modal-body { padding: 1.15rem; display:flex; flex-direction:column; gap: .9rem; }
+  .shf-field { display:flex; flex-direction:column; gap:.35rem; font-size:.85rem; color:var(--text-muted); }
+  .shf-field input { padding:.6rem .75rem; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
+  .shf-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+  .shf-link-btn { align-self: flex-start; background:none; border:none; color:var(--primary); font:inherit; font-weight:600; cursor:pointer; padding:.25rem 0; display:inline-flex; align-items:center; gap:.4rem; }
+  .shf-link-btn:hover { text-decoration: underline; }
+  .shf-modal-foot { display:flex; justify-content:flex-end; gap:.6rem; padding: .9rem 1.15rem; border-top: 1px solid var(--border); background: var(--bg); }
+  .shf-btn-green { background:#10b981; color:#fff; border:none; padding:.6rem 1.1rem; border-radius:8px; font:inherit; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; transition: background .15s ease; }
+  .shf-btn-green:hover { background:#059669; }
+  .shf-btn-green:disabled { opacity:.6; cursor:not-allowed; }
+</style>`;
 
   document.addEventListener('DOMContentLoaded', () => {
     // Auto-load i18n helper on every page
@@ -211,6 +282,86 @@
         })();
         return;
       }
+
+      // ---- Account Settings & Agency Upgrade modals ----
+      const openModal = (id) => { const m = document.getElementById(id); if (m) m.style.display = 'flex'; if (dd) dd.style.display = 'none'; };
+      const closeModal = (m) => { if (m) m.style.display = 'none'; };
+
+      if (e.target.closest('[data-account-settings]')) {
+        const nameInput = document.getElementById('shf-acc-name');
+        const phoneInput = document.getElementById('shf-acc-phone');
+        if (nameInput) nameInput.value = user.name || '';
+        if (phoneInput) phoneInput.value = user.phone || '';
+        openModal('shf-modal-account');
+        return;
+      }
+      if (e.target.closest('[data-agency-request]')) {
+        openModal('shf-modal-agency');
+        return;
+      }
+      const closer = e.target.closest('[data-modal-close]');
+      if (closer) { closeModal(closer.closest('.shf-modal')); return; }
+
+      if (e.target.closest('#shf-acc-save')) {
+        (async () => {
+          const btn = e.target.closest('#shf-acc-save');
+          if (!window.SHFCloud) return;
+          const name = document.getElementById('shf-acc-name').value.trim();
+          const phone = document.getElementById('shf-acc-phone').value.trim();
+          if (!name) { window.toast?.error('Name cannot be empty.'); return; }
+          btn.disabled = true;
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { error } = await sb.from('profiles').update({ full_name: name, phone }).eq('id', user.id);
+            if (error) throw error;
+            const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
+            cached.name = name; cached.phone = phone;
+            localStorage.setItem('shf-user', JSON.stringify(cached));
+            window.toast?.success('Profile updated.');
+            closeModal(document.getElementById('shf-modal-account'));
+            setTimeout(() => location.reload(), 600);
+          } catch (err) {
+            window.toast?.error(err.message || 'Failed to update profile.');
+          } finally { btn.disabled = false; }
+        })();
+        return;
+      }
+      if (e.target.closest('#shf-acc-change-pw')) {
+        (async () => {
+          if (!user.email || !window.SHFCloud) return;
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { error } = await sb.auth.resetPasswordForEmail(user.email, {
+              redirectTo: window.location.origin + '/reset-password',
+            });
+            if (error) throw error;
+            window.toast?.success('Password reset email sent.');
+          } catch (err) { window.toast?.error(err.message || 'Failed to send reset email.'); }
+        })();
+        return;
+      }
+      if (e.target.closest('#shf-agency-submit')) {
+        (async () => {
+          const btn = e.target.closest('#shf-agency-submit');
+          if (!window.SHFCloud) return;
+          btn.disabled = true;
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { error } = await sb.from('profiles').update({ agency_status: 'pending' }).eq('id', user.id);
+            if (error) throw error;
+            const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
+            cached.agency_status = 'pending';
+            localStorage.setItem('shf-user', JSON.stringify(cached));
+            window.toast?.success('Application submitted — under review.');
+            closeModal(document.getElementById('shf-modal-agency'));
+            setTimeout(() => location.reload(), 700);
+          } catch (err) {
+            window.toast?.error(err.message || 'Failed to submit application.');
+          } finally { btn.disabled = false; }
+        })();
+        return;
+      }
+
       if (dd && !e.target.closest('.user-menu')) dd.style.display = 'none';
     });
 

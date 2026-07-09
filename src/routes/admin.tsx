@@ -98,6 +98,8 @@ type RoommateRequest = {
 };
 
 
+type PendingAgency = { id: string; full_name: string | null; phone: string | null; email: string | null; created_at: string };
+
 type AuthState = "loading" | "unauthenticated" | "forbidden" | "ok";
 
 function displayRoles(roles: AppRole[] | undefined, fallback: string): string {
@@ -127,6 +129,8 @@ function AdminPage() {
   const [announceBody, setAnnounceBody] = useState("");
   const [announceLink, setAnnounceLink] = useState("");
   const [sendingAnnounce, setSendingAnnounce] = useState(false);
+  const [pendingAgencies, setPendingAgencies] = useState<PendingAgency[]>([]);
+
 
   const loadData = useCallback(async () => {
     const [allProps, profs, bookings, roles, msgs, rooms] = await Promise.all([
@@ -149,6 +153,8 @@ function AdminPage() {
     }
     if (msgs.data) setMessages(msgs.data as unknown as ContactMessage[]);
     if (rooms.data) setRoommates(rooms.data as unknown as RoommateRequest[]);
+    const { data: agencies } = await (supabase as unknown as { rpc: (n: string) => Promise<{ data: PendingAgency[] | null }> }).rpc("list_pending_agencies");
+    if (agencies) setPendingAgencies(agencies);
   }, []);
 
 
@@ -227,6 +233,20 @@ function AdminPage() {
     setAnnounceTitle(""); setAnnounceBody(""); setAnnounceLink("");
   };
 
+  const approveAgency = async (userId: string) => {
+    const { error } = await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).rpc("approve_agency", { _user_id: userId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Agency approved");
+    setPendingAgencies((arr) => arr.filter((a) => a.id !== userId));
+  };
+  const declineAgency = async (userId: string) => {
+    const { error } = await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).rpc("decline_agency", { _user_id: userId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Agency request declined");
+    setPendingAgencies((arr) => arr.filter((a) => a.id !== userId));
+  };
+
+
 
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
   if (authState === "unauthenticated") return (
@@ -288,6 +308,9 @@ function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="roommates" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Roommates{roommates.filter(r => r.status === 'searching').length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{roommates.filter(r => r.status === 'searching').length}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="agencies" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Agencies{pendingAgencies.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingAgencies.length}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="announce" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">📣 Announce</TabsTrigger>
           </TabsList>
@@ -558,6 +581,37 @@ function AdminPage() {
                   {sendingAnnounce ? "Sending…" : `📣 Send to ${profiles.length} users`}
                 </Button>
                 <p className="text-xs text-muted-foreground">Each user will get a notification in their bell + notifications page.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="agencies" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader><CardTitle className="text-blue-900">Agency Verification Requests</CardTitle></CardHeader>
+              <CardContent>
+                {pendingAgencies.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending agency requests.</p>
+                ) : (
+                  <Table>
+                    <TableHeader><TableRow className="bg-blue-50">
+                      <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Email</TableHead><TableHead>Requested</TableHead><TableHead className="text-right">Actions</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {pendingAgencies.map((a) => (
+                        <TableRow key={a.id} className="hover:bg-blue-50/50">
+                          <TableCell className="font-medium">{a.full_name ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{a.phone ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{a.email ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground text-xs">{new Date(a.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => approveAgency(a.id)}>Approve Agency</Button>
+                            <Button size="sm" variant="destructive" onClick={() => declineAgency(a.id)}>Decline</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
