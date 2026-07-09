@@ -138,6 +138,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          agency_status: string
           bio: string | null
           cleanliness_preference:
             | Database["public"]["Enums"]["cleanliness_pref"]
@@ -165,6 +166,7 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          agency_status?: string
           bio?: string | null
           cleanliness_preference?:
             | Database["public"]["Enums"]["cleanliness_pref"]
@@ -192,6 +194,7 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          agency_status?: string
           bio?: string | null
           cleanliness_preference?:
             | Database["public"]["Enums"]["cleanliness_pref"]
@@ -499,6 +502,8 @@ export type Database = {
     }
     Functions: {
       accept_roommate_connect: { Args: { _sender: string }; Returns: undefined }
+      approve_agency: { Args: { _user_id: string }; Returns: undefined }
+      decline_agency: { Args: { _user_id: string }; Returns: undefined }
       get_landlord_public: {
         Args: { _landlord_id: string }
         Returns: {
@@ -518,6 +523,16 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_verified: { Args: { _user_id: string }; Returns: boolean }
+      list_pending_agencies: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       match_roommate_requests: {
         Args: { _a: string; _b: string }
@@ -541,7 +556,7 @@ export type Database = {
       booking_status: "pending" | "confirmed" | "cancelled"
       cleanliness_pref: "High" | "Medium" | "Flexible"
       occupancy_status: "vacant" | "occupied"
-      profile_role: "renter" | "landlord" | "admin"
+      profile_role: "renter" | "landlord" | "admin" | "agency"
       property_status: "pending" | "approved" | "rejected"
       roommate_request_status: "searching" | "matched"
       sleep_schedule_pref: "Early Bird" | "Night Owl" | "Flexible"
@@ -677,7 +692,7 @@ export const Constants = {
       booking_status: ["pending", "confirmed", "cancelled"],
       cleanliness_pref: ["High", "Medium", "Flexible"],
       occupancy_status: ["vacant", "occupied"],
-      profile_role: ["renter", "landlord", "admin"],
+      profile_role: ["renter", "landlord", "admin", "agency"],
       property_status: ["pending", "approved", "rejected"],
       roommate_request_status: ["searching", "matched"],
       sleep_schedule_pref: ["Early Bird", "Night Owl", "Flexible"],
