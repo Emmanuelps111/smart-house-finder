@@ -153,6 +153,8 @@ function AdminPage() {
     }
     if (msgs.data) setMessages(msgs.data as unknown as ContactMessage[]);
     if (rooms.data) setRoommates(rooms.data as unknown as RoommateRequest[]);
+    const { data: agencies } = await (supabase as unknown as { rpc: (n: string) => Promise<{ data: PendingAgency[] | null }> }).rpc("list_pending_agencies");
+    if (agencies) setPendingAgencies(agencies);
   }, []);
 
 
