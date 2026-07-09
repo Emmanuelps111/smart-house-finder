@@ -67,7 +67,7 @@
     if (!session || !session.user) { localStorage.removeItem('shf-user'); return null; }
     const uid = session.user.id;
     const [{ data: prof }, { data: roles }] = await Promise.all([
-      sb.from('profiles').select('full_name,phone').eq('id', uid).maybeSingle(),
+      sb.from('profiles').select('full_name,phone,agency_status').eq('id', uid).maybeSingle(),
       sb.from('user_roles').select('role').eq('user_id', uid),
     ]);
     const role = (roles && roles[0] && roles[0].role) || 'renter';
@@ -75,7 +75,9 @@
       id: uid,
       email: session.user.email,
       name: (prof && prof.full_name) || session.user.email.split('@')[0],
+      phone: (prof && prof.phone) || '',
       role,
+      agency_status: (prof && prof.agency_status) || 'none',
     };
     localStorage.setItem('shf-user', JSON.stringify(cached));
     return cached;
