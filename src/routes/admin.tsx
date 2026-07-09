@@ -129,6 +129,8 @@ function AdminPage() {
   const [announceBody, setAnnounceBody] = useState("");
   const [announceLink, setAnnounceLink] = useState("");
   const [sendingAnnounce, setSendingAnnounce] = useState(false);
+  const [pendingAgencies, setPendingAgencies] = useState<PendingAgency[]>([]);
+
 
   const loadData = useCallback(async () => {
     const [allProps, profs, bookings, roles, msgs, rooms] = await Promise.all([
