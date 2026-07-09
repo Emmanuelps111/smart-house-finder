@@ -309,6 +309,9 @@ function AdminPage() {
             <TabsTrigger value="roommates" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Roommates{roommates.filter(r => r.status === 'searching').length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{roommates.filter(r => r.status === 'searching').length}</Badge>}
             </TabsTrigger>
+            <TabsTrigger value="agencies" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Agencies{pendingAgencies.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingAgencies.length}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="announce" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">📣 Announce</TabsTrigger>
           </TabsList>
 
