@@ -98,6 +98,8 @@ type RoommateRequest = {
 };
 
 
+type PendingAgency = { id: string; full_name: string | null; phone: string | null; email: string | null; created_at: string };
+
 type AuthState = "loading" | "unauthenticated" | "forbidden" | "ok";
 
 function displayRoles(roles: AppRole[] | undefined, fallback: string): string {
