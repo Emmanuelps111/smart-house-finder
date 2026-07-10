@@ -6,10 +6,21 @@
   try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
 
   const bellBlock = user
-    ? `<a href="/notifications.html" class="icon-btn shf-bell" aria-label="Notifications" style="position:relative;">
-         <i class="fas fa-bell"></i>
-         <span class="shf-bell-badge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; color:#fff; font-size:.65rem; font-weight:700; min-width:18px; height:18px; padding:0 4px; border-radius:9px; line-height:18px; text-align:center; box-shadow:0 2px 6px rgba(239,68,68,.5);"></span>
-       </a>`
+    ? `<div class="shf-bell-wrap" style="position:relative;">
+         <button type="button" class="icon-btn shf-bell" data-bell-toggle aria-label="Notifications" aria-haspopup="true" aria-expanded="false" style="position:relative;">
+           <i class="fas fa-bell"></i>
+           <span class="shf-bell-badge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; color:#fff; font-size:.65rem; font-weight:700; min-width:18px; height:18px; padding:0 4px; border-radius:9px; line-height:18px; text-align:center; box-shadow:0 2px 6px rgba(239,68,68,.5);"></span>
+         </button>
+         <div class="shf-bell-panel" role="dialog" aria-label="Notifications" aria-hidden="true">
+           <div class="shf-bell-head">
+             <strong><i class="fas fa-bell"></i> Notifications</strong>
+             <button type="button" class="shf-link-btn" data-bell-mark-all style="padding:0;"><i class="fas fa-check-double"></i> Mark all read</button>
+           </div>
+           <div class="shf-bell-list" data-bell-list>
+             <div class="shf-bell-empty"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+           </div>
+         </div>
+       </div>`
     : '';
 
   const authBlock = user
@@ -218,6 +229,23 @@
   .shf-btn-green { background:#10b981; color:#fff; border:none; padding:.6rem 1.1rem; border-radius:8px; font:inherit; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; transition: background .15s ease; }
   .shf-btn-green:hover { background:#059669; }
   .shf-btn-green:disabled { opacity:.6; cursor:not-allowed; }
+
+  /* Notification bell dropdown */
+  .shf-bell-panel { position: absolute; right: 0; top: calc(100% + .55rem); width: 360px; max-width: calc(100vw - 1.5rem); max-height: 460px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 20px 45px -15px rgba(0,0,0,.28); z-index: 1500; overflow: hidden; display: flex; flex-direction: column; opacity: 0; transform: translateY(-6px) scale(.98); pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
+  .shf-bell-panel.open { opacity: 1; transform: none; pointer-events: auto; }
+  .shf-bell-head { display:flex; align-items:center; justify-content:space-between; padding:.85rem 1rem; border-bottom:1px solid var(--border); font-size:.9rem; color:var(--text); }
+  .shf-bell-head strong i { color: var(--primary); margin-right:.35rem; }
+  .shf-bell-list { overflow-y: auto; flex: 1; }
+  .shf-bell-empty { padding: 1.75rem 1rem; text-align:center; color: var(--text-muted); font-size:.88rem; }
+  .shf-bell-item { display:flex; gap:.7rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); cursor:pointer; transition: background .15s; }
+  .shf-bell-item:last-child { border-bottom: none; }
+  .shf-bell-item:hover { background: rgba(59,130,246,.06); }
+  .shf-bell-item.unread { background: rgba(59,130,246,.05); }
+  .shf-bell-item.unread::before { content:''; width:6px; height:6px; border-radius:50%; background: var(--primary); margin-top:.55rem; flex-shrink:0; }
+  .shf-bell-item .bi-body { flex:1; min-width:0; }
+  .shf-bell-item .bi-title { font-weight:600; color:var(--text); font-size:.88rem; margin:0 0 .15rem; }
+  .shf-bell-item .bi-msg { color: var(--text-muted); font-size:.82rem; margin:0; line-height:1.4; }
+  .shf-bell-item .bi-time { color: var(--text-muted); font-size:.72rem; margin-top:.25rem; display:block; }
 </style>`;
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -362,6 +390,30 @@
         return;
       }
 
+
+      // ---- Notification bell dropdown ----
+      const bellPanel = document.querySelector('.shf-bell-panel');
+      const bellBtn = e.target.closest('[data-bell-toggle]');
+      if (bellBtn && bellPanel) {
+        const willOpen = !bellPanel.classList.contains('open');
+        bellPanel.classList.toggle('open', willOpen);
+        bellBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        bellPanel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+        if (willOpen) window.SHFBell?.load();
+        if (dd) dd.style.display = 'none';
+        return;
+      }
+      if (bellPanel && bellPanel.classList.contains('open') && !e.target.closest('.shf-bell-wrap')) {
+        bellPanel.classList.remove('open');
+        const b = document.querySelector('[data-bell-toggle]');
+        if (b) b.setAttribute('aria-expanded', 'false');
+        bellPanel.setAttribute('aria-hidden', 'true');
+      }
+      if (e.target.closest('[data-bell-mark-all]')) {
+        window.SHFBell?.markAll();
+        return;
+      }
+
       if (dd && !e.target.closest('.user-menu')) dd.style.display = 'none';
     });
 
@@ -401,11 +453,16 @@
       }, true);
     }
 
-    // Live unread notification count on bell
+    // Live unread notification count + dropdown loader
     if (user && window.SHFCloud) {
       (async () => {
         try {
           const sb = await window.SHFCloud.ready;
+          const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+          const ago = ts => { const d=(Date.now()-new Date(ts).getTime())/1000;
+            if(d<60)return 'just now'; if(d<3600)return Math.floor(d/60)+'m ago';
+            if(d<86400)return Math.floor(d/3600)+'h ago'; if(d<2592000)return Math.floor(d/86400)+'d ago';
+            return new Date(ts).toLocaleDateString(); };
           const refresh = async () => {
             const { count } = await sb.from('notifications')
               .select('id', { count: 'exact', head: true })
@@ -415,10 +472,52 @@
             if (count && count > 0) { badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'inline-block'; }
             else { badge.style.display = 'none'; }
           };
+          const loadList = async () => {
+            const list = document.querySelector('[data-bell-list]');
+            if (!list) return;
+            const { data, error } = await sb.from('notifications')
+              .select('id,title,body,type,link,read,created_at')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false }).limit(20);
+            if (error) { list.innerHTML = `<div class="shf-bell-empty"><i class="fas fa-triangle-exclamation"></i> ${esc(error.message)}</div>`; return; }
+            if (!data || !data.length) {
+              list.innerHTML = `<div class="shf-bell-empty"><i class="far fa-bell-slash"></i><div style="margin-top:.4rem;">You're all caught up.</div></div>`;
+              return;
+            }
+            list.innerHTML = data.map(n => `
+              <div class="shf-bell-item ${n.read?'':'unread'}" data-id="${n.id}" data-link="${esc(n.link||'')}">
+                <div class="bi-body">
+                  <p class="bi-title">${esc(n.title||'')}</p>
+                  <p class="bi-msg">${esc(n.body||'')}</p>
+                  <span class="bi-time">${ago(n.created_at)}</span>
+                </div>
+              </div>`).join('');
+            list.querySelectorAll('.shf-bell-item').forEach(it => {
+              it.addEventListener('click', async () => {
+                const id = it.dataset.id, link = it.dataset.link;
+                if (it.classList.contains('unread')) {
+                  await sb.from('notifications').update({ read: true }).eq('id', id);
+                  refresh();
+                }
+                if (link) location.href = link;
+              });
+            });
+          };
+          window.SHFBell = {
+            load: loadList,
+            markAll: async () => {
+              await sb.rpc('mark_all_notifications_read');
+              window.toast?.success('All notifications marked as read');
+              await loadList(); refresh();
+            },
+          };
           refresh();
           // Realtime updates
           sb.channel('notif-bell-' + user.id)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, refresh)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+              refresh();
+              if (document.querySelector('.shf-bell-panel.open')) loadList();
+            })
             .subscribe();
           setInterval(refresh, 60000);
         } catch (_) {}
