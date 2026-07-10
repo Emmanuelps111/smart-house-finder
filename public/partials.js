@@ -229,6 +229,23 @@
   .shf-btn-green { background:#10b981; color:#fff; border:none; padding:.6rem 1.1rem; border-radius:8px; font:inherit; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; transition: background .15s ease; }
   .shf-btn-green:hover { background:#059669; }
   .shf-btn-green:disabled { opacity:.6; cursor:not-allowed; }
+
+  /* Notification bell dropdown */
+  .shf-bell-panel { position: absolute; right: 0; top: calc(100% + .55rem); width: 360px; max-width: calc(100vw - 1.5rem); max-height: 460px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 20px 45px -15px rgba(0,0,0,.28); z-index: 1500; overflow: hidden; display: flex; flex-direction: column; opacity: 0; transform: translateY(-6px) scale(.98); pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
+  .shf-bell-panel.open { opacity: 1; transform: none; pointer-events: auto; }
+  .shf-bell-head { display:flex; align-items:center; justify-content:space-between; padding:.85rem 1rem; border-bottom:1px solid var(--border); font-size:.9rem; color:var(--text); }
+  .shf-bell-head strong i { color: var(--primary); margin-right:.35rem; }
+  .shf-bell-list { overflow-y: auto; flex: 1; }
+  .shf-bell-empty { padding: 1.75rem 1rem; text-align:center; color: var(--text-muted); font-size:.88rem; }
+  .shf-bell-item { display:flex; gap:.7rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); cursor:pointer; transition: background .15s; }
+  .shf-bell-item:last-child { border-bottom: none; }
+  .shf-bell-item:hover { background: rgba(59,130,246,.06); }
+  .shf-bell-item.unread { background: rgba(59,130,246,.05); }
+  .shf-bell-item.unread::before { content:''; width:6px; height:6px; border-radius:50%; background: var(--primary); margin-top:.55rem; flex-shrink:0; }
+  .shf-bell-item .bi-body { flex:1; min-width:0; }
+  .shf-bell-item .bi-title { font-weight:600; color:var(--text); font-size:.88rem; margin:0 0 .15rem; }
+  .shf-bell-item .bi-msg { color: var(--text-muted); font-size:.82rem; margin:0; line-height:1.4; }
+  .shf-bell-item .bi-time { color: var(--text-muted); font-size:.72rem; margin-top:.25rem; display:block; }
 </style>`;
 
   document.addEventListener('DOMContentLoaded', () => {
