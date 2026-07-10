@@ -184,6 +184,182 @@
     renderMine();
     renderNotifs();
     loadAvgRating();
+    wireModeTabs(bulkLocked);
+  }
+
+  // --- Neighbourhood → coordinates fallback registry (Tanzania) ---
+  const NEIGHBOURHOOD_COORDS = {
+    'mikocheni':[-6.7654,39.2422],'mwenge':[-6.7681,39.2358],'sinza':[-6.7692,39.2160],
+    'kinondoni':[-6.7702,39.2529],'msasani':[-6.7532,39.2749],'oysterbay':[-6.7671,39.2841],
+    'masaki':[-6.7444,39.2822],'upanga':[-6.8098,39.2857],'kariakoo':[-6.8199,39.2762],
+    'mbezi':[-6.7333,39.1856],'kimara':[-6.7844,39.1611],'tabata':[-6.8353,39.2244],
+    'ubungo':[-6.7828,39.2072],'mabibo':[-6.8228,39.2183],'kigamboni':[-6.8353,39.3236],
+    'ilala':[-6.8189,39.2794],'temeke':[-6.8494,39.2833],'segerea':[-6.8564,39.1953],
+    'arusha':[-3.3869,36.6829],'mwanza':[-2.5164,32.9175],'dodoma':[-6.1730,35.7419],
+    'mbeya':[-8.9094,33.4608],'morogoro':[-6.8235,37.6612],'tanga':[-5.0692,39.0989],
+    'zanzibar':[-6.1659,39.2026],
+  };
+  function coordsForNeighbourhood(name) {
+    if (!name) return null;
+    const key = String(name).trim().toLowerCase().replace(/\s+/g,'');
+    return NEIGHBOURHOOD_COORDS[key] || null;
+  }
+
+  function wireModeTabs(locked) {
+    const tabs = document.querySelectorAll('.mode-tab');
+    const single = document.getElementById('singlePane');
+    const bulk = document.getElementById('bulkPane');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      if (t.disabled) return;
+      const mode = t.dataset.mode;
+      tabs.forEach(x => { x.classList.toggle('active', x===t); x.setAttribute('aria-selected', x===t?'true':'false'); });
+      if (mode === 'bulk') {
+        single.style.display = 'none';
+        bulk.style.display = 'block';
+        renderBulkPane();
+      } else {
+        bulk.style.display = 'none';
+        single.style.display = 'block';
+      }
+    }));
+    if (locked) {
+      const btn = document.querySelector('.mode-tab[data-mode="bulk"]');
+      if (btn) btn.addEventListener('click', () => window.toast?.info('Bulk CSV Upload is available for verified agency accounts only.'));
+    }
+  }
+
+  let bulkRows = [];
+  function renderBulkPane() {
+    const pane = document.getElementById('bulkPane');
+    pane.innerHTML = `
+      <h2><i class="fas fa-table" style="color:var(--primary);"></i> Bulk CSV Upload</h2>
+      <p style="color:var(--text-muted); font-size:.9rem; margin:.25rem 0 1rem;">Import multiple listings from a spreadsheet. All imported listings go through moderation review.</p>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+        <button type="button" id="dlTemplate" class="btn btn-outline"><i class="fas fa-download"></i> Download CSV Template</button>
+      </div>
+      <label class="bulk-drop" id="bulkDrop" for="bulkFile">
+        <i class="fas fa-cloud-arrow-up up"></i>
+        <div style="font-weight:600;">Drop your .csv here or click to browse</div>
+        <div style="font-size:.85rem; color:var(--text-muted); margin-top:.3rem;">Headers: title, price_per_month, description, region, neighbourhood, latitude, longitude, bedrooms, bathrooms, contact_phone, image_urls</div>
+        <input type="file" id="bulkFile" accept=".csv,text/csv" />
+      </label>
+      <div id="bulkPreview" class="bulk-preview" style="display:none;"></div>
+      <div style="margin-top:1rem; display:flex; gap:.5rem; justify-content:flex-end;">
+        <button type="button" id="processUpload" class="btn btn-primary" disabled><i class="fas fa-cloud-arrow-up"></i> Process Upload</button>
+      </div>
+    `;
+    document.getElementById('dlTemplate').addEventListener('click', downloadTemplate);
+    const drop = document.getElementById('bulkDrop');
+    const input = document.getElementById('bulkFile');
+    input.addEventListener('change', () => input.files[0] && parseCSVFile(input.files[0]));
+    ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+    drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) parseCSVFile(f); });
+    document.getElementById('processUpload').addEventListener('click', processBulkUpload);
+  }
+
+  function downloadTemplate() {
+    const headers = ['title','price_per_month','description','region','neighbourhood','latitude','longitude','bedrooms','bathrooms','contact_phone','image_urls'];
+    const example = ['Cozy 2BR near UDSM','450000','Bright apartment with parking','Dar es Salaam','Mikocheni','','','2','1','+255700000000','https://example.com/a.jpg,https://example.com/b.jpg'];
+    const csv = headers.join(',') + '\n' + example.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',') + '\n';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'shf-listings-template.csv'; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // Minimal RFC4180-ish CSV parser
+  function parseCSV(text) {
+    const rows = []; let row = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else field += c;
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { row.push(field); field = ''; }
+        else if (c === '\n') { row.push(field); rows.push(row); row=[]; field=''; }
+        else if (c === '\r') { /* skip */ }
+        else field += c;
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(r => r.length && r.some(x => String(x).trim() !== ''));
+  }
+
+  function parseCSVFile(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const rows = parseCSV(String(reader.result));
+      if (!rows.length) { window.toast.error('CSV is empty.'); return; }
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      bulkRows = rows.slice(1).map(r => {
+        const o = {}; headers.forEach((h,i) => o[h] = (r[i]||'').trim()); return o;
+      });
+      renderPreview(headers);
+      document.getElementById('processUpload').disabled = bulkRows.length === 0;
+    };
+    reader.readAsText(file);
+  }
+
+  function renderPreview(headers) {
+    const el = document.getElementById('bulkPreview');
+    el.style.display = 'block';
+    const cols = ['title','price_per_month','region','neighbourhood','bedrooms','bathrooms','image_urls'];
+    el.innerHTML = `
+      <div style="padding:.5rem .75rem; background:var(--bg); font-weight:600; font-size:.85rem;">${bulkRows.length} row${bulkRows.length===1?'':'s'} ready</div>
+      <table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${bulkRows.slice(0,20).map(r=>`<tr>${cols.map(c=>`<td>${escapeHtml((r[c]||'').substring(0,50))}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      ${bulkRows.length>20?`<div style="padding:.4rem .75rem; color:var(--text-muted); font-size:.8rem;">…and ${bulkRows.length-20} more</div>`:''}
+    `;
+  }
+
+  async function processBulkUpload() {
+    const btn = document.getElementById('processUpload');
+    if (!bulkRows.length) return;
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing…';
+    try {
+      const payload = bulkRows.map(r => {
+        let lat = parseFloat(r.latitude), lng = parseFloat(r.longitude);
+        if (isNaN(lat) || isNaN(lng)) {
+          const c = coordsForNeighbourhood(r.neighbourhood);
+          if (c) { lat = c[0]; lng = c[1]; }
+        }
+        const imgs = (r.image_urls || '').split(',').map(s => s.trim()).filter(Boolean);
+        const city = r.region || null;
+        const area = r.neighbourhood || null;
+        return {
+          landlord_id: user.id,
+          status: 'pending',
+          title: r.title || 'Untitled listing',
+          description: r.description || null,
+          price: +r.price_per_month || 0,
+          city,
+          neighbourhood: area,
+          address: area ? `${area}, ${city||''}`.replace(/,\s*$/,'') : (city || ''),
+          beds: +r.bedrooms || 0,
+          baths: +r.bathrooms || 0,
+          contact_phone: r.contact_phone || null,
+          lat: isNaN(lat) ? null : lat,
+          lng: isNaN(lng) ? null : lng,
+          image_urls: imgs,
+        };
+      }).filter(p => p.title && p.price > 0);
+      if (!payload.length) throw new Error('No valid rows to import. Check required columns (title, price_per_month).');
+      const { error } = await sb.from('properties').insert(payload);
+      if (error) throw error;
+      window.toast.success('Successfully imported listings into the database moderation queue.');
+      bulkRows = [];
+      await loadMine();
+      renderDashboard();
+    } catch (err) {
+      window.toast.error(err.message || 'Bulk import failed.');
+      btn.disabled = false; btn.innerHTML = original;
+    }
   }
 
   async function loadAvgRating() {
