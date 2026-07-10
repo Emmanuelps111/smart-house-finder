@@ -453,11 +453,16 @@
       }, true);
     }
 
-    // Live unread notification count on bell
+    // Live unread notification count + dropdown loader
     if (user && window.SHFCloud) {
       (async () => {
         try {
           const sb = await window.SHFCloud.ready;
+          const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+          const ago = ts => { const d=(Date.now()-new Date(ts).getTime())/1000;
+            if(d<60)return 'just now'; if(d<3600)return Math.floor(d/60)+'m ago';
+            if(d<86400)return Math.floor(d/3600)+'h ago'; if(d<2592000)return Math.floor(d/86400)+'d ago';
+            return new Date(ts).toLocaleDateString(); };
           const refresh = async () => {
             const { count } = await sb.from('notifications')
               .select('id', { count: 'exact', head: true })
@@ -467,10 +472,52 @@
             if (count && count > 0) { badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'inline-block'; }
             else { badge.style.display = 'none'; }
           };
+          const loadList = async () => {
+            const list = document.querySelector('[data-bell-list]');
+            if (!list) return;
+            const { data, error } = await sb.from('notifications')
+              .select('id,title,body,type,link,read,created_at')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false }).limit(20);
+            if (error) { list.innerHTML = `<div class="shf-bell-empty"><i class="fas fa-triangle-exclamation"></i> ${esc(error.message)}</div>`; return; }
+            if (!data || !data.length) {
+              list.innerHTML = `<div class="shf-bell-empty"><i class="far fa-bell-slash"></i><div style="margin-top:.4rem;">You're all caught up.</div></div>`;
+              return;
+            }
+            list.innerHTML = data.map(n => `
+              <div class="shf-bell-item ${n.read?'':'unread'}" data-id="${n.id}" data-link="${esc(n.link||'')}">
+                <div class="bi-body">
+                  <p class="bi-title">${esc(n.title||'')}</p>
+                  <p class="bi-msg">${esc(n.body||'')}</p>
+                  <span class="bi-time">${ago(n.created_at)}</span>
+                </div>
+              </div>`).join('');
+            list.querySelectorAll('.shf-bell-item').forEach(it => {
+              it.addEventListener('click', async () => {
+                const id = it.dataset.id, link = it.dataset.link;
+                if (it.classList.contains('unread')) {
+                  await sb.from('notifications').update({ read: true }).eq('id', id);
+                  refresh();
+                }
+                if (link) location.href = link;
+              });
+            });
+          };
+          window.SHFBell = {
+            load: loadList,
+            markAll: async () => {
+              await sb.rpc('mark_all_notifications_read');
+              window.toast?.success('All notifications marked as read');
+              await loadList(); refresh();
+            },
+          };
           refresh();
           // Realtime updates
           sb.channel('notif-bell-' + user.id)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, refresh)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+              refresh();
+              if (document.querySelector('.shf-bell-panel.open')) loadList();
+            })
             .subscribe();
           setInterval(refresh, 60000);
         } catch (_) {}
