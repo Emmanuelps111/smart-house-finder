@@ -138,6 +138,7 @@
     const activeCount = myListings.filter(l => l.status === 'approved').length;
     const pendingCount = myListings.filter(l => l.status === 'pending').length;
     const unseen = notifications.filter(n => !n.seen).length;
+    const bulkLocked = !(user.role === 'admin' || user.agency_status === 'approved');
     root.innerHTML = `
       <div class="dash-hero"><div class="container">
         <h1>Welcome back, ${escapeHtml(user.name || 'Landlord')} <i class="fas fa-circle-check" style="font-size:1.1rem; color:#10b981;" title="Verified"></i></h1>
