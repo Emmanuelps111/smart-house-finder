@@ -6,10 +6,21 @@
   try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
 
   const bellBlock = user
-    ? `<a href="/notifications.html" class="icon-btn shf-bell" aria-label="Notifications" style="position:relative;">
-         <i class="fas fa-bell"></i>
-         <span class="shf-bell-badge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; color:#fff; font-size:.65rem; font-weight:700; min-width:18px; height:18px; padding:0 4px; border-radius:9px; line-height:18px; text-align:center; box-shadow:0 2px 6px rgba(239,68,68,.5);"></span>
-       </a>`
+    ? `<div class="shf-bell-wrap" style="position:relative;">
+         <button type="button" class="icon-btn shf-bell" data-bell-toggle aria-label="Notifications" aria-haspopup="true" aria-expanded="false" style="position:relative;">
+           <i class="fas fa-bell"></i>
+           <span class="shf-bell-badge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; color:#fff; font-size:.65rem; font-weight:700; min-width:18px; height:18px; padding:0 4px; border-radius:9px; line-height:18px; text-align:center; box-shadow:0 2px 6px rgba(239,68,68,.5);"></span>
+         </button>
+         <div class="shf-bell-panel" role="dialog" aria-label="Notifications" aria-hidden="true">
+           <div class="shf-bell-head">
+             <strong><i class="fas fa-bell"></i> Notifications</strong>
+             <button type="button" class="shf-link-btn" data-bell-mark-all style="padding:0;"><i class="fas fa-check-double"></i> Mark all read</button>
+           </div>
+           <div class="shf-bell-list" data-bell-list>
+             <div class="shf-bell-empty"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+           </div>
+         </div>
+       </div>`
     : '';
 
   const authBlock = user
