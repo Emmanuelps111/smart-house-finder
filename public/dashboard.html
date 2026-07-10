@@ -49,6 +49,19 @@
   .notif.new { background: rgba(59,130,246,.05); border-color: var(--primary); }
   .notif .who { font-weight:600; }
   .notif .when { font-size:.75rem; color:var(--text-muted); }
+  .mode-tabs { display:flex; gap:.5rem; margin-bottom:1.2rem; background: var(--bg); padding:.35rem; border-radius:12px; border:1px solid var(--border); }
+  .mode-tab { flex:1; padding:.7rem 1rem; background:transparent; border:none; border-radius:9px; cursor:pointer; font:600 .92rem/1 Inter,sans-serif; color:var(--text-muted); display:inline-flex; align-items:center; justify-content:center; gap:.5rem; transition: all .2s; }
+  .mode-tab:hover:not(:disabled):not(.active) { color: var(--text); background: var(--surface); }
+  .mode-tab.active { background: var(--primary); color:#fff; box-shadow: 0 4px 12px -4px rgba(59,130,246,.4); }
+  .mode-tab:disabled { opacity:.55; cursor:not-allowed; }
+  .bulk-drop { border:2px dashed var(--border); border-radius:12px; padding:2.5rem 1rem; text-align:center; cursor:pointer; transition:all .2s; background: var(--bg); }
+  .bulk-drop.drag { border-color: var(--primary); background: rgba(59,130,246,.06); }
+  .bulk-drop input[type=file]{display:none;}
+  .bulk-drop i.up { font-size:2.5rem; color:var(--primary); margin-bottom:.6rem; display:block; }
+  .bulk-preview { margin-top:1rem; max-height:280px; overflow:auto; border:1px solid var(--border); border-radius:10px; font-size:.8rem; }
+  .bulk-preview table { width:100%; border-collapse:collapse; }
+  .bulk-preview th, .bulk-preview td { padding:.4rem .6rem; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+  .bulk-preview th { background: var(--bg); position:sticky; top:0; font-weight:600; }
 </style>
 </head>
 <body>
