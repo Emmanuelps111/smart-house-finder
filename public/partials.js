@@ -390,6 +390,30 @@
         return;
       }
 
+
+      // ---- Notification bell dropdown ----
+      const bellPanel = document.querySelector('.shf-bell-panel');
+      const bellBtn = e.target.closest('[data-bell-toggle]');
+      if (bellBtn && bellPanel) {
+        const willOpen = !bellPanel.classList.contains('open');
+        bellPanel.classList.toggle('open', willOpen);
+        bellBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        bellPanel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+        if (willOpen) window.SHFBell?.load();
+        if (dd) dd.style.display = 'none';
+        return;
+      }
+      if (bellPanel && bellPanel.classList.contains('open') && !e.target.closest('.shf-bell-wrap')) {
+        bellPanel.classList.remove('open');
+        const b = document.querySelector('[data-bell-toggle]');
+        if (b) b.setAttribute('aria-expanded', 'false');
+        bellPanel.setAttribute('aria-hidden', 'true');
+      }
+      if (e.target.closest('[data-bell-mark-all]')) {
+        window.SHFBell?.markAll();
+        return;
+      }
+
       if (dd && !e.target.closest('.user-menu')) dd.style.display = 'none';
     });
 
