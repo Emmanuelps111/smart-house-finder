@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How It Works — Smart House Finder</title>
+<meta name="description" content="Step-by-step guides for renters and landlords using Smart House Finder." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .info-hero { margin-top: var(--header-h); padding: 3.5rem 0 2rem; background: linear-gradient(135deg,#3B82F6,#1E40AF); color:#fff; }
+  .info-hero h1, .info-hero p { color:#fff; }
+  .back-row { padding: 1rem 0 0; }
+  .back-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem .95rem; border-radius:999px; background: var(--surface); color: var(--text); border:1px solid var(--border); font-weight:600; font-size:.9rem; cursor:pointer; text-decoration:none; transition:all .2s; }
+  .back-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateX(-2px); }
+  .info-tabs { display:flex; gap:.5rem; margin:1.5rem 0; background: var(--surface); padding:.35rem; border-radius:12px; border:1px solid var(--border); max-width:520px; }
+  .info-tab { flex:1; padding:.75rem 1rem; background:transparent; border:none; border-radius:9px; cursor:pointer; font:600 .95rem Inter,sans-serif; color: var(--text-muted); }
+  .info-tab.active { background: var(--primary); color:#fff; }
+  .steps { display:grid; gap:1rem; margin-top:1.5rem; }
+  .step { display:flex; gap:1rem; padding:1.25rem; border:1px solid var(--border); border-radius:14px; background: var(--surface); }
+  .step .n { flex-shrink:0; width:44px; height:44px; border-radius:12px; background: rgba(59,130,246,.12); color: var(--primary); display:grid; place-items:center; font-weight:700; font-size:1.1rem; }
+  .step h3 { margin:0 0 .35rem; font-size:1.05rem; }
+  .step p { margin:0; color: var(--text-muted); font-size:.92rem; line-height:1.55; }
+</style>
+</head>
+<body>
+<div id="header-mount"></div>
+
+<div class="container back-row">
+  <a href="javascript:void(0)" class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Previous Page</a>
+</div>
+
+<section class="info-hero">
+  <div class="container">
+    <h1>How It Works</h1>
+    <p>Two clear paths — one for renters and students, one for landlords and agencies.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="info-tabs" role="tablist">
+      <button class="info-tab active" data-tab="renter"><i class="fas fa-user-graduate"></i> For Renters &amp; Students</button>
+      <button class="info-tab" data-tab="landlord"><i class="fas fa-house-user"></i> For Landlords &amp; Agencies</button>
+    </div>
+
+    <div id="pane-renter" class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Search verified listings</h3><p>Browse the map or the list feed. Filter by region, neighbourhood, price and bedrooms to shortlist rooms near your campus or workplace.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Review the property page</h3><p>Read the full description, view photos and video tours, check amenities and confirm the landlord verification badge before reaching out.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Contact via WhatsApp</h3><p>Tap the WhatsApp button to message the landlord instantly. Your phone number is masked until you choose to share it.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>Inspect in person, then pay</h3><p>Always visit the property before paying anything. Payments happen directly between you and the landlord — Smart House Finder never collects rent or deposits.</p></div></div>
+    </div>
+
+    <div id="pane-landlord" class="steps" style="display:none;">
+      <div class="step"><div class="n">1</div><div><h3>Create your landlord account</h3><p>Sign up as a landlord and complete your profile. Upgrade to an Agency account if you manage multiple properties.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Drop a map pin</h3><p>From your dashboard, add a new listing and drop a precise map pin so renters can see exactly where the property sits.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Upload single or in bulk</h3><p>Publish one property with photos and a short video, or use the Bulk CSV Upload (agency accounts) to import many listings at once.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>Chat with renters on WhatsApp</h3><p>Renters reach you directly through WhatsApp. No commission, no middlemen — you close the deal on your own terms.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="/js/cloud.js"></script>
+<script src="/partials.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (document.referrer && history.length > 1) history.back();
+    else location.href = '/';
+  });
+  document.querySelectorAll('.info-tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.info-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    document.getElementById('pane-renter').style.display = tab === 'renter' ? 'grid' : 'none';
+    document.getElementById('pane-landlord').style.display = tab === 'landlord' ? 'grid' : 'none';
+  }));
+</script>
+</body>
+</html>
