@@ -56,8 +56,9 @@
   .mode-tab:hover:not(:disabled):not(.active) { color: var(--text); background: var(--surface); }
   .mode-tab.active { background: var(--primary); color:#fff; box-shadow: 0 4px 12px -4px rgba(59,130,246,.4); }
   .mode-tab:disabled { opacity:.55; cursor:not-allowed; }
-  .bulk-drop { border:2px dashed var(--border); border-radius:12px; padding:2.5rem 1rem; text-align:center; cursor:pointer; transition:all .2s; background: var(--bg); }
-  .bulk-drop.drag { border-color: var(--primary); background: rgba(59,130,246,.06); }
+  .bulk-drop { display:block; width:100%; box-sizing:border-box; border:2px dashed var(--border); border-radius:12px; padding:2.5rem 1rem; text-align:center; cursor:pointer; transition:all .2s; background: color-mix(in oklab, var(--text-muted) 6%, transparent); }
+  .bulk-drop:hover { border-color: var(--primary); }
+  .bulk-drop.drag { border-color: var(--primary); background: rgba(59,130,246,.08); }
   .bulk-drop input[type=file]{display:none;}
   .bulk-drop i.up { font-size:2.5rem; color:var(--primary); margin-bottom:.6rem; display:block; }
   .bulk-preview { margin-top:1rem; max-height:280px; overflow:auto; border:1px solid var(--border); border-radius:10px; font-size:.8rem; }
