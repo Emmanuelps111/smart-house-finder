@@ -476,26 +476,31 @@
       </div>
       <div class="form-row"><label>Description <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional — required if you don't upload any photos or a video)</span></label><textarea id="p-desc" rows="4" maxlength="800" placeholder="Additional information about the property — neighbourhood, rules, nearby amenities, anything renters should know.">${escapeHtml(v.description||'')}</textarea><span class="error"></span></div>
       <p style="font-size:.85rem; color:var(--text-muted); margin:.25rem 0 .5rem;"><i class="fas fa-circle-info"></i> Photos and video are both optional, but you must provide at least one of: photos, a video, or a written description.</p>
-      <div class="form-row">
-        <label>Property photos <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional, up to 8)</span></label>
-        <label class="file-input-wrap" for="p-photos">
-          <i class="fas fa-camera-retro" style="font-size:1.5rem; color:var(--primary);"></i>
-          <div>Click to upload photos — JPG or PNG (max 3MB each)</div>
-          <input id="p-photos" type="file" accept="image/*" multiple />
-        </label>
-        <div class="preview-grid" id="photoPreview"></div>
-        <span class="error"></span>
+      <div class="media-stack">
+        <div class="form-row" style="margin-bottom:0;">
+          <label>Property photos <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional, up to 8)</span></label>
+          <label class="file-input-wrap" for="p-photos">
+            <i class="fas fa-camera-retro" style="font-size:1.75rem; color:var(--primary);"></i>
+            <div style="font-weight:600;">Click to upload photos</div>
+            <div style="font-size:.85rem; color:var(--text-muted);">JPG or PNG · max 3MB each</div>
+            <input id="p-photos" type="file" accept="image/*" multiple />
+          </label>
+          <div class="preview-grid" id="photoPreview"></div>
+          <span class="error"></span>
+        </div>
+        <div class="form-row" style="margin-bottom:0;">
+          <label>Property video <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional, max 100MB — MP4/WebM/MOV)</span></label>
+          <label class="file-input-wrap" for="p-video">
+            <i class="fas fa-video" style="font-size:1.75rem; color:var(--primary);"></i>
+            <div style="font-weight:600;">Click to upload a short video tour</div>
+            <div style="font-size:.85rem; color:var(--text-muted);">MP4 · WebM · MOV</div>
+            <input id="p-video" type="file" accept="video/*" />
+          </label>
+          <div id="videoPreview" style="margin-top:.5rem;"></div>
+          <span class="error"></span>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Property video <span style="color:var(--text-muted); font-weight:400; font-size:.85em;">(optional, max 100MB — MP4/WebM/MOV)</span></label>
-        <label class="file-input-wrap" for="p-video">
-          <i class="fas fa-video" style="font-size:1.5rem; color:var(--primary);"></i>
-          <div>Click to upload a short video tour of the house</div>
-          <input id="p-video" type="file" accept="video/*" />
-        </label>
-        <div id="videoPreview" style="margin-top:.5rem;"></div>
-        <span class="error"></span>
-      </div>
+
 
       <div class="grid-2">
         <div class="form-row"><label>Contact phone</label><input id="p-contact" type="tel" placeholder="+255759996841" value="${escapeHtml(v.contact_phone||'')}" /></div>
