@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — Smart House Finder</title>
+<meta name="description" content="How Smart House Finder collects, protects and uses your personal data." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .info-hero { margin-top: var(--header-h); padding: 3.5rem 0 2rem; background: linear-gradient(135deg,#3B82F6,#1E40AF); color:#fff; }
+  .info-hero h1, .info-hero p { color:#fff; }
+  .back-row { padding: 1rem 0 0; }
+  .back-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem .95rem; border-radius:999px; background: var(--surface); color: var(--text); border:1px solid var(--border); font-weight:600; font-size:.9rem; cursor:pointer; text-decoration:none; transition:all .2s; }
+  .back-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateX(-2px); }
+  .doc { max-width: 820px; }
+  .doc section { background: var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem 1.75rem; margin-bottom:1rem; }
+  .doc h2 { margin:0 0 .6rem; font-size:1.1rem; color: var(--primary); }
+  .doc p { margin:0 0 .6rem; color: var(--text); line-height:1.65; font-size:.95rem; }
+</style>
+</head>
+<body>
+<div id="header-mount"></div>
+<div class="container back-row">
+  <a href="javascript:void(0)" class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Previous Page</a>
+</div>
+<section class="info-hero"><div class="container"><h1>Privacy Policy</h1><p>Your data is protected with strong technical safeguards and strict access controls.</p></div></section>
+<section>
+  <div class="container doc">
+    <section><h2>1. What We Collect</h2><p>We collect only what is required to run the marketplace: your name, email, phone number, role (renter, landlord, agency), and any listings, messages or reviews you create on the platform.</p></section>
+    <section><h2>2. Phone Number Masking</h2><p>Phone numbers on public listings are <strong>never rendered in plain text on the page</strong>. Renters contact landlords through a masked WhatsApp deep-link that only reveals the number inside WhatsApp, protecting both parties from scraping and unwanted calls.</p></section>
+    <section><h2>3. Encrypted Storage</h2><p>All profile data is stored inside our encrypted Supabase database, guarded by Row-Level Security policies. Each user can only read and write their own private records; landlord and agency verifications are handled by trusted server-side functions.</p></section>
+    <section><h2>4. What We Never Do</h2><p>We never sell your data. We never share your contact details with advertisers. We never post on your behalf.</p></section>
+    <section><h2>5. Cookies &amp; Analytics</h2><p>We use minimal first-party storage to remember your language choice and keep you signed in. We do not run third-party advertising trackers.</p></section>
+    <section><h2>6. Your Rights</h2><p>You can update your profile or request full account deletion at any time from your account settings, or by emailing <a href="mailto:support@smarthousefinder.co.tz">support@smarthousefinder.co.tz</a>.</p></section>
+  </div>
+</section>
+<div id="footer-mount"></div>
+<script src="/js/cloud.js"></script>
+<script src="/partials.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (document.referrer && history.length > 1) history.back(); else location.href = '/';
+  });
+</script>
+</body>
+</html>

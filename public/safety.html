@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tenant Safety Advice — Smart House Finder</title>
+<meta name="description" content="Critical fraud prevention advice for renters and students in Tanzania." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .info-hero { margin-top: var(--header-h); padding: 3.5rem 0 2rem; background: linear-gradient(135deg,#ef4444,#b91c1c); color:#fff; }
+  .info-hero h1, .info-hero p { color:#fff; }
+  .back-row { padding: 1rem 0 0; }
+  .back-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem .95rem; border-radius:999px; background: var(--surface); color: var(--text); border:1px solid var(--border); font-weight:600; font-size:.9rem; cursor:pointer; text-decoration:none; transition:all .2s; }
+  .back-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateX(-2px); }
+  .alert-box { background: linear-gradient(135deg, rgba(239,68,68,.12), rgba(239,68,68,.04)); border:2px solid #ef4444; border-radius:16px; padding:1.75rem; margin-bottom:1.5rem; display:flex; gap:1rem; align-items:flex-start; }
+  .alert-box i { font-size:2rem; color:#ef4444; flex-shrink:0; }
+  .alert-box h2 { margin:0 0 .4rem; color:#ef4444; font-size:1.2rem; }
+  .alert-box p { margin:0; color: var(--text); font-weight:500; line-height:1.6; }
+  .tips { display:grid; gap:1rem; }
+  .tip { display:flex; gap:.9rem; padding:1.25rem; background: var(--surface); border:1px solid var(--border); border-radius:12px; }
+  .tip i { color: #10b981; font-size:1.35rem; flex-shrink:0; margin-top:.15rem; }
+  .tip h3 { margin:0 0 .3rem; font-size:1rem; }
+  .tip p { margin:0; color: var(--text-muted); font-size:.92rem; line-height:1.55; }
+  .doc { max-width: 820px; }
+</style>
+</head>
+<body>
+<div id="header-mount"></div>
+<div class="container back-row">
+  <a href="javascript:void(0)" class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Previous Page</a>
+</div>
+<section class="info-hero"><div class="container"><h1><i class="fas fa-shield-halved"></i> Tenant Safety Advice</h1><p>Protect yourself from rental scams in Tanzania — read this before sending any money.</p></div></section>
+<section>
+  <div class="container doc">
+    <div class="alert-box">
+      <i class="fas fa-triangle-exclamation"></i>
+      <div>
+        <h2>Never send M-Pesa or Tigo Pesa before an in-person inspection</h2>
+        <p>No genuine landlord will demand a deposit, "reservation fee" or booking payment before you have physically visited the property and met them face to face. If anyone asks you to send mobile money to hold a room — <strong>walk away, it is a scam.</strong></p>
+      </div>
+    </div>
+
+    <div class="tips">
+      <div class="tip"><i class="fas fa-circle-check"></i><div><h3>Always inspect in person</h3><p>Visit the property during daylight hours. Verify the address matches the map pin and that the room shown in the photos is the actual room being offered.</p></div></div>
+      <div class="tip"><i class="fas fa-circle-check"></i><div><h3>Verify the landlord</h3><p>Ask to see a national ID and proof of ownership or a signed authorisation letter. Confirm the phone number on the listing matches the person you meet.</p></div></div>
+      <div class="tip"><i class="fas fa-circle-check"></i><div><h3>Sign a written agreement</h3><p>Only pay rent or a deposit after both parties have signed a written tenancy contract in Kiswahili or English, stating the amount, duration and refund terms.</p></div></div>
+      <div class="tip"><i class="fas fa-circle-check"></i><div><h3>Keep proof of every payment</h3><p>Request an M-Pesa/Tigo Pesa reference number and a signed receipt for every payment. Never pay in untraceable cash without a witness.</p></div></div>
+      <div class="tip"><i class="fas fa-circle-check"></i><div><h3>Report suspicious listings</h3><p>If a listing looks too good to be true or the "landlord" pressures you to pay quickly, report it to us at <a href="mailto:support@smarthousefinder.co.tz">support@smarthousefinder.co.tz</a> so we can remove it and warn other renters.</p></div></div>
+    </div>
+  </div>
+</section>
+<div id="footer-mount"></div>
+<script src="/js/cloud.js"></script>
+<script src="/partials.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (document.referrer && history.length > 1) history.back(); else location.href = '/';
+  });
+</script>
+</body>
+</html>
