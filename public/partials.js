@@ -171,16 +171,17 @@
   }
   /* ---- Brand logo ---- */
   .brand-anchor { display:inline-flex; align-items:center; gap:.6rem; text-decoration:none; }
-  .brand-logo { color: #1E40AF; flex-shrink:0; }
-  [data-theme="dark"] .brand-logo { color: #93c5fd; }
-  .brand-logo-sm { width: 28px; height: 28px; stroke-width: 2.5; }
-  .brand-logo-lg { width: 108px; height: 108px; stroke-width: 2; }
-  .brand-name { font-family: 'Poppins', 'Inter', sans-serif; font-weight: 800; letter-spacing:-.01em; color: var(--text); }
-  .site-header .brand-anchor .brand-name { font-size: 1.15rem; }
-  .shf-foot-brand .shf-foot-logo { align-items:center; gap:1rem; padding:0; }
-  .shf-foot-brand-text { display:flex; flex-direction:column; gap:.15rem; }
-  .shf-foot-brand-text .brand-name { font-size: 1.55rem; line-height:1.1; }
-  .brand-tagline { font-size: .9rem; color:#64748b; font-weight:500; letter-spacing:.01em; }
+  .brand-logo { color: #1E5FA8; flex-shrink:0; display:block; }
+  [data-theme="dark"] .brand-logo { color: #7FB0E8; }
+  .brand-logo-sm { width: 34px; height: auto; }
+  .brand-logo-lg { width: 96px; height: auto; }
+  .brand-name { font-family: 'Montserrat', 'Inter', 'Poppins', sans-serif; font-weight: 800; letter-spacing:-.035em; color: #1E5FA8; line-height:1; }
+  [data-theme="dark"] .brand-name { color: #7FB0E8; }
+  .site-header .brand-anchor .brand-name { font-size: 1.35rem; }
+  .shf-foot-brand .shf-foot-logo { align-items:center; gap:.85rem; padding:0; }
+  .shf-foot-brand-text { display:flex; flex-direction:column; gap:.1rem; align-items:flex-start; }
+  .shf-foot-brand-text .brand-name { font-size: 2rem; line-height:1; }
+  .brand-tagline { font-size: .95rem; color:#64748b; font-weight:400; letter-spacing:.005em; font-family: 'Montserrat', 'Inter', sans-serif; }
   [data-theme="dark"] .brand-tagline { color:#94a3b8; }
   @media (max-width: 900px) {
     .shf-foot-brand .shf-foot-logo { flex-direction:column; justify-content:center; }
