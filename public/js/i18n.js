@@ -10,8 +10,6 @@
   // Add exact phrases as they appear in the UI. Matching is on trimmed text.
   const DICT_SW = {
     'your housing guide': 'mwongozo wako wa makazi',
-    'Contact': 'Wasiliana Nasi',
-    // ── Long marketing / hero copy ──────────────────────────────────────
     'Browse verified listings, message landlords, and explore neighborhoods on an interactive map — built for students and renters.':
       'Vinjari matangazo yaliyothibitishwa, tuma ujumbe kwa wamiliki, na chunguza mitaa kwenye ramani ya mwingiliano — imejengwa kwa wanafunzi na wapangaji.',
     '"I found my student flat in Mwenge in just two days. The map view made comparing neighborhoods around UDSM so easy."':
@@ -91,8 +89,6 @@
     'View all listings': 'Angalia matangazo yote',
     'Map': 'Ramani',
     'Pricing': 'Bei',
-    'Contact': 'Wasiliana',
-    'About': 'Kuhusu',
     'FAQ': 'Maswali',
     'Sign In': 'Ingia',
     'Sign in': 'Ingia',
