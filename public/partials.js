@@ -55,13 +55,18 @@
 
 
   const brandSvg = (extraClass = '') => `
-    <svg class="brand-logo ${extraClass}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-      <path d="M6 30 Q14 22 20 22 Q32 4 44 22 Q50 22 58 30" />
-      <path d="M12 30 L12 56 L52 56 L52 30" />
-      <path d="M24 56 L24 44 Q32 34 40 44 L40 56" />
-      <circle cx="32" cy="42" r="2.2" />
-      <path d="M32 44.5 L32 51 M28 47 L36 47 M32 51 L29 55 M32 51 L35 55" />
-      <path d="M22 62 L28 57 M42 62 L36 57" opacity="0.55" />
+    <svg class="brand-logo ${extraClass}" viewBox="0 0 80 72" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 28 Q14 26 18 22 L40 4 L62 22 Q66 26 78 28 L60 28 L20 28 Z" fill="currentColor"/>
+      <path d="M18 28 L18 58 L62 58 L62 28" stroke="currentColor" stroke-width="4.5" stroke-linejoin="miter" stroke-linecap="square" fill="none"/>
+      <path d="M32 58 L32 44 Q40 33 48 44 L48 58 Z" fill="currentColor"/>
+      <g fill="#ffffff">
+        <circle cx="40" cy="43" r="2"/>
+        <path d="M37.2 46 h5.6 a1 1 0 0 1 1 1 v5 a1 1 0 0 1 -1 1 h-5.6 a1 1 0 0 1 -1 -1 v-5 a1 1 0 0 1 1 -1 z"/>
+        <rect x="43" y="46.5" width="1.6" height="4.5" rx=".6"/>
+        <path d="M38.6 53 L37.4 58 h1.4 L39.6 53 z"/>
+        <path d="M41.4 53 L40.6 58 h1.4 L42.6 53 z"/>
+      </g>
+      <path d="M18 58 L6 70" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
     </svg>`;
 
   const header = `
@@ -166,16 +171,17 @@
   }
   /* ---- Brand logo ---- */
   .brand-anchor { display:inline-flex; align-items:center; gap:.6rem; text-decoration:none; }
-  .brand-logo { color: #1E40AF; flex-shrink:0; }
-  [data-theme="dark"] .brand-logo { color: #93c5fd; }
-  .brand-logo-sm { width: 28px; height: 28px; stroke-width: 2.5; }
-  .brand-logo-lg { width: 108px; height: 108px; stroke-width: 2; }
-  .brand-name { font-family: 'Poppins', 'Inter', sans-serif; font-weight: 800; letter-spacing:-.01em; color: var(--text); }
-  .site-header .brand-anchor .brand-name { font-size: 1.15rem; }
-  .shf-foot-brand .shf-foot-logo { align-items:center; gap:1rem; padding:0; }
-  .shf-foot-brand-text { display:flex; flex-direction:column; gap:.15rem; }
-  .shf-foot-brand-text .brand-name { font-size: 1.55rem; line-height:1.1; }
-  .brand-tagline { font-size: .9rem; color:#64748b; font-weight:500; letter-spacing:.01em; }
+  .brand-logo { color: #1E5FA8; flex-shrink:0; display:block; }
+  [data-theme="dark"] .brand-logo { color: #7FB0E8; }
+  .brand-logo-sm { width: 34px; height: auto; }
+  .brand-logo-lg { width: 96px; height: auto; }
+  .brand-name { font-family: 'Montserrat', 'Inter', 'Poppins', sans-serif; font-weight: 800; letter-spacing:-.035em; color: #1E5FA8; line-height:1; }
+  [data-theme="dark"] .brand-name { color: #7FB0E8; }
+  .site-header .brand-anchor .brand-name { font-size: 1.35rem; }
+  .shf-foot-brand .shf-foot-logo { align-items:center; gap:.85rem; padding:0; }
+  .shf-foot-brand-text { display:flex; flex-direction:column; gap:.1rem; align-items:flex-start; }
+  .shf-foot-brand-text .brand-name { font-size: 2rem; line-height:1; }
+  .brand-tagline { font-size: .95rem; color:#64748b; font-weight:400; letter-spacing:.005em; font-family: 'Montserrat', 'Inter', sans-serif; }
   [data-theme="dark"] .brand-tagline { color:#94a3b8; }
   @media (max-width: 900px) {
     .shf-foot-brand .shf-foot-logo { flex-direction:column; justify-content:center; }
