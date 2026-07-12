@@ -54,11 +54,21 @@
     : `<a href="/login.html" class="btn btn-primary" style="padding:.55rem 1.1rem;">Sign In</a>`;
 
 
+  const brandSvg = (extraClass = '') => `
+    <svg class="brand-logo ${extraClass}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="M6 30 Q14 22 20 22 Q32 4 44 22 Q50 22 58 30" />
+      <path d="M12 30 L12 56 L52 56 L52 30" />
+      <path d="M24 56 L24 44 Q32 34 40 44 L40 56" />
+      <circle cx="32" cy="42" r="2.2" />
+      <path d="M32 44.5 L32 51 M28 47 L36 47 M32 51 L29 55 M32 51 L35 55" />
+      <path d="M22 62 L28 57 M42 62 L36 57" opacity="0.55" />
+    </svg>`;
+
   const header = `
 <div id="preloader"><div class="spinner"></div></div>
 <header class="site-header">
   <nav class="nav">
-    <a href="/home.html" class="logo"><i class="fas fa-home"></i> Smart House Finder</a>
+    <a href="/home.html" class="logo brand-anchor">${brandSvg('brand-logo-sm')}<span class="brand-name">MakaziLink</span></a>
     <ul class="nav-links">
       <li><a href="/home.html" class="${path==='home.html'?'active':''}">Home</a></li>
       <li><a href="/listings.html" class="${path==='listings.html'?'active':''}">Listings</a></li>
@@ -82,8 +92,13 @@
   <div class="container shf-footer-inner">
     <div class="shf-footer-grid">
       <div class="shf-foot-brand">
-        <a href="/home.html" class="shf-foot-logo"><i class="fas fa-home"></i> Smart House Finder</a>
-        <p class="shf-foot-tag">Tanzania's premier rental directory — connecting students and general renters with verified homes, campus-proximity insights, and trusted landlords nationwide.</p>
+        <a href="/home.html" class="shf-foot-logo brand-anchor">
+          ${brandSvg('brand-logo-lg')}
+          <span class="shf-foot-brand-text">
+            <span class="brand-name">MakaziLink</span>
+            <span class="brand-tagline">your housing guide</span>
+          </span>
+        </a>
       </div>
       <div class="shf-foot-col">
         <h4>Company</h4>
@@ -112,7 +127,7 @@
     </div>
     <div class="shf-foot-divider"></div>
     <div class="shf-foot-bottom">
-      <p class="shf-foot-copy">&copy; 2026 Smart House Finder. All rights reserved.</p>
+      <p class="shf-foot-copy">&copy; 2026 MakaziLink. All rights reserved.</p>
       <div class="shf-foot-social">
         <a href="https://wa.me/255713686105" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="Contact Customer Support">
           <i class="fab fa-whatsapp"></i>
@@ -149,6 +164,48 @@
     .shf-foot-col ul { align-items: center; }
     .shf-foot-bottom { justify-content: center; text-align: center; }
   }
+  /* ---- Brand logo ---- */
+  .brand-anchor { display:inline-flex; align-items:center; gap:.6rem; text-decoration:none; }
+  .brand-logo { color: #1E40AF; flex-shrink:0; }
+  [data-theme="dark"] .brand-logo { color: #93c5fd; }
+  .brand-logo-sm { width: 28px; height: 28px; stroke-width: 2.5; }
+  .brand-logo-lg { width: 108px; height: 108px; stroke-width: 2; }
+  .brand-name { font-family: 'Poppins', 'Inter', sans-serif; font-weight: 800; letter-spacing:-.01em; color: var(--text); }
+  .site-header .brand-anchor .brand-name { font-size: 1.15rem; }
+  .shf-foot-brand .shf-foot-logo { align-items:center; gap:1rem; padding:0; }
+  .shf-foot-brand-text { display:flex; flex-direction:column; gap:.15rem; }
+  .shf-foot-brand-text .brand-name { font-size: 1.55rem; line-height:1.1; }
+  .brand-tagline { font-size: .9rem; color:#64748b; font-weight:500; letter-spacing:.01em; }
+  [data-theme="dark"] .brand-tagline { color:#94a3b8; }
+  @media (max-width: 900px) {
+    .shf-foot-brand .shf-foot-logo { flex-direction:column; justify-content:center; }
+    .shf-foot-brand-text { align-items:center; text-align:center; }
+  }
+
+  /* ---- Global pill-shaped buttons & inputs ---- */
+  .btn, .search-bar, .search-bar input, .search-bar button,
+  .user-menu > button, .icon-btn,
+  #searchInput, #bedFilter, #priceFilter, #sortBy,
+  select.shf-pill, input.shf-pill { border-radius: 999px !important; }
+  .search-bar { padding: .35rem .35rem .35rem 1rem; }
+  .search-bar input { padding:.7rem .5rem; }
+  select#priceFilter, select#sortBy, select#bedFilter, #searchInput {
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 2rem !important;
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  }
+  #searchInput { background-image: none; padding-right: 1rem !important; }
+
+  /* Native select popovers can't be restyled, but wrapper + focus ring gives clean feel */
+  #priceFilter:focus, #sortBy:focus, #bedFilter:focus, #searchInput:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+  select#priceFilter option, select#sortBy option { border-radius: 12px; }
+
   [data-theme="dark"] .shf-footer { background: #091124; color: #cbd5e1; border-top: 1px solid rgba(255, 255, 255, .05); }
   [data-theme="dark"] .shf-foot-brand .shf-foot-logo { color: #fff; }
   [data-theme="dark"] .shf-foot-tag { color: #94a3b8; }

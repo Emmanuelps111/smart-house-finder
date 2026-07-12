@@ -11,7 +11,7 @@ function Index() {
   }, []);
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui" }}>
-      <p>Loading Smart House Finder…</p>
+      <p>Loading MakaziLink…</p>
     </div>
   );
 }

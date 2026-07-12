@@ -13,7 +13,7 @@
     } catch(e){ location.replace('/login.html'); }
   })();
 </script>
-<title>Listing Details — Smart House Finder</title>
+<title>Listing Details — MakaziLink</title>
 <meta name="description" content="View full details, photos and location for this rental property." />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -79,7 +79,7 @@
 
   async function renderDetail(l){
     rendered = true;
-    document.title = `${l.title} — Smart House Finder`;
+    document.title = `${l.title} — MakaziLink`;
     const gallery = (Array.isArray(l.image_urls) && l.image_urls.length) ? l.image_urls : [];
     const heroSrc = gallery[0] || '';
 

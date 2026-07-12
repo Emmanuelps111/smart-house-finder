@@ -1,4 +1,4 @@
-// Lightweight EN <-> SW translator for Smart House Finder
+// Lightweight EN <-> SW translator for MakaziLink
 // Walks text nodes + common attributes, replacing matches from a dictionary.
 // Persists user's choice in localStorage under 'shf-lang'.
 // Runs on every page (loaded from partials.js) so the toggle is global.
@@ -9,7 +9,7 @@
   // English -> Swahili dictionary.
   // Add exact phrases as they appear in the UI. Matching is on trimmed text.
   const DICT_SW = {
-    // ── Long marketing / hero copy ──────────────────────────────────────
+    'your housing guide': 'mwongozo wako wa makazi',
     'Browse verified listings, message landlords, and explore neighborhoods on an interactive map — built for students and renters.':
       'Vinjari matangazo yaliyothibitishwa, tuma ujumbe kwa wamiliki, na chunguza mitaa kwenye ramani ya mwingiliano — imejengwa kwa wanafunzi na wapangaji.',
     '"I found my student flat in Mwenge in just two days. The map view made comparing neighborhoods around UDSM so easy."':
@@ -89,7 +89,7 @@
     'View all listings': 'Angalia matangazo yote',
     'Map': 'Ramani',
     'Pricing': 'Bei',
-    'Contact': 'Wasiliana',
+    'Contact': 'Wasiliana Nasi',
     'About': 'Kuhusu',
     'FAQ': 'Maswali',
     'Sign In': 'Ingia',
@@ -366,7 +366,7 @@
     'Loading landlord…': 'Inapakia mmiliki…',
 
     // ── Home / marketing ────────────────────────────────────────────────
-    'Welcome to Smart House Finder': 'Karibu Smart House Finder',
+    'Welcome to MakaziLink': 'Karibu MakaziLink',
     'Direct Connection': 'Muunganisho wa Moja kwa Moja',
     'Direct landlord messaging': 'Kutuma ujumbe moja kwa moja kwa mmiliki',
     'Talk to landlords without middlemen. No hidden fees, just clarity.': 'Ongea na wamiliki bila madalali. Hakuna ada zilizofichwa, uwazi tu.',
@@ -380,7 +380,7 @@
     'Secure Accounts': 'Akaunti Salama',
     'Built for Students': 'Imejengwa kwa Wanafunzi',
     'Built by students, for students': 'Imejengwa na wanafunzi, kwa ajili ya wanafunzi',
-    'Why Smart House Finder': 'Kwa nini Smart House Finder',
+    'Why MakaziLink': 'Kwa nini MakaziLink',
     'Everything renters and landlords need': 'Kila kitu ambacho wapangaji na wamiliki wanahitaji',
     'Every property is reviewed for accuracy so you avoid scams and surprises.': 'Kila nyumba hukaguliwa kwa usahihi ili uepuke ulaghai na mshangao.',
     'Filter and browse verified rentals across the country.': 'Chuja na vinjari nyumba zilizoidhinishwa nchi nzima.',
@@ -412,13 +412,13 @@
     'Dedicated account manager': 'Meneja wa akaunti wa kipekee',
     'Team accounts': 'Akaunti za timu',
     'Frequently asked questions': 'Maswali yanayoulizwa mara kwa mara',
-    'Is Smart House Finder free for students?': 'Je, Smart House Finder ni bure kwa wanafunzi?',
+    'Is MakaziLink free for students?': 'Je, MakaziLink ni bure kwa wanafunzi?',
     'How are listings verified?': 'Je, matangazo huthibitishwaje?',
     'Can I cancel my landlord plan anytime?': 'Naweza kughairi mpango wangu wa mmiliki wakati wowote?',
     'Do you support payments and tenancy contracts?': 'Je, mnaunga mkono malipo na mikataba ya upangaji?',
 
     // ── About / contact ─────────────────────────────────────────────────
-    'About Smart House Finder': 'Kuhusu Smart House Finder',
+    'About MakaziLink': 'Kuhusu MakaziLink',
     'Our story': 'Hadithi yetu',
     'Today we serve over 50,000 renters and 4,200 landlords across the UK.': 'Leo tunahudumia zaidi ya wapangaji 50,000 na wamiliki 4,200.',
     'Get in touch': 'Wasiliana nasi',
@@ -437,18 +437,18 @@
     'Date of birth': 'Tarehe ya kuzaliwa',
 
     // ── Titles (per-page <title>) ───────────────────────────────────────
-    'Smart House Finder — Find Your Next Home': 'Smart House Finder — Tafuta Nyumba Yako',
-    'Listings — Smart House Finder': 'Matangazo — Smart House Finder',
-    'Listing Details — Smart House Finder': 'Maelezo ya Tangazo — Smart House Finder',
-    'Landlord Dashboard — Smart House Finder': 'Dashibodi ya Mmiliki — Smart House Finder',
-    'Landlord Profile — Smart House Finder': 'Wasifu wa Mmiliki — Smart House Finder',
-    'Map View — Smart House Finder': 'Mtazamo wa Ramani — Smart House Finder',
-    'Pricing — Smart House Finder': 'Bei — Smart House Finder',
-    'Contact — Smart House Finder': 'Wasiliana — Smart House Finder',
-    'About — Smart House Finder': 'Kuhusu — Smart House Finder',
-    'Notifications · Smart House Finder': 'Arifa · Smart House Finder',
-    'Sign In / Sign Up — Smart House Finder': 'Ingia / Jisajili — Smart House Finder',
-    'Reset Password — Smart House Finder': 'Weka Upya Nenosiri — Smart House Finder',
+    'MakaziLink — Find Your Next Home': 'MakaziLink — Tafuta Nyumba Yako',
+    'Listings — MakaziLink': 'Matangazo — MakaziLink',
+    'Listing Details — MakaziLink': 'Maelezo ya Tangazo — MakaziLink',
+    'Landlord Dashboard — MakaziLink': 'Dashibodi ya Mmiliki — MakaziLink',
+    'Landlord Profile — MakaziLink': 'Wasifu wa Mmiliki — MakaziLink',
+    'Map View — MakaziLink': 'Mtazamo wa Ramani — MakaziLink',
+    'Pricing — MakaziLink': 'Bei — MakaziLink',
+    'Contact — MakaziLink': 'Wasiliana — MakaziLink',
+    'About — MakaziLink': 'Kuhusu — MakaziLink',
+    'Notifications · MakaziLink': 'Arifa · MakaziLink',
+    'Sign In / Sign Up — MakaziLink': 'Ingia / Jisajili — MakaziLink',
+    'Reset Password — MakaziLink': 'Weka Upya Nenosiri — MakaziLink',
 
     // ── Misc ────────────────────────────────────────────────────────────
     '(you)': '(wewe)',
