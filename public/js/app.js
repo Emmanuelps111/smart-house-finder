@@ -1,4 +1,4 @@
-// Smart House Finder - shared JS
+// MakaziLink - shared JS
 (function () {
   'use strict';
 

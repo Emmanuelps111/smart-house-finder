@@ -58,7 +58,7 @@
 <div id="preloader"><div class="spinner"></div></div>
 <header class="site-header">
   <nav class="nav">
-    <a href="/home.html" class="logo"><i class="fas fa-home"></i> Smart House Finder</a>
+    <a href="/home.html" class="logo"><i class="fas fa-home"></i> MakaziLink</a>
     <ul class="nav-links">
       <li><a href="/home.html" class="${path==='home.html'?'active':''}">Home</a></li>
       <li><a href="/listings.html" class="${path==='listings.html'?'active':''}">Listings</a></li>
@@ -82,7 +82,7 @@
   <div class="container shf-footer-inner">
     <div class="shf-footer-grid">
       <div class="shf-foot-brand">
-        <a href="/home.html" class="shf-foot-logo"><i class="fas fa-home"></i> Smart House Finder</a>
+        <a href="/home.html" class="shf-foot-logo"><i class="fas fa-home"></i> MakaziLink</a>
         <p class="shf-foot-tag">Tanzania's premier rental directory — connecting students and general renters with verified homes, campus-proximity insights, and trusted landlords nationwide.</p>
       </div>
       <div class="shf-foot-col">
@@ -112,7 +112,7 @@
     </div>
     <div class="shf-foot-divider"></div>
     <div class="shf-foot-bottom">
-      <p class="shf-foot-copy">&copy; 2026 Smart House Finder. All rights reserved.</p>
+      <p class="shf-foot-copy">&copy; 2026 MakaziLink. All rights reserved.</p>
       <div class="shf-foot-social">
         <a href="https://wa.me/255713686105" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="Contact Customer Support">
           <i class="fab fa-whatsapp"></i>
