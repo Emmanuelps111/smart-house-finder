@@ -89,6 +89,8 @@
     'View all listings': 'Angalia matangazo yote',
     'Map': 'Ramani',
     'Pricing': 'Bei',
+    'Contact': 'Wasiliana Nasi',
+    'About': 'Kuhusu',
     'FAQ': 'Maswali',
     'Sign In': 'Ingia',
     'Sign in': 'Ingia',
