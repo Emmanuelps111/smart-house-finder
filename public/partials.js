@@ -54,11 +54,21 @@
     : `<a href="/login.html" class="btn btn-primary" style="padding:.55rem 1.1rem;">Sign In</a>`;
 
 
+  const brandSvg = (extraClass = '') => `
+    <svg class="brand-logo ${extraClass}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="M6 30 Q14 22 20 22 Q32 4 44 22 Q50 22 58 30" />
+      <path d="M12 30 L12 56 L52 56 L52 30" />
+      <path d="M24 56 L24 44 Q32 34 40 44 L40 56" />
+      <circle cx="32" cy="42" r="2.2" />
+      <path d="M32 44.5 L32 51 M28 47 L36 47 M32 51 L29 55 M32 51 L35 55" />
+      <path d="M22 62 L28 57 M42 62 L36 57" opacity="0.55" />
+    </svg>`;
+
   const header = `
 <div id="preloader"><div class="spinner"></div></div>
 <header class="site-header">
   <nav class="nav">
-    <a href="/home.html" class="logo"><i class="fas fa-home"></i> MakaziLink</a>
+    <a href="/home.html" class="logo brand-anchor">${brandSvg('brand-logo-sm')}<span class="brand-name">MakaziLink</span></a>
     <ul class="nav-links">
       <li><a href="/home.html" class="${path==='home.html'?'active':''}">Home</a></li>
       <li><a href="/listings.html" class="${path==='listings.html'?'active':''}">Listings</a></li>
