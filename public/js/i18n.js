@@ -9,6 +9,8 @@
   // English -> Swahili dictionary.
   // Add exact phrases as they appear in the UI. Matching is on trimmed text.
   const DICT_SW = {
+    'your housing guide': 'mwongozo wako wa makazi',
+    'Contact': 'Wasiliana Nasi',
     // ── Long marketing / hero copy ──────────────────────────────────────
     'Browse verified listings, message landlords, and explore neighborhoods on an interactive map — built for students and renters.':
       'Vinjari matangazo yaliyothibitishwa, tuma ujumbe kwa wamiliki, na chunguza mitaa kwenye ramani ya mwingiliano — imejengwa kwa wanafunzi na wapangaji.',
