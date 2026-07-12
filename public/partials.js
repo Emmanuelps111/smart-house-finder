@@ -92,8 +92,13 @@
   <div class="container shf-footer-inner">
     <div class="shf-footer-grid">
       <div class="shf-foot-brand">
-        <a href="/home.html" class="shf-foot-logo"><i class="fas fa-home"></i> MakaziLink</a>
-        <p class="shf-foot-tag">Tanzania's premier rental directory — connecting students and general renters with verified homes, campus-proximity insights, and trusted landlords nationwide.</p>
+        <a href="/home.html" class="shf-foot-logo brand-anchor">
+          ${brandSvg('brand-logo-lg')}
+          <span class="shf-foot-brand-text">
+            <span class="brand-name">MakaziLink</span>
+            <span class="brand-tagline">your housing guide</span>
+          </span>
+        </a>
       </div>
       <div class="shf-foot-col">
         <h4>Company</h4>
