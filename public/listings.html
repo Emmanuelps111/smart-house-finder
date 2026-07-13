@@ -146,32 +146,79 @@
 
 <section style="padding-top:2rem;">
   <div class="container">
-    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
-      <input id="searchInput" type="text" placeholder="Search by city or title..." class="" style="flex:1; min-width:240px; padding:.8rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);" />
-      <select id="bedFilter" style="display:none;">
-        <option value=""></option>
-      </select>
-      <select id="priceFilter" style="padding:.8rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);">
-        <option value="">Any price</option>
-        <option value="300000">Under TSh 300,000</option>
-        <option value="600000">Under TSh 600,000</option>
-        <option value="1000000">Under TSh 1,000,000</option>
-        <option value="2000000">Under TSh 2,000,000</option>
-        <option value="5000000">Under TSh 5,000,000</option>
-      </select>
-      <select id="sortBy" style="padding:.8rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);">
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
-        <option value="price_asc">Price: Low to High</option>
-        <option value="price_desc">Price: High to Low</option>
-        <option value="beds_desc">Most bedrooms</option>
-      </select>
+    <div class="filter-bar" style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
+      <input id="searchInput" type="text" placeholder="Search by city or title..." style="flex:1; min-width:240px; padding:.75rem 1.2rem; border:1px solid var(--border); border-radius:9999px; background:var(--bg); color:var(--text);" />
+
+      <div class="shf-dd" data-dd="campus" style="position:relative;">
+        <button type="button" class="shf-dd-btn" data-dd-btn>
+          <i class="fas fa-graduation-cap" style="margin-right:.4rem;opacity:.7;"></i>
+          <span data-dd-label>Select UDSM Campus</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+        </button>
+        <div class="shf-dd-panel" data-dd-panel></div>
+      </div>
+
+      <div class="shf-dd" data-dd="price" style="position:relative;">
+        <button type="button" class="shf-dd-btn" data-dd-btn>
+          <span data-dd-label>Any price</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+        </button>
+        <div class="shf-dd-panel" data-dd-panel></div>
+      </div>
+
+      <div class="shf-dd" data-dd="sort" style="position:relative;">
+        <button type="button" class="shf-dd-btn" data-dd-btn>
+          <span data-dd-label>Newest first</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+        </button>
+        <div class="shf-dd-panel" data-dd-panel></div>
+      </div>
+
+      <select id="bedFilter" style="display:none;"><option value=""></option></select>
+      <input type="hidden" id="priceFilter" value="" />
+      <input type="hidden" id="sortBy" value="newest" />
     </div>
 
     <div class="listings-grid" id="grid"></div>
     <p id="empty" style="text-align:center; display:none;">No listings match your filters.</p>
   </div>
 </section>
+
+<style>
+  .shf-dd-btn {
+    display:inline-flex; align-items:center; justify-content:space-between;
+    padding:.75rem 1.2rem; min-width:180px;
+    border:1px solid var(--border); border-radius:9999px;
+    background:var(--bg); color:var(--text);
+    font: inherit; font-size:.9rem; cursor:pointer;
+    transition:border-color .18s, box-shadow .18s;
+  }
+  .shf-dd-btn:hover { border-color:#3B82F6; }
+  .shf-dd.open .shf-dd-btn { border-color:#3B82F6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+  .shf-dd-panel {
+    position:absolute; top:calc(100% + .5rem); left:0;
+    min-width:100%; max-width:300px; z-index:100;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:1rem; padding:.4rem;
+    box-shadow:0 12px 32px -8px rgba(0,0,0,.18), 0 4px 12px -4px rgba(0,0,0,.08);
+    opacity:0; transform:translateY(-6px); pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    max-height:320px; overflow-y:auto;
+  }
+  .shf-dd.open .shf-dd-panel { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .shf-dd-item {
+    display:block; width:100%; text-align:left;
+    padding:.7rem 1rem; border:none; background:transparent;
+    color:var(--text); font:inherit; font-size:.88rem;
+    border-radius:.65rem; cursor:pointer;
+    transition:background .15s, color .15s;
+    white-space:nowrap;
+  }
+  .shf-dd-item:hover, .shf-dd-item:focus-visible {
+    background:rgba(59,130,246,.12); color:#1E40AF; outline:none;
+  }
+  .shf-dd-item.active { background:rgba(59,130,246,.18); color:#1E40AF; font-weight:600; }
+</style>
 
 <div id="footer-mount"></div>
 <script src="/js/cloud.js"></script>
