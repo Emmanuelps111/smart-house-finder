@@ -69,21 +69,27 @@ window.SHF.walkingTime = function (km) {
   const h = Math.floor(mins / 60), m = mins % 60;
   return h + 'h ' + m + 'm walk';
 };
+window.SHF.distanceKm = function (lat, lng) {
+  const c = window.SHF.CAMPUS;
+  if (!c || c.lat == null || c.lng == null) return null;
+  return window.SHF.haversineKm(lat, lng, c.lat, c.lng);
+};
 window.SHF.proximityBadges = function (lat, lng) {
   // Student-only feature: hide commute/walk/distance from renters & landlords
   try {
     const u = JSON.parse(localStorage.getItem('shf-user') || 'null');
     if (!u || u.role !== 'student') return '';
   } catch (e) { return ''; }
-  const km = window.SHF.haversineKm(lat, lng, window.SHF.CAMPUS.lat, window.SHF.CAMPUS.lng);
+  const c = window.SHF.CAMPUS;
+  if (!c || c.lat == null || c.lng == null) return '';
+  const km = window.SHF.haversineKm(lat, lng, c.lat, c.lng);
   if (km == null) return '';
   const cost = window.SHF.commuteCostTZS(km);
   const walk = window.SHF.walkingTime(km);
   return `<div class="proximity-badges" style="display:flex;flex-wrap:wrap;gap:.35rem;margin:.5rem 0;">
-    <span class="badge" style="background:#E0F2FE;color:#0369A1;border:none;">📍 ${km.toFixed(1)} km to Campus</span>
-    <span class="badge" style="background:#FEF3C7;color:#92400E;border:none;">🛵 ~TSh ${cost.toLocaleString('en-TZ')}/day</span>
-    <span class="badge" style="background:#DCFCE7;color:#166534;border:none;">🚶 ${walk}</span>
-    <span class="badge" style="background:#EDE9FE;color:#5B21B6;border:none;">🎓 10% Student Discount</span>
+    <span class="badge" style="background:#E0F2FE;color:#0369A1;border:none;flex:1;text-align:center;">📍 ${km.toFixed(1)} km to ${c.name}</span>
+    <span class="badge" style="background:#FEF3C7;color:#92400E;border:none;flex:1;text-align:center;">🛺 ~TSh ${cost.toLocaleString('en-TZ')}/day</span>
+    <span class="badge" style="background:#DCFCE7;color:#166534;border:none;flex:1;text-align:center;">🚶 ${walk}</span>
   </div>`;
 };
 
