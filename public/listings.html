@@ -146,32 +146,79 @@
 
 <section style="padding-top:2rem;">
   <div class="container">
-    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
-      <input id="searchInput" type="text" placeholder="Search by city or title..." class="" style="flex:1; min-width:240px; padding:.8rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);" />
-      <select id="bedFilter" style="display:none;">
-        <option value=""></option>
-      </select>
-      <select id="priceFilter" style="padding:.8rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);">
-        <option value="">Any price</option>
-        <option value="300000">Under TSh 300,000</option>
-        <option value="600000">Under TSh 600,000</option>
-        <option value="1000000">Under TSh 1,000,000</option>
-        <option value="2000000">Under TSh 2,000,000</option>
-        <option value="5000000">Under TSh 5,000,000</option>
-      </select>
-      <select id="sortBy" style="padding:.8rem 1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);">
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
-        <option value="price_asc">Price: Low to High</option>
-        <option value="price_desc">Price: High to Low</option>
-        <option value="beds_desc">Most bedrooms</option>
-      </select>
+    <div class="filter-bar" style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
+      <input id="searchInput" type="text" placeholder="Search by city or title..." style="flex:1; min-width:240px; padding:.75rem 1.2rem; border:1px solid var(--border); border-radius:9999px; background:var(--bg); color:var(--text);" />
+
+      <div class="shf-dd" data-dd="campus" style="position:relative;">
+        <button type="button" class="shf-dd-btn" data-dd-btn>
+          <i class="fas fa-graduation-cap" style="margin-right:.4rem;opacity:.7;"></i>
+          <span data-dd-label>Select UDSM Campus</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+        </button>
+        <div class="shf-dd-panel" data-dd-panel></div>
+      </div>
+
+      <div class="shf-dd" data-dd="price" style="position:relative;">
+        <button type="button" class="shf-dd-btn" data-dd-btn>
+          <span data-dd-label>Any price</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+        </button>
+        <div class="shf-dd-panel" data-dd-panel></div>
+      </div>
+
+      <div class="shf-dd" data-dd="sort" style="position:relative;">
+        <button type="button" class="shf-dd-btn" data-dd-btn>
+          <span data-dd-label>Newest first</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+        </button>
+        <div class="shf-dd-panel" data-dd-panel></div>
+      </div>
+
+      <select id="bedFilter" style="display:none;"><option value=""></option></select>
+      <input type="hidden" id="priceFilter" value="" />
+      <input type="hidden" id="sortBy" value="newest" />
     </div>
 
     <div class="listings-grid" id="grid"></div>
     <p id="empty" style="text-align:center; display:none;">No listings match your filters.</p>
   </div>
 </section>
+
+<style>
+  .shf-dd-btn {
+    display:inline-flex; align-items:center; justify-content:space-between;
+    padding:.75rem 1.2rem; min-width:180px;
+    border:1px solid var(--border); border-radius:9999px;
+    background:var(--bg); color:var(--text);
+    font: inherit; font-size:.9rem; cursor:pointer;
+    transition:border-color .18s, box-shadow .18s;
+  }
+  .shf-dd-btn:hover { border-color:#3B82F6; }
+  .shf-dd.open .shf-dd-btn { border-color:#3B82F6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+  .shf-dd-panel {
+    position:absolute; top:calc(100% + .5rem); left:0;
+    min-width:100%; max-width:300px; z-index:100;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:1rem; padding:.4rem;
+    box-shadow:0 12px 32px -8px rgba(0,0,0,.18), 0 4px 12px -4px rgba(0,0,0,.08);
+    opacity:0; transform:translateY(-6px); pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    max-height:320px; overflow-y:auto;
+  }
+  .shf-dd.open .shf-dd-panel { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .shf-dd-item {
+    display:block; width:100%; text-align:left;
+    padding:.7rem 1rem; border:none; background:transparent;
+    color:var(--text); font:inherit; font-size:.88rem;
+    border-radius:.65rem; cursor:pointer;
+    transition:background .15s, color .15s;
+    white-space:nowrap;
+  }
+  .shf-dd-item:hover, .shf-dd-item:focus-visible {
+    background:rgba(59,130,246,.12); color:#1E40AF; outline:none;
+  }
+  .shf-dd-item.active { background:rgba(59,130,246,.18); color:#1E40AF; font-weight:600; }
+</style>
 
 <div id="footer-mount"></div>
 <script src="/js/cloud.js"></script>
@@ -214,6 +261,72 @@
   }
 
   const sortEl = document.getElementById('sortBy');
+
+  // === Custom pill dropdowns ===
+  const priceOptions = [
+    { v: '',        label: 'Any price' },
+    { v: '300000',  label: 'Under TSh 300,000' },
+    { v: '600000',  label: 'Under TSh 600,000' },
+    { v: '1000000', label: 'Under TSh 1,000,000' },
+    { v: '2000000', label: 'Under TSh 2,000,000' },
+    { v: '5000000', label: 'Under TSh 5,000,000' },
+  ];
+  const sortOptions = [
+    { v: 'newest',     label: 'Newest first' },
+    { v: 'oldest',     label: 'Oldest first' },
+    { v: 'price_asc',  label: 'Price: Low to High' },
+    { v: 'price_desc', label: 'Price: High to Low' },
+    { v: 'beds_desc',  label: 'Most bedrooms' },
+    { v: 'distance',   label: 'Closest to campus' },
+  ];
+  const campusOptions = (window.SHF.CAMPUSES || []).map(c => ({ v: c.key, label: c.name }));
+
+  function initDropdown(name, options, initialValue, onChange) {
+    const wrap = document.querySelector(`.shf-dd[data-dd="${name}"]`);
+    if (!wrap) return;
+    const btn = wrap.querySelector('[data-dd-btn]');
+    const label = wrap.querySelector('[data-dd-label]');
+    const panel = wrap.querySelector('[data-dd-panel]');
+    let value = initialValue;
+    function paint() {
+      const active = options.find(o => o.v === value);
+      if (active) label.textContent = active.label;
+      panel.innerHTML = options.map(o =>
+        `<button type="button" class="shf-dd-item ${o.v===value?'active':''}" data-val="${o.v}">${o.label}</button>`
+      ).join('');
+      panel.querySelectorAll('.shf-dd-item').forEach(el => {
+        el.addEventListener('click', () => {
+          value = el.dataset.val;
+          wrap.classList.remove('open');
+          paint();
+          onChange(value);
+        });
+      });
+    }
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.shf-dd.open').forEach(x => { if (x !== wrap) x.classList.remove('open'); });
+      wrap.classList.toggle('open');
+    });
+    paint();
+    return { setValue: (v) => { value = v; paint(); } };
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.shf-dd')) {
+      document.querySelectorAll('.shf-dd.open').forEach(x => x.classList.remove('open'));
+    }
+  });
+
+  initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
+  initDropdown('sort',  sortOptions,  'newest', (v) => { sortEl.value = v; render(); });
+  initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
+    window.SHF.setCampus(v);
+    // auto-switch sort to distance when a specific campus is picked
+    if (v !== 'all') { sortEl.value = 'distance'; }
+    render();
+  });
+
   function render() {
     const admin = isAdmin();
     const q = search.value.trim().toLowerCase();
@@ -225,12 +338,17 @@
     );
     const sortKey = sortEl ? sortEl.value : 'newest';
     const ts = l => l.created_at ? new Date(l.created_at).getTime() : 0;
+    const dist = l => {
+      const d = window.SHF.distanceKm ? window.SHF.distanceKm(l.lat, l.lng) : null;
+      return d == null ? Infinity : d;
+    };
     filtered.sort((a,b) => {
       switch (sortKey) {
         case 'price_asc': return (a.price||0) - (b.price||0);
         case 'price_desc': return (b.price||0) - (a.price||0);
         case 'beds_desc': return (b.beds||0) - (a.beds||0);
         case 'oldest': return ts(a) - ts(b);
+        case 'distance': return dist(a) - dist(b);
         case 'newest':
         default: return ts(b) - ts(a);
       }
@@ -280,8 +398,9 @@
       </article>`;
     }).join('');
   }
-  [search, bedF, priceF, sortEl].forEach(el => el && el.addEventListener('input', render));
+  [search, bedF].forEach(el => el && el.addEventListener('input', render));
   window.addEventListener('shf:listings-updated', render);
+  window.addEventListener('shf:campus-changed', render);
   render();
 </script>
 </body>

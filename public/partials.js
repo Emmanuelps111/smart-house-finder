@@ -589,3 +589,62 @@
   });
 
 })();
+
+// === Student welcome (Karibu) modal ===
+(function () {
+  function showKaribu() {
+    let user = null;
+    try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
+    if (!user) return;
+    const role = user.role || user.account_type;
+    if (role !== 'student') return;
+    if (localStorage.getItem('shf-has-seen-welcome') === 'true') return;
+    if (document.getElementById('shf-karibu-modal')) return;
+
+    const wrap = document.createElement('div');
+    wrap.id = 'shf-karibu-modal';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(15,23,42,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s ease;';
+    wrap.innerHTML = `
+      <div role="dialog" aria-modal="true" aria-labelledby="shf-karibu-title" style="max-width:560px;width:100%;background:color-mix(in oklab, var(--bg) 88%, transparent);border:1px solid rgba(255,255,255,.15);border-radius:1.5rem;box-shadow:0 24px 60px -12px rgba(0,0,0,.4);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:1.75rem 1.75rem 1.5rem;transform:translateY(12px) scale(.98);transition:transform .28s ease;">
+        <h2 id="shf-karibu-title" style="margin:0 0 1rem;font-size:1.35rem;font-weight:700;color:var(--text);"><i class="fas fa-graduation-cap" style="color:#3B82F6;margin-right:.35rem;"></i> Karibu MakaziLink Student Portal!</h2>
+
+        <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem;">
+          <div style="padding:.85rem 1rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:1rem;color:var(--text);font-size:.88rem;line-height:1.5;">
+            <strong><i class="fas fa-ban" style="color:#dc2626;"></i> ZERO DALALI FEES</strong> — We have completely banned informal broker commissions and hidden viewing fees on this platform. Every WhatsApp chat links you directly to the verified property owner for free.
+          </div>
+          <div style="padding:.85rem 1rem;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:1rem;color:var(--text);font-size:.88rem;line-height:1.5;">
+            <strong><i class="fas fa-handshake" style="color:#3B82F6;"></i> BUILT-IN ROOMMATE MATCHING</strong> — Need to split term rent? Use the nested roommate request accordion drawers inside shared hostel configurations to match with verified peers safely based on lifestyle habit tags.
+          </div>
+          <div style="padding:.85rem 1rem;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:1rem;color:var(--text);font-size:.88rem;line-height:1.5;">
+            <strong><i class="fas fa-map-location-dot" style="color:#059669;"></i> LIVE CAMPUS SORTING</strong> — No permanent campus locks. Use the dynamic pill-shaped dropdown filters on the main listings feed to switch freely between UDSM Mlimani, COICT, MUHAS, or DUCE to instantly recalculate distances and re-sort properties live on your screen.
+          </div>
+        </div>
+
+        <button type="button" id="shf-karibu-cta" style="width:100%;padding:.9rem 1.2rem;background:#3B82F6;color:#fff;border:none;border-radius:9999px;font-weight:600;font-size:1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;box-shadow:0 8px 20px -6px rgba(59,130,246,.5);transition:background .18s, transform .18s;">
+          <i class="fas fa-bolt"></i> Start Exploring Campus Housing
+        </button>
+      </div>`;
+    document.body.appendChild(wrap);
+    requestAnimationFrame(() => {
+      wrap.style.opacity = '1';
+      const card = wrap.firstElementChild;
+      if (card) card.style.transform = 'translateY(0) scale(1)';
+    });
+
+    function close() {
+      wrap.style.opacity = '0';
+      const card = wrap.firstElementChild;
+      if (card) card.style.transform = 'translateY(12px) scale(.98)';
+      try { localStorage.setItem('shf-has-seen-welcome', 'true'); } catch(e){}
+      setTimeout(() => wrap.remove(), 280);
+    }
+    wrap.querySelector('#shf-karibu-cta').addEventListener('click', close);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', showKaribu, { once: true });
+  } else {
+    showKaribu();
+  }
+  window.addEventListener('shf:login-success', showKaribu);
+})();
