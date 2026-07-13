@@ -261,6 +261,72 @@
   }
 
   const sortEl = document.getElementById('sortBy');
+
+  // === Custom pill dropdowns ===
+  const priceOptions = [
+    { v: '',        label: 'Any price' },
+    { v: '300000',  label: 'Under TSh 300,000' },
+    { v: '600000',  label: 'Under TSh 600,000' },
+    { v: '1000000', label: 'Under TSh 1,000,000' },
+    { v: '2000000', label: 'Under TSh 2,000,000' },
+    { v: '5000000', label: 'Under TSh 5,000,000' },
+  ];
+  const sortOptions = [
+    { v: 'newest',     label: 'Newest first' },
+    { v: 'oldest',     label: 'Oldest first' },
+    { v: 'price_asc',  label: 'Price: Low to High' },
+    { v: 'price_desc', label: 'Price: High to Low' },
+    { v: 'beds_desc',  label: 'Most bedrooms' },
+    { v: 'distance',   label: 'Closest to campus' },
+  ];
+  const campusOptions = (window.SHF.CAMPUSES || []).map(c => ({ v: c.key, label: c.name }));
+
+  function initDropdown(name, options, initialValue, onChange) {
+    const wrap = document.querySelector(`.shf-dd[data-dd="${name}"]`);
+    if (!wrap) return;
+    const btn = wrap.querySelector('[data-dd-btn]');
+    const label = wrap.querySelector('[data-dd-label]');
+    const panel = wrap.querySelector('[data-dd-panel]');
+    let value = initialValue;
+    function paint() {
+      const active = options.find(o => o.v === value);
+      if (active) label.textContent = active.label;
+      panel.innerHTML = options.map(o =>
+        `<button type="button" class="shf-dd-item ${o.v===value?'active':''}" data-val="${o.v}">${o.label}</button>`
+      ).join('');
+      panel.querySelectorAll('.shf-dd-item').forEach(el => {
+        el.addEventListener('click', () => {
+          value = el.dataset.val;
+          wrap.classList.remove('open');
+          paint();
+          onChange(value);
+        });
+      });
+    }
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.shf-dd.open').forEach(x => { if (x !== wrap) x.classList.remove('open'); });
+      wrap.classList.toggle('open');
+    });
+    paint();
+    return { setValue: (v) => { value = v; paint(); } };
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.shf-dd')) {
+      document.querySelectorAll('.shf-dd.open').forEach(x => x.classList.remove('open'));
+    }
+  });
+
+  initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
+  initDropdown('sort',  sortOptions,  'newest', (v) => { sortEl.value = v; render(); });
+  initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
+    window.SHF.setCampus(v);
+    // auto-switch sort to distance when a specific campus is picked
+    if (v !== 'all') { sortEl.value = 'distance'; }
+    render();
+  });
+
   function render() {
     const admin = isAdmin();
     const q = search.value.trim().toLowerCase();
@@ -272,12 +338,17 @@
     );
     const sortKey = sortEl ? sortEl.value : 'newest';
     const ts = l => l.created_at ? new Date(l.created_at).getTime() : 0;
+    const dist = l => {
+      const d = window.SHF.distanceKm ? window.SHF.distanceKm(l.lat, l.lng) : null;
+      return d == null ? Infinity : d;
+    };
     filtered.sort((a,b) => {
       switch (sortKey) {
         case 'price_asc': return (a.price||0) - (b.price||0);
         case 'price_desc': return (b.price||0) - (a.price||0);
         case 'beds_desc': return (b.beds||0) - (a.beds||0);
         case 'oldest': return ts(a) - ts(b);
+        case 'distance': return dist(a) - dist(b);
         case 'newest':
         default: return ts(b) - ts(a);
       }
@@ -327,8 +398,9 @@
       </article>`;
     }).join('');
   }
-  [search, bedF, priceF, sortEl].forEach(el => el && el.addEventListener('input', render));
+  [search, bedF].forEach(el => el && el.addEventListener('input', render));
   window.addEventListener('shf:listings-updated', render);
+  window.addEventListener('shf:campus-changed', render);
   render();
 </script>
 </body>
