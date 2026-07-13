@@ -117,7 +117,7 @@
         <h4>Discover</h4>
         <ul>
           <li><a href="/listings.html?portal=renter">Renter Portal</a></li>
-          <li><a href="/listings.html?portal=student">Student Portal</a></li>
+          <li><a href="/student-portal.html">Student Portal</a></li>
           <li><a href="/dashboard.html">List Your Property</a></li>
         </ul>
       </div>
@@ -590,61 +590,116 @@
 
 })();
 
-// === Student welcome (Karibu) modal ===
+// === Student welcome card on home page ===
 (function () {
-  function showKaribu() {
+  function mountWelcome() {
+    if (!/(^|\/)home\.html$|^\/$/.test(location.pathname)) return;
+    if (document.getElementById('shf-student-welcome')) return;
+
     let user = null;
     try { user = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch (e) {}
     if (!user) return;
     const role = user.role || user.account_type;
     if (role !== 'student') return;
-    if (localStorage.getItem('shf-has-seen-welcome') === 'true') return;
-    if (document.getElementById('shf-karibu-modal')) return;
 
-    const wrap = document.createElement('div');
-    wrap.id = 'shf-karibu-modal';
-    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(15,23,42,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s ease;';
-    wrap.innerHTML = `
-      <div role="dialog" aria-modal="true" aria-labelledby="shf-karibu-title" style="max-width:560px;width:100%;background:color-mix(in oklab, var(--bg) 88%, transparent);border:1px solid rgba(255,255,255,.15);border-radius:1.5rem;box-shadow:0 24px 60px -12px rgba(0,0,0,.4);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:1.75rem 1.75rem 1.5rem;transform:translateY(12px) scale(.98);transition:transform .28s ease;">
-        <h2 id="shf-karibu-title" style="margin:0 0 1rem;font-size:1.35rem;font-weight:700;color:var(--text);"><i class="fas fa-graduation-cap" style="color:#3B82F6;margin-right:.35rem;"></i> Karibu MakaziLink Student Portal!</h2>
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
 
-        <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem;">
-          <div style="padding:.85rem 1rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:1rem;color:var(--text);font-size:.88rem;line-height:1.5;">
-            <strong><i class="fas fa-ban" style="color:#dc2626;"></i> ZERO DALALI FEES</strong> — We have completely banned informal broker commissions and hidden viewing fees on this platform. Every WhatsApp chat links you directly to the verified property owner for free.
+    const section = document.createElement('section');
+    section.id = 'shf-student-welcome';
+    section.style.cssText = 'padding:2rem 0 0;';
+    const name = (user.name || '').split(' ')[0] || 'Student';
+    section.innerHTML = `
+      <div class="container">
+        <div class="shf-sw-card">
+          <div class="shf-sw-glow"></div>
+          <div class="shf-sw-body">
+            <div class="shf-sw-badge"><i class="fas fa-graduation-cap"></i> <span>Verified Student</span></div>
+            <h2 class="shf-sw-title">🎓 Welcome ${escapeHtml(name)}</h2>
+            <p class="shf-sw-text">As a verified student, MakaziLink helps you find accommodation faster, save money, and connect with other students. Discover the exclusive benefits available only to students.</p>
+            <a href="/student-portal.html" class="shf-sw-btn">
+              <i class="fas fa-sparkles"></i> Explore Student Benefits
+              <i class="fas fa-arrow-right" style="margin-left:.35rem;"></i>
+            </a>
           </div>
-          <div style="padding:.85rem 1rem;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:1rem;color:var(--text);font-size:.88rem;line-height:1.5;">
-            <strong><i class="fas fa-handshake" style="color:#3B82F6;"></i> BUILT-IN ROOMMATE MATCHING</strong> — Need to split term rent? Use the nested roommate request accordion drawers inside shared hostel configurations to match with verified peers safely based on lifestyle habit tags.
-          </div>
-          <div style="padding:.85rem 1rem;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:1rem;color:var(--text);font-size:.88rem;line-height:1.5;">
-            <strong><i class="fas fa-map-location-dot" style="color:#059669;"></i> LIVE CAMPUS SORTING</strong> — No permanent campus locks. Use the dynamic pill-shaped dropdown filters on the main listings feed to switch freely between UDSM Mlimani, COICT, MUHAS, or DUCE to instantly recalculate distances and re-sort properties live on your screen.
+          <div class="shf-sw-art" aria-hidden="true">
+            <i class="fas fa-house-user"></i>
           </div>
         </div>
-
-        <button type="button" id="shf-karibu-cta" style="width:100%;padding:.9rem 1.2rem;background:#3B82F6;color:#fff;border:none;border-radius:9999px;font-weight:600;font-size:1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;box-shadow:0 8px 20px -6px rgba(59,130,246,.5);transition:background .18s, transform .18s;">
-          <i class="fas fa-bolt"></i> Start Exploring Campus Housing
-        </button>
       </div>`;
-    document.body.appendChild(wrap);
-    requestAnimationFrame(() => {
-      wrap.style.opacity = '1';
-      const card = wrap.firstElementChild;
-      if (card) card.style.transform = 'translateY(0) scale(1)';
-    });
+    hero.parentNode.insertBefore(section, hero.nextSibling);
 
-    function close() {
-      wrap.style.opacity = '0';
-      const card = wrap.firstElementChild;
-      if (card) card.style.transform = 'translateY(12px) scale(.98)';
-      try { localStorage.setItem('shf-has-seen-welcome', 'true'); } catch(e){}
-      setTimeout(() => wrap.remove(), 280);
+    if (window.SHFI18n && typeof window.SHFI18n.apply === 'function') {
+      try { window.SHFI18n.apply(section); } catch(e){}
     }
-    wrap.querySelector('#shf-karibu-cta').addEventListener('click', close);
   }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // Inject styles once
+  const css = document.createElement('style');
+  css.textContent = `
+    .shf-sw-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 2rem 2.25rem;
+      border-radius: 28px;
+      background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 14%, var(--bg)) 0%, var(--bg) 60%, color-mix(in oklab, #10b981 10%, var(--bg)) 100%);
+      border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
+      box-shadow: 0 20px 50px -20px color-mix(in oklab, var(--primary) 45%, transparent);
+      overflow: hidden;
+      opacity: 0; transform: translateY(16px);
+      animation: shfSwIn .7s cubic-bezier(.2,.7,.2,1) forwards;
+    }
+    @keyframes shfSwIn { to { opacity:1; transform:translateY(0); } }
+    .shf-sw-glow {
+      position:absolute; top:-40%; right:-10%; width:340px; height:340px;
+      background: radial-gradient(circle, color-mix(in oklab, var(--primary) 30%, transparent), transparent 60%);
+      pointer-events:none;
+    }
+    .shf-sw-body { position:relative; z-index:1; max-width: 720px; }
+    .shf-sw-badge {
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.3rem .75rem; border-radius:999px;
+      background: color-mix(in oklab, var(--primary) 15%, transparent);
+      color: var(--primary);
+      font-weight:600; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+      border:1px solid color-mix(in oklab, var(--primary) 30%, transparent);
+      margin-bottom:.75rem;
+    }
+    .shf-sw-title { font-size: clamp(1.4rem, 2.4vw, 2rem); margin: 0 0 .5rem; color: var(--text); letter-spacing:-.01em; }
+    .shf-sw-text { font-size: 1rem; line-height: 1.6; color: var(--text-muted); margin: 0 0 1.25rem; }
+    .shf-sw-btn {
+      display:inline-flex; align-items:center; gap:.5rem;
+      padding:.85rem 1.5rem; border-radius:999px;
+      background: var(--primary); color:#fff !important;
+      font-weight:600; font-size:.95rem; text-decoration:none;
+      box-shadow: 0 10px 24px -8px color-mix(in oklab, var(--primary) 60%, transparent);
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .shf-sw-btn:hover { transform: translateY(-2px); background: var(--primary-dark); box-shadow: 0 14px 30px -8px color-mix(in oklab, var(--primary) 70%, transparent); }
+    .shf-sw-art {
+      position:relative; z-index:1;
+      width: 120px; height: 120px; border-radius: 28px;
+      display:flex; align-items:center; justify-content:center;
+      background: color-mix(in oklab, var(--primary) 18%, transparent);
+      color: var(--primary); font-size: 3rem;
+      border:1px solid color-mix(in oklab, var(--primary) 30%, transparent);
+    }
+    @media (max-width: 720px) {
+      .shf-sw-card { grid-template-columns: 1fr; padding: 1.5rem; }
+      .shf-sw-art { display:none; }
+    }
+  `;
+  document.head.appendChild(css);
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', showKaribu, { once: true });
+    document.addEventListener('DOMContentLoaded', mountWelcome, { once: true });
   } else {
-    showKaribu();
+    mountWelcome();
   }
-  window.addEventListener('shf:login-success', showKaribu);
+  window.addEventListener('shf:login-success', mountWelcome);
 })();
+

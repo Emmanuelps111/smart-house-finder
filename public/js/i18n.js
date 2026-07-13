@@ -455,6 +455,39 @@
     'Select…': 'Chagua…',
     'Welcome back': 'Karibu tena',
     'All rights reserved.': 'Haki zote zimehifadhiwa.',
+
+    // ── Student Portal ─────────────────────────────────────────────────
+    'Verified Student': 'Mwanafunzi Aliyethibitishwa',
+    'Verified Student Access': 'Ufikiaji wa Mwanafunzi Aliyethibitishwa',
+    '🎓 Student Benefits': '🎓 Manufaa ya Mwanafunzi',
+    '🎓 Welcome': '🎓 Karibu',
+    'As a verified student, MakaziLink helps you find accommodation faster, save money, and connect with other students. Discover the exclusive benefits available only to students.':
+      'Kama mwanafunzi aliyethibitishwa, MakaziLink hukusaidia kupata malazi kwa haraka, kuokoa pesa, na kuungana na wanafunzi wengine. Gundua manufaa maalum yanayopatikana kwa wanafunzi pekee.',
+    'Explore Student Benefits': 'Chunguza Manufaa ya Mwanafunzi',
+    'Welcome! As a verified student, MakaziLink gives you access to exclusive features designed to make finding accommodation around the University of Dar es Salaam easier, safer, and more affordable.':
+      'Karibu! Kama mwanafunzi aliyethibitishwa, MakaziLink hukupa ufikiaji wa vipengele maalum vilivyoundwa kurahisisha kupata malazi karibu na Chuo Kikuu cha Dar es Salaam kwa usalama na gharama nafuu.',
+    'Biggest Benefit': 'Manufaa Makubwa Zaidi',
+    '💰 Commission-Free Rentals': '💰 Upangaji Bila Kamisheni',
+    'MakaziLink connects students directly with landlords, eliminating the need for housing agents. Unlike the traditional rental process, students do not pay the additional one-month agent commission. You only pay your agreed monthly rent directly to the landlord, helping you save money.':
+      'MakaziLink huwaunganisha wanafunzi moja kwa moja na wamiliki wa nyumba, kuondoa hitaji la madalali. Tofauti na mchakato wa kawaida wa upangaji, wanafunzi hawalipi kamisheni ya ziada ya mwezi mmoja ya dalali. Unalipa tu kodi yako ya mwezi uliyokubaliana moja kwa moja kwa mmiliki, ukiokoa pesa.',
+    '📍 Distance to Main Campus': '📍 Umbali hadi Chuo Kikuu',
+    'Every property displays its distance from the University of Dar es Salaam Main Campus together with the estimated travel time. This helps students compare locations and choose accommodation that best fits their daily commute.':
+      'Kila nyumba inaonyesha umbali wake kutoka Chuo Kikuu cha Dar es Salaam Mlimani pamoja na muda unaokadiriwa wa safari. Hii huwasaidia wanafunzi kulinganisha maeneo na kuchagua malazi yanayolingana zaidi na safari yao ya kila siku.',
+    '👥 Roommate Matching': '👥 Kupata Mwenzi wa Chumba',
+    'Students can find and connect with other verified students looking for accommodation. This feature makes it easier to share rent, reduce living expenses, and find compatible roommates.':
+      'Wanafunzi wanaweza kupata na kuungana na wanafunzi wengine waliothibitishwa wanaotafuta malazi. Kipengele hiki hurahisisha kushiriki kodi, kupunguza gharama za maisha, na kupata wenzi wa chumba wanaolingana.',
+    'Why Students Choose MakaziLink': 'Kwa Nini Wanafunzi Huchagua MakaziLink',
+    'No agent commission fees': 'Hakuna ada za kamisheni ya dalali',
+    'Direct communication with landlords': 'Mawasiliano ya moja kwa moja na wamiliki',
+    'Verified student community': 'Jumuiya ya wanafunzi iliyothibitishwa',
+    'Distance and travel time to campus': 'Umbali na muda wa safari hadi chuoni',
+    'Roommate matching': 'Kupata mwenzi wa chumba',
+    'Safe and transparent property listings': 'Orodha za nyumba salama na wazi',
+    'Students Only': 'Wanafunzi Pekee',
+    'The Student Portal is available exclusively to verified student accounts. Please sign in with a student account to view the exclusive benefits.':
+      'Lango la Mwanafunzi linapatikana kwa akaunti za wanafunzi zilizothibitishwa pekee. Tafadhali ingia kwa akaunti ya mwanafunzi ili kuona manufaa maalum.',
+    'Student Benefits — MakaziLink': 'Manufaa ya Mwanafunzi — MakaziLink',
+    'Student Portal': 'Lango la Mwanafunzi',
   };
 
   const DICTS = { en: null, sw: DICT_SW };
