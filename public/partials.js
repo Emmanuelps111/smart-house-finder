@@ -117,7 +117,7 @@
         <h4>Discover</h4>
         <ul>
           <li><a href="/listings.html?portal=renter">Renter Portal</a></li>
-          <li><a href="/listings.html?portal=student">Student Portal</a></li>
+          <li><a href="/student-portal.html">Student Portal</a></li>
           <li><a href="/dashboard.html">List Your Property</a></li>
         </ul>
       </div>
