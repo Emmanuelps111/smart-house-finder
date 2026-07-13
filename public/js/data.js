@@ -31,7 +31,24 @@ window.SHF.timeAgo = function (date) {
 };
 
 // === Proximity & Commute Cost Calculator ===
-window.SHF.CAMPUS = { name: 'UDSM Main Campus', lat: -6.7741, lng: 39.2417 };
+window.SHF.CAMPUSES = [
+  { key: 'all',     name: 'All Locations',          lat: null,     lng: null },
+  { key: 'mlimani', name: 'Main Campus (Mlimani)',  lat: -6.7749,  lng: 39.2026 },
+  { key: 'coict',   name: "COICT Kijitonyama",       lat: -6.7645,  lng: 39.2435 },
+  { key: 'muhas',   name: 'MUHAS Upanga',           lat: -6.8062,  lng: 39.2721 },
+  { key: 'duce',    name: "DUCE Chang'ombe",         lat: -6.8412,  lng: 39.2743 },
+];
+try {
+  const saved = localStorage.getItem('shf-campus');
+  const found = window.SHF.CAMPUSES.find(c => c.key === saved);
+  window.SHF.CAMPUS = found || window.SHF.CAMPUSES[1];
+} catch (e) { window.SHF.CAMPUS = window.SHF.CAMPUSES[1]; }
+window.SHF.setCampus = function (key) {
+  const c = window.SHF.CAMPUSES.find(x => x.key === key) || window.SHF.CAMPUSES[1];
+  window.SHF.CAMPUS = c;
+  try { localStorage.setItem('shf-campus', c.key); } catch(e){}
+  window.dispatchEvent(new CustomEvent('shf:campus-changed', { detail: c }));
+};
 window.SHF.haversineKm = function (lat1, lng1, lat2, lng2) {
   if ([lat1, lng1, lat2, lng2].some(v => v == null || isNaN(v))) return null;
   const toRad = d => d * Math.PI / 180;
