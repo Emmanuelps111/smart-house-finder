@@ -222,9 +222,30 @@
         </aside>
       </div>`;
 
-    document.querySelectorAll('[data-thumb]').forEach(t => t.addEventListener('click', () => {
-      document.getElementById('heroImg').src = t.src;
-    }));
+    const thumbsWrap = document.getElementById('thumbsWrap');
+    const viewport = document.getElementById('mediaViewport');
+    function wireThumbs(){
+      document.querySelectorAll('[data-thumb]').forEach(t => t.addEventListener('click', () => {
+        const hero = document.getElementById('heroImg'); if (hero) hero.src = t.src;
+      }));
+    }
+    function activateTab(tab){
+      document.querySelectorAll('.dmh-tab').forEach(b => b.classList.toggle('active', b.dataset.mediaTab === tab));
+      if (tab === 'video' && hasVideo) {
+        if (thumbsWrap) thumbsWrap.style.display = 'none';
+        if (viewport) viewport.innerHTML = `<video class="hero-img" src="${escapeHtml(l.video_url)}" controls autoplay preload="metadata" style="width:100%; max-height:520px; background:#000; border-radius:var(--radius);"></video>`;
+      } else {
+        if (thumbsWrap) thumbsWrap.style.display = '';
+        const src = hasPhotos ? gallery[0] : (hasVideo ? fallbackImg : '');
+        const fb = (!hasPhotos && hasVideo) ? `<button class="dmh-fallback-play" data-open-video type="button" aria-label="Play video tour"><i class="fas fa-play"></i></button>` : '';
+        if (viewport && src) { viewport.style.position='relative'; viewport.innerHTML = `<img id="heroImg" class="hero-img" src="${escapeHtml(src)}" alt="${escapeHtml(l.title)}" />${fb}`; }
+        wireThumbs();
+      }
+    }
+    document.querySelectorAll('.dmh-tab').forEach(b => b.addEventListener('click', () => activateTab(b.dataset.mediaTab)));
+    document.addEventListener('click', (e) => { if (e.target.closest('[data-open-video]')) activateTab('video'); });
+    wireThumbs();
+
 
     if (l.lat != null && l.lng != null) {
       const m = L.map('detailMap').setView([l.lat, l.lng], 14);
