@@ -77,11 +77,23 @@
     'Garden':'fa-tree','Balcony':'fa-house-chimney','Furnished':'fa-couch'
   };
 
+  const STOCK_BY_TYPE = {
+    'Hostel':    'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
+    'Apartment': 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80',
+    'Studio':    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80',
+    'House':     'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80',
+    'Room':      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80',
+  };
+  function stockForType(t){ return STOCK_BY_TYPE[t] || STOCK_BY_TYPE.Apartment; }
+
   async function renderDetail(l){
     rendered = true;
     document.title = `${l.title} — MakaziLink`;
     const gallery = (Array.isArray(l.image_urls) && l.image_urls.length) ? l.image_urls : [];
-    const heroSrc = gallery[0] || '';
+    const hasPhotos = gallery.length > 0;
+    const hasVideo = !!l.video_url;
+    const fallbackImg = stockForType(l.tag);
+    const heroSrc = hasPhotos ? gallery[0] : (hasVideo ? fallbackImg : '');
 
     const amenitiesHtml = (Array.isArray(l.amenities) && l.amenities.length)
       ? `<ul class="feature-list">${l.amenities.map(a => {
@@ -94,21 +106,25 @@
       ? `<div class="thumb-row">${gallery.slice(0,8).map(g => `<img src="${escapeHtml(g)}" alt="thumbnail" data-thumb />`).join('')}</div>`
       : '';
 
+    const tabsHtml = (hasPhotos || hasVideo) ? `
+      <div class="dmh-tabs" role="tablist">
+        <button class="dmh-tab active" data-media-tab="photo" type="button"><i class="fas fa-camera-retro"></i> Photo Gallery</button>
+        ${hasVideo ? `<button class="dmh-tab" data-media-tab="video" type="button"><i class="fas fa-video"></i> Video Tour</button>` : ''}
+      </div>` : '';
+
+    const fallbackPlayBtn = (!hasPhotos && hasVideo)
+      ? `<button class="dmh-fallback-play" data-open-video type="button" aria-label="Play video tour"><i class="fas fa-play"></i></button>` : '';
+
     const heroHtml = heroSrc
-      ? `<img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" />`
-      : (l.video_url
-          ? `<video class="hero-img" src="${escapeHtml(l.video_url)}" controls preload="metadata" style="width:100%; max-height:480px; background:#000; border-radius:var(--radius);"></video>`
-          : `<div class="hero-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#1E3A8A,#3B82F6); color:#fff; gap:.6rem; min-height:320px; border-radius:var(--radius);"><i class="fas fa-house" style="font-size:3rem;"></i><span style="font-weight:600;">No media uploaded</span></div>`);
+      ? `${tabsHtml}<div id="mediaViewport" style="position:relative;"><img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" />${fallbackPlayBtn}</div>`
+      : `${tabsHtml}<div id="mediaViewport" class="hero-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#1E3A8A,#3B82F6); color:#fff; gap:.6rem; min-height:320px; border-radius:var(--radius);"><i class="fas fa-house" style="font-size:3rem;"></i><span style="font-weight:600;">No media uploaded</span></div>`;
 
     root.innerHTML = `
       <div class="detail-grid">
         <div>
           ${heroHtml}
-          ${thumbsHtml}
-          ${l.video_url && heroSrc ? `<div class="info-card" style="margin-top:1.5rem;">
-            <h3 style="margin-top:0;"><i class="fas fa-video"></i> Video tour</h3>
-            <video src="${escapeHtml(l.video_url)}" controls preload="metadata" style="width:100%; max-height:480px; border-radius:8px; background:#000;"></video>
-          </div>` : ''}
+          <div id="thumbsWrap">${thumbsHtml}</div>
+
           <div class="info-card" style="margin-top:1.5rem;">
             <h3 style="margin-top:0;">About this property</h3>
             <p>${escapeHtml(l.desc) || '<em>No description provided.</em>'}</p>
