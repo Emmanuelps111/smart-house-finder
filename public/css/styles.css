@@ -140,10 +140,15 @@ p { margin: 0 0 1em; color: var(--text-muted); }
 .hero .btn-outline { color: #fff; border-color: #fff; }
 .hero .btn-outline:hover { background: #fff; color: var(--primary); }
 .search-bar {
-  background: var(--bg); border-radius: var(--radius); padding: .5rem;
-  margin-top: 2.5rem; display: flex; gap: .5rem; box-shadow: var(--shadow-lg);
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 999px; padding: .5rem;
+  margin-top: 2.5rem; display: flex; gap: .5rem;
+  box-shadow: 0 20px 50px -18px rgba(15,23,42,.35);
   max-width: 600px; margin-left: auto; margin-right: auto;
 }
+[data-theme="dark"] .search-bar { background: rgba(15,23,42,0.55); border-color: rgba(148,163,184,.18); }
 .search-bar input {
   flex: 1; border: none; background: transparent; padding: .8rem 1rem;
   font-size: 1rem; color: var(--text); outline: none;
