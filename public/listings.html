@@ -146,10 +146,10 @@
 
 <section style="padding-top:2rem;">
   <div class="container">
-    <div class="filter-bar glass" style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center; justify-content:space-between;">
-      <input id="searchInput" type="text" placeholder="Search by city or title..." style="flex:1; min-width:240px; padding:.75rem 1.2rem; border:1px solid rgba(255,255,255,.35); border-radius:9999px; background:rgba(255,255,255,.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:var(--text);" />
+    <div class="filter-bar" style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
+      <input id="searchInput" type="text" placeholder="Search by city or title..." style="flex:1; min-width:240px; padding:.75rem 1.2rem; border:1px solid var(--border); border-radius:9999px; background:var(--bg); color:var(--text);" />
 
-      <div class="shf-dd" data-dd="campus" data-role-gate="student" style="position:relative; display:none;">
+      <div class="shf-dd" data-dd="campus" style="position:relative;">
         <button type="button" class="shf-dd-btn" data-dd-btn>
           <i class="fas fa-graduation-cap" style="margin-right:.4rem;opacity:.7;"></i>
           <span data-dd-label>Select UDSM Campus</span>
@@ -318,22 +318,14 @@
     }
   });
 
-  // Role-gate: campus filter is student-only
-  let currentUser = null;
-  try { currentUser = JSON.parse(localStorage.getItem('shf-user') || 'null'); } catch(e) {}
-  const isStudent = !!currentUser && (currentUser.role === 'student' || currentUser.account_type === 'student');
-  const campusWrap = document.querySelector('.shf-dd[data-dd="campus"]');
-  if (isStudent && campusWrap) campusWrap.style.display = '';
-
   initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
   initDropdown('sort',  sortOptions,  'newest', (v) => { sortEl.value = v; render(); });
-  if (isStudent) {
-    initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
-      window.SHF.setCampus(v);
-      if (v !== 'all') { sortEl.value = 'distance'; }
-      render();
-    });
-  }
+  initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
+    window.SHF.setCampus(v);
+    // auto-switch sort to distance when a specific campus is picked
+    if (v !== 'all') { sortEl.value = 'distance'; }
+    render();
+  });
 
   function render() {
     const admin = isAdmin();
@@ -371,8 +363,8 @@
       const media = l.img
         ? `<img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />`
         : `<div class="lc-empty"><i class="fas ${l.has_video ? 'fa-circle-play' : 'fa-house'}"></i><span>${l.has_video ? 'VIDEO TOUR' : 'NO PHOTOS'}</span></div>`;
-      const videoBadge = l.has_video
-        ? `<span class="lc-video-badge" title="Video tour available"><i class="fas fa-play"></i> Video Tour</span>` : '';
+      const playOverlay = (l.has_video && l.img)
+        ? `<div class="lc-play"><i class="fas fa-play"></i></div>` : '';
       const location = l.city || '';
       return `
       <article class="list-card" tabindex="0" role="link"
@@ -381,7 +373,7 @@
         <div class="lc-media">
           ${media}
           ${occPill(l.occupancy)}
-          ${videoBadge}
+          ${playOverlay}
           ${delBtn}
         </div>
         <div class="lc-body">
@@ -389,12 +381,13 @@
           <h3 class="lc-title">${l.title}</h3>
           <div class="lc-price">${SHF.formatPrice(l.price)} <small>/ month</small></div>
           <div class="lc-meta">
-            <span><i class="fas fa-bed"></i>${l.beds} Bed${l.beds===1?'':'s'}</span>
+            <span>🛏️ ${l.beds} Bed${l.beds===1?'':'s'}</span>
             <span class="dot">•</span>
-            <span><i class="fas fa-bath"></i>${l.baths} Bath${l.baths===1?'':'s'}</span>
+            <span>🚿 ${l.baths} Bath${l.baths===1?'':'s'}</span>
             <span class="dot">•</span>
-            <span><i class="fas fa-ruler-combined"></i>${l.area}</span>
+            <span>📐 ${l.area}</span>
           </div>
+          <p class="lc-desc">${l.desc || ''}</p>
           <div class="lc-spacer"></div>
           ${SHF.proximityBadges(l.lat, l.lng) ? `<div class="lc-prox">${SHF.proximityBadges(l.lat, l.lng).replace(/<div[^>]*>|<\/div>/g,'')}</div>` : ''}
           <div class="lc-foot">

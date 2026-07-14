@@ -138,22 +138,23 @@
       const media = l.img
         ? `<img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />`
         : `<div class="lc-empty"><i class="fas ${l.has_video ? 'fa-circle-play' : 'fa-house'}"></i><span>${l.has_video ? 'VIDEO TOUR' : 'NO PHOTOS'}</span></div>`;
-      const videoBadge = l.has_video ? `<span class="lc-video-badge"><i class="fas fa-play"></i> Video Tour</span>` : '';
+      const playOverlay = (l.has_video && l.img) ? `<div class="lc-play"><i class="fas fa-play"></i></div>` : '';
       const prox = SHF.proximityBadges(l.lat, l.lng);
       return `
       <article class="list-card" tabindex="0" role="link"
         onclick="if(!event.target.closest('[data-lightbox]') && !event.target.closest('[data-no-nav]')) location.href='/detail.html?id=${l.id}'"
         onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('[data-no-nav]')){event.preventDefault();location.href='/detail.html?id=${l.id}'}">
-        <div class="lc-media">${media}${occPill(l.occupancy)}${videoBadge}</div>
+        <div class="lc-media">${media}${occPill(l.occupancy)}${playOverlay}</div>
         <div class="lc-body">
           <div class="lc-location"><i class="fas fa-location-dot"></i> ${l.city||''}</div>
           <h3 class="lc-title">${l.title}</h3>
           <div class="lc-price">${SHF.formatPrice(l.price)} <small>/ month</small></div>
           <div class="lc-meta">
-            <span><i class="fas fa-bed"></i>${l.beds} Bed${l.beds===1?'':'s'}</span><span class="dot">•</span>
-            <span><i class="fas fa-bath"></i>${l.baths} Bath${l.baths===1?'':'s'}</span><span class="dot">•</span>
-            <span><i class="fas fa-ruler-combined"></i>${l.area}</span>
+            <span>🛏️ ${l.beds} Bed${l.beds===1?'':'s'}</span><span class="dot">•</span>
+            <span>🚿 ${l.baths} Bath${l.baths===1?'':'s'}</span><span class="dot">•</span>
+            <span>📐 ${l.area}</span>
           </div>
+          <p class="lc-desc">${l.desc || ''}</p>
           <div class="lc-spacer"></div>
           ${prox ? `<div class="lc-prox">${prox.replace(/<div[^>]*>|<\/div>/g,'')}</div>` : ''}
           <div class="lc-foot">

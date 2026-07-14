@@ -9,23 +9,6 @@
   // English -> Swahili dictionary.
   // Add exact phrases as they appear in the UI. Matching is on trimmed text.
   const DICT_SW = {
-    // Student portal / welcome (2026 simplified copy)
-    '🛑 ZERO DALALI FEES': '🛑 HAKUNA ADA YA DALALI',
-    'No broker commissions. No viewing charges. Connect directly with landlords on WhatsApp for free.':
-      'Hakuna kamisheni ya dalali. Hakuna malipo ya kuangalia. Wasiliana moja kwa moja na wamiliki kupitia WhatsApp bila malipo.',
-    '🤝 ROOMMATE MATCHING': '🤝 KUPATIA WENZI WA CHUMBA',
-    'Split term rent safely. Match with verified peers right inside shared hostel listings.':
-      'Gawa kodi kwa usalama. Pata wenzi walio thibitishwa moja kwa moja ndani ya matangazo ya hosteli.',
-    '📐 LIVE CAMPUS SORTING': '📐 UPANGAJI WA CHUO WA MOJA KWA MOJA',
-    'No campus locks. Switch between Mlimani, COICT, MUHAS, or DUCE to re-sort listings instantly by distance.':
-      'Hakuna vizuizi. Badilisha kati ya Mlimani, COICT, MUHAS, au DUCE ili kupanga matangazo kwa umbali papo hapo.',
-    '⚡ Start Exploring Campus Housing': '⚡ Anza Kutafuta Nyumba Karibu na Chuo',
-    '🛑 Zero dalali fees. 🤝 Match roommates safely. 📐 Live campus-distance sorting across Mlimani, COICT, MUHAS & DUCE.':
-      '🛑 Hakuna ada ya dalali. 🤝 Pata mwenzi kwa usalama. 📐 Panga kwa umbali wa chuo kati ya Mlimani, COICT, MUHAS na DUCE.',
-    'Video Tour': 'Video ya Ziara',
-    'Photo Gallery': 'Picha za Ghala',
-    'Select UDSM Campus': 'Chagua Chuo cha UDSM',
-
     'your housing guide': 'mwongozo wako wa makazi',
     'Browse verified listings, message landlords, and explore neighborhoods on an interactive map — built for students and renters.':
       'Vinjari matangazo yaliyothibitishwa, tuma ujumbe kwa wamiliki, na chunguza mitaa kwenye ramani ya mwingiliano — imejengwa kwa wanafunzi na wapangaji.',

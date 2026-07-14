@@ -87,9 +87,9 @@ window.SHF.proximityBadges = function (lat, lng) {
   const cost = window.SHF.commuteCostTZS(km);
   const walk = window.SHF.walkingTime(km);
   return `<div class="proximity-badges" style="display:flex;flex-wrap:wrap;gap:.35rem;margin:.5rem 0;">
-    <span class="badge shf-prox-b" style="background:rgba(59,130,246,.10);color:#1E5FA8;border:1px solid rgba(59,130,246,.22);flex:1;text-align:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);"><i class="fas fa-location-dot" style="color:#3B82F6;margin-right:.3rem;"></i>${km.toFixed(1)} km to ${c.name}</span>
-    <span class="badge shf-prox-b" style="background:rgba(59,130,246,.10);color:#1E5FA8;border:1px solid rgba(59,130,246,.22);flex:1;text-align:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);"><i class="fas fa-taxi" style="color:#3B82F6;margin-right:.3rem;"></i>~TSh ${cost.toLocaleString('en-TZ')}/day</span>
-    <span class="badge shf-prox-b" style="background:rgba(59,130,246,.10);color:#1E5FA8;border:1px solid rgba(59,130,246,.22);flex:1;text-align:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);"><i class="fas fa-person-walking" style="color:#3B82F6;margin-right:.3rem;"></i>${walk}</span>
+    <span class="badge" style="background:#E0F2FE;color:#0369A1;border:none;flex:1;text-align:center;">📍 ${km.toFixed(1)} km to ${c.name}</span>
+    <span class="badge" style="background:#FEF3C7;color:#92400E;border:none;flex:1;text-align:center;">🛺 ~TSh ${cost.toLocaleString('en-TZ')}/day</span>
+    <span class="badge" style="background:#DCFCE7;color:#166534;border:none;flex:1;text-align:center;">🚶 ${walk}</span>
   </div>`;
 };
 

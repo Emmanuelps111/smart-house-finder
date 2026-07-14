@@ -616,9 +616,9 @@
           <div class="shf-sw-body">
             <div class="shf-sw-badge"><i class="fas fa-graduation-cap"></i> <span>Verified Student</span></div>
             <h2 class="shf-sw-title">🎓 Welcome ${escapeHtml(name)}</h2>
-            <p class="shf-sw-text">🛑 Zero dalali fees. 🤝 Match roommates safely. 📐 Live campus-distance sorting across Mlimani, COICT, MUHAS &amp; DUCE.</p>
+            <p class="shf-sw-text">As a verified student, MakaziLink helps you find accommodation faster, save money, and connect with other students. Discover the exclusive benefits available only to students.</p>
             <a href="/student-portal.html" class="shf-sw-btn">
-              <i class="fas fa-bolt"></i> ⚡ Start Exploring Campus Housing
+              <i class="fas fa-sparkles"></i> Explore Student Benefits
               <i class="fas fa-arrow-right" style="margin-left:.35rem;"></i>
             </a>
           </div>
