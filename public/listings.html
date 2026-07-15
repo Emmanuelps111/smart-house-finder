@@ -149,7 +149,7 @@
     <div class="filter-bar" style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
       <input id="searchInput" type="text" placeholder="Search by city or title..." style="flex:1; min-width:240px; padding:.75rem 1.2rem; border:1px solid var(--border); border-radius:9999px; background:var(--bg); color:var(--text);" />
 
-      <div class="shf-dd" data-dd="campus" style="position:relative;">
+      <div class="shf-dd" data-dd="campus" id="campusDdWrap" style="position:relative; display:none;">
         <button type="button" class="shf-dd-btn" data-dd-btn>
           <i class="fas fa-graduation-cap" style="margin-right:.4rem;opacity:.7;"></i>
           <span data-dd-label>Select UDSM Campus</span>
@@ -320,12 +320,19 @@
 
   initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
   initDropdown('sort',  sortOptions,  'newest', (v) => { sortEl.value = v; render(); });
-  initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
-    window.SHF.setCampus(v);
-    // auto-switch sort to distance when a specific campus is picked
-    if (v !== 'all') { sortEl.value = 'distance'; }
-    render();
-  });
+  function isStudent() {
+    try { const u = JSON.parse(localStorage.getItem('shf-user')||'null'); return !!u && u.role === 'student'; }
+    catch(e){ return false; }
+  }
+  if (isStudent()) {
+    const wrap = document.getElementById('campusDdWrap');
+    if (wrap) wrap.style.display = '';
+    initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
+      window.SHF.setCampus(v);
+      if (v !== 'all') { sortEl.value = 'distance'; }
+      render();
+    });
+  }
 
   function render() {
     const admin = isAdmin();
@@ -381,13 +388,12 @@
           <h3 class="lc-title">${l.title}</h3>
           <div class="lc-price">${SHF.formatPrice(l.price)} <small>/ month</small></div>
           <div class="lc-meta">
-            <span>🛏️ ${l.beds} Bed${l.beds===1?'':'s'}</span>
+            <span><i class="fas fa-bed" style="color:#3B82F6;margin-right:.25rem;"></i> ${l.beds} Bed${l.beds===1?'':'s'}</span>
             <span class="dot">•</span>
-            <span>🚿 ${l.baths} Bath${l.baths===1?'':'s'}</span>
+            <span><i class="fas fa-bath" style="color:#3B82F6;margin-right:.25rem;"></i> ${l.baths} Bath${l.baths===1?'':'s'}</span>
             <span class="dot">•</span>
-            <span>📐 ${l.area}</span>
+            <span><i class="fas fa-ruler-combined" style="color:#3B82F6;margin-right:.25rem;"></i> ${l.area}</span>
           </div>
-          <p class="lc-desc">${l.desc || ''}</p>
           <div class="lc-spacer"></div>
           ${SHF.proximityBadges(l.lat, l.lng) ? `<div class="lc-prox">${SHF.proximityBadges(l.lat, l.lng).replace(/<div[^>]*>|<\/div>/g,'')}</div>` : ''}
           <div class="lc-foot">
