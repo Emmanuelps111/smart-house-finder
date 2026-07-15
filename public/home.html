@@ -141,7 +141,7 @@
       <article class="list-card" tabindex="0" role="link"
         onclick="if(!event.target.closest('[data-lightbox]') && !event.target.closest('[data-no-nav]')) location.href='/detail.html?id=${l.id}'"
         onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('[data-no-nav]')){event.preventDefault();location.href='/detail.html?id=${l.id}'}">
-        <div class="lc-media">${media}${occPill(l.occupancy)}${playOverlay}</div>
+        <div class="lc-media">${media}${playOverlay}</div>
         <div class="lc-body">
           <div class="lc-location"><i class="fas fa-location-dot"></i> ${l.city||''}</div>
           <h3 class="lc-title">${l.title}</h3>
