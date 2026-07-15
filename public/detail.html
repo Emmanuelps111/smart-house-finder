@@ -389,6 +389,11 @@
           const pref = d.preferred_gender || 'Any';
           const needed = d.roommates_needed || '1';
           const budget = d.max_budget ? Number(d.max_budget).toLocaleString() : null;
+          const courseMajor = escapeHtml(d.course_major || '');
+          const homeCampus = escapeHtml(d.home_campus || '');
+          const acadLine = (courseMajor || homeCampus)
+            ? `<div class="rm-acad" style="font-size:.8rem; color:#64748b; margin-top:.15rem; display:flex; align-items:center; gap:.35rem; flex-wrap:wrap;"><i class="fas fa-graduation-cap" style="color:#3B82F6;"></i><span>${[courseMajor, homeCampus].filter(Boolean).join(' — ')}</span></div>`
+            : '';
           const isMe = cached && cached.id === r.student_id;
           const compactTags = [
             `<span class="rm-chip">👤 ${escapeHtml(gender)}</span>`,
@@ -402,9 +407,12 @@
           return `<div class="rm-row" data-rm-idx="${idx}">
             <div class="rm-head" data-rm-toggle>
               ${avatarHtml(d.name||'Student', r.student_id)}
-              <div style="min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:.4rem;">
-                <span class="rm-name">${name}</span>
-                <span class="rm-inline-tags">${compactTags}</span>
+              <div style="min-width:0; display:flex; flex-direction:column; gap:.2rem; flex:1;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:.4rem;">
+                  <span class="rm-name">${name}</span>
+                  <span class="rm-inline-tags">${compactTags}</span>
+                </div>
+                ${acadLine}
               </div>
               <span class="rm-caret">▾</span>
             </div>
