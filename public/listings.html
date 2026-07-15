@@ -267,10 +267,8 @@
   }
   window.deleteListing = deleteListing;
 
-  function occPill(occ) {
-    const isOcc = occ === 'occupied';
-    return `<span class="lc-occ ${isOcc?'occupied':'vacant'}">${isOcc?'🔴 Occupied':'🟢 Vacant'}</span>`;
-  }
+
+
 
   const sortEl = document.getElementById('sortBy');
 
@@ -352,6 +350,7 @@
     const minBed = parseInt(bedF.value) || 0;
     const maxPrice = parseInt(priceF.value) || Infinity;
     const filtered = SHF_LISTINGS.filter(l =>
+      (l.occupancy !== 'occupied') &&
       (!q || l.title.toLowerCase().includes(q) || l.city.toLowerCase().includes(q)) &&
       l.beds >= minBed && l.price <= maxPrice
     );
@@ -399,7 +398,7 @@
         onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('[data-no-nav]')){event.preventDefault();location.href='/detail.html?id=${l.id}'}">
         <div class="lc-media">
           ${media}
-          ${occPill(l.occupancy)}
+          
           ${videoBadge}
           ${playOverlay}
           ${delBtn}
