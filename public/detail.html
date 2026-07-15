@@ -441,17 +441,83 @@
           h.parentElement.classList.toggle('open');
         }));
 
-        listEl.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const target = b.getAttribute('data-connect');
-          if (!cached){ window.toast.error('Please sign in to send a connect request.'); return; }
+        async function sendConnect(target, b){
           b.disabled = true;
           const sb2 = await window.SHFCloud.ready;
           const { error } = await sb2.rpc('send_roommate_connect', { _target: target, _property_key: propertyKey });
           if (error){ window.toast.error(error.message || 'Could not send request.'); b.disabled = false; return; }
           b.innerHTML = '<i class="fas fa-check"></i> Request sent';
           window.toast.success('Connect request sent. Contacts share only when they accept.');
+        }
+
+        function openProfileCompletionModal(userId, target, b, existing){
+          const overlay = document.createElement('div');
+          overlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:10000; padding:1rem; overflow-y:auto;';
+          const pill = "width:100%; padding:.65rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:rgba(255,255,255,.85); color:#0f172a; appearance:none; -webkit-appearance:none; box-shadow:inset 0 1px 0 rgba(255,255,255,.5);";
+          const chipTags = ['Non-smoker','Early bird','Night owl','Quiet','Social','Neat','Studious','Fitness'];
+          const existingTags = new Set(existing?.habit_tags || []);
+          overlay.innerHTML = `
+            <div style="background:rgba(255,255,255,.96); border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.6rem; max-width:520px; width:100%; box-shadow:0 30px 80px rgba(15,23,42,.35); max-height:92vh; overflow-y:auto;">
+              <h3 style="margin:0 0 .35rem; font-size:1.25rem; display:flex; align-items:center; gap:.5rem;">🎨 Complete Your Student Card</h3>
+              <p style="margin:0 0 1.2rem; color:#64748b; font-size:.88rem; line-height:1.5;">Complete Your Student Card! Before you can team up with other peers, please take 10 seconds to confirm your University Course, Gender, and Room Habits so they know who they are connecting with.</p>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Gender</label>
+              <select id="jit_gender" style="${pill} margin-bottom:.85rem;">
+                <option value="">Select…</option>
+                <option ${existing?.gender==='Male'?'selected':''}>Male</option>
+                <option ${existing?.gender==='Female'?'selected':''}>Female</option>
+              </select>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Course / Major</label>
+              <input id="jit_course" type="text" placeholder="e.g., BSc Business Information Technology" value="${escapeHtml(existing?.course_major||'')}" style="${pill} margin-bottom:.85rem;" />
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Room Habits <small style="color:#64748b; font-weight:400;">(tap to select)</small></label>
+              <div id="jit_tags" style="display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1.1rem;">
+                ${chipTags.map(t => `<button type="button" data-tag="${escapeHtml(t)}" class="jit-tag" style="border-radius:9999px; padding:.4rem .85rem; font-size:.82rem; border:1px solid rgba(148,163,184,.5); background:${existingTags.has(t)?'#3B82F6':'rgba(255,255,255,.85)'}; color:${existingTags.has(t)?'#fff':'#0f172a'}; cursor:pointer;">${escapeHtml(t)}</button>`).join('')}
+              </div>
+              <div style="display:flex; gap:.5rem; justify-content:flex-end;">
+                <button id="jit_cancel" class="btn btn-outline" style="border-radius:9999px;">Cancel</button>
+                <button id="jit_save" class="btn btn-primary" style="border-radius:9999px; background:#3B82F6;"><i class="fas fa-paper-plane"></i> Update Profile & Send</button>
+              </div>
+            </div>`;
+          document.body.appendChild(overlay);
+          const close = () => overlay.remove();
+          overlay.querySelector('#jit_cancel').addEventListener('click', () => { close(); b.disabled = false; });
+          overlay.addEventListener('click', (e) => { if (e.target === overlay){ close(); b.disabled = false; } });
+          const selected = new Set(existingTags);
+          overlay.querySelectorAll('.jit-tag').forEach(btn => btn.addEventListener('click', () => {
+            const tag = btn.getAttribute('data-tag');
+            if (selected.has(tag)){ selected.delete(tag); btn.style.background='rgba(255,255,255,.85)'; btn.style.color='#0f172a'; }
+            else { selected.add(tag); btn.style.background='#3B82F6'; btn.style.color='#fff'; }
+          }));
+          overlay.querySelector('#jit_save').addEventListener('click', async () => {
+            const gender = overlay.querySelector('#jit_gender').value;
+            const course = overlay.querySelector('#jit_course').value.trim();
+            if (!gender || !course){ window.toast.error('Please fill Gender and Course.'); return; }
+            const saveBtn = overlay.querySelector('#jit_save'); saveBtn.disabled = true;
+            const sb2 = await window.SHFCloud.ready;
+            const { error: uErr } = await sb2.from('profiles').update({
+              gender, course_major: course, habit_tags: Array.from(selected),
+            }).eq('id', userId);
+            if (uErr){ window.toast.error(uErr.message); saveBtn.disabled = false; return; }
+            close();
+            await sendConnect(target, b);
+          });
+        }
+
+        listEl.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const target = b.getAttribute('data-connect');
+          if (!cached){ window.toast.error('Please sign in to send a connect request.'); return; }
+          b.disabled = true;
+          const sb2 = await window.SHFCloud.ready;
+          const { data: prof } = await sb2.from('profiles')
+            .select('gender, course_major, home_campus, habit_tags')
+            .eq('id', cached.id).maybeSingle();
+          if (!prof || !prof.gender || !prof.course_major){
+            openProfileCompletionModal(cached.id, target, b, prof || {});
+            return;
+          }
+          await sendConnect(target, b);
         }));
+
       }
 
 
