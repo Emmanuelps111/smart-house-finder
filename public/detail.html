@@ -595,7 +595,9 @@
             const cleanliness = overlay.querySelector('#rm_clean').value;
             const sleep = overlay.querySelector('#rm_sleep').value;
             const bio = overlay.querySelector('#rm_bio').value.trim();
-            if (!name || !phone || !gender || !preferred_gender || !roommates_needed || !max_budget || !smoking || !cleanliness || !sleep || !bio){
+            const course_major = overlay.querySelector('#rm_course').value.trim();
+            const home_campus = overlay.querySelector('#rm_campus').value;
+            if (!name || !phone || !gender || !preferred_gender || !roommates_needed || !max_budget || !smoking || !cleanliness || !sleep || !bio || !course_major || !home_campus){
               window.toast.error('Please fill all fields.'); return;
             }
             if (!/^\+?\d[\d\s-]{7,}$/.test(phone)){ window.toast.error('Enter a valid phone number.'); return; }
@@ -609,6 +611,7 @@
               name, gender, preferred_gender, roommates_needed,
               max_budget: Number(max_budget) || null,
               smoking, cleanliness, sleep, bio,
+              course_major, home_campus,
               property_title: l.title || null,
               submitted_at: new Date().toISOString(),
             };
