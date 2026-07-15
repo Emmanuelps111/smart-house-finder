@@ -320,12 +320,19 @@
 
   initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
   initDropdown('sort',  sortOptions,  'newest', (v) => { sortEl.value = v; render(); });
-  initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
-    window.SHF.setCampus(v);
-    // auto-switch sort to distance when a specific campus is picked
-    if (v !== 'all') { sortEl.value = 'distance'; }
-    render();
-  });
+  function isStudent() {
+    try { const u = JSON.parse(localStorage.getItem('shf-user')||'null'); return !!u && u.role === 'student'; }
+    catch(e){ return false; }
+  }
+  if (isStudent()) {
+    const wrap = document.getElementById('campusDdWrap');
+    if (wrap) wrap.style.display = '';
+    initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
+      window.SHF.setCampus(v);
+      if (v !== 'all') { sortEl.value = 'distance'; }
+      render();
+    });
+  }
 
   function render() {
     const admin = isAdmin();
