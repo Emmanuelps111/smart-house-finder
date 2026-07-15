@@ -347,6 +347,17 @@
     'No one has requested a roommate here yet. Be the first!': 'Hakuna aliyeomba mwenzi hapa bado. Kuwa wa kwanza!',
     'Students looking to co-tenant this property.': 'Wanafunzi wanaotafuta kupanga pamoja nyumba hii.',
     'Phone (for the admin to share with your match)': 'Simu (ili msimamizi ashiriki na mwenzi wako)',
+    'Your University Course / Major': 'Kozi/Fani yako Chuoni',
+    'Your Home Campus Branch': 'Kampasi yako ya Msingi',
+    'Find a Roommate': 'Tafuta Mwenzi wa Chumba',
+    'Post Roommate Request': 'Tuma Ombi la Mwenzi',
+    'Your name': 'Jina lako',
+    'Your Gender': 'Jinsia yako',
+    'Preferred Roommate Gender': 'Jinsia Inayopendelewa ya Mwenzi',
+    'Number of Roommates Needed': 'Idadi ya Wenzi Inayohitajika',
+    'Maximum Rent Budget': 'Bajeti ya Juu ya Kodi',
+    'Smoking / Alcohol Tolerance': 'Uvumilivu wa Sigara / Pombe',
+    'Cancel': 'Ghairi',
 
     // ── Reviews ─────────────────────────────────────────────────────────
     '⭐ Reviews': '⭐ Tathmini',
