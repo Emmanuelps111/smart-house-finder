@@ -556,6 +556,10 @@ export type Database = {
         Args: { _property_key: string; _target: string }
         Returns: undefined
       }
+      set_initial_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "student" | "landlord" | "admin" | "renter"
