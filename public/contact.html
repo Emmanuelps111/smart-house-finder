@@ -8,6 +8,93 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link rel="stylesheet" href="/css/styles.css" />
+<style>
+  /* Semi-Solid Matte cards — high-contrast shield behind typography on any background */
+  .ssm-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(226,232,240,0.6); /* slate-200/60 */
+    border-radius: 1rem; /* rounded-2xl */
+    padding: 1.75rem;
+    box-shadow: 0 10px 30px -12px rgba(15,23,42,0.15);
+    color: #1e293b; /* slate-800 */
+  }
+  .ssm-card h2 { color: #0f172a; margin-top: 0; }
+  .ssm-card .info-line {
+    color: #1e293b; /* slate-800 */
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin: .55rem 0;
+    word-break: break-word;
+  }
+  .ssm-card .info-line i { color: var(--primary); width: 22px; text-align: center; }
+  .ssm-map {
+    width: 100%;
+    height: 280px;
+    border: 0;
+    border-radius: 1rem; /* rounded-2xl */
+    margin-top: 1rem;
+    display: block;
+  }
+  .ssm-form .form-row { margin-bottom: 1rem; }
+  .ssm-form label {
+    display: block;
+    color: #1e293b;
+    font-weight: 600;
+    margin-bottom: .35rem;
+    font-size: .9rem;
+  }
+  .ssm-form input,
+  .ssm-form textarea {
+    width: 100%;
+    background: #f8fafc; /* slate-50 */
+    border: 1px solid rgba(226,232,240,0.9);
+    border-radius: .75rem;
+    padding: .75rem .9rem;
+    color: #0f172a;
+    font: inherit;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  .ssm-form input:focus,
+  .ssm-form textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+    background: #ffffff;
+  }
+  .ssm-form textarea { min-height: 130px; resize: vertical; }
+  .ssm-send {
+    width: 100%;
+    justify-content: center;
+    border-radius: 9999px !important; /* pill */
+    padding: .85rem 1.25rem;
+    font-weight: 600;
+  }
+  @media (prefers-color-scheme: dark) {
+    .ssm-card {
+      background: rgba(9,17,36,0.85); /* dark navy */
+      border-color: rgba(30,41,59,0.8); /* slate-800/80 */
+      color: #f1f5f9; /* slate-100 */
+      box-shadow: 0 10px 30px -12px rgba(0,0,0,0.5);
+    }
+    .ssm-card h2 { color: #f8fafc; }
+    .ssm-card .info-line { color: #f1f5f9; }
+    .ssm-form label { color: #f1f5f9; }
+    .ssm-form input,
+    .ssm-form textarea {
+      background: rgba(15,23,42,0.9); /* slate-900/90 */
+      border-color: rgba(30,41,59,0.9);
+      color: #f8fafc;
+    }
+    .ssm-form input:focus,
+    .ssm-form textarea:focus { background: rgba(15,23,42,1); }
+  }
+  @media (max-width: 800px) {
+    .contact-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+  }
+</style>
 </head>
 <body>
 <div id="header-mount"></div>
@@ -20,20 +107,20 @@
 </section>
 
 <section>
-  <div class="container" style="display:grid; grid-template-columns:1fr 1fr; gap:3rem;">
-    <div class="reveal">
+  <div class="container contact-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+    <div class="ssm-card reveal">
       <h2>Contact details</h2>
-      <p><i class="fas fa-envelope" style="color:var(--primary); width:24px;"></i> support@smarthousefinder.co.tz</p>
-      <p><i class="fas fa-phone" style="color:var(--primary); width:24px;"></i> +255 717 656 841</p>
-      <p><i class="fas fa-location-dot" style="color:var(--primary); width:24px;"></i> Mlimani City Tower, Sam Nujoma Rd, Dar es Salaam, Tanzania</p>
-      <iframe title="Office location" style="width:100%; height:280px; border:0; border-radius:var(--radius); margin-top:1rem;" loading="lazy"
+      <p class="info-line"><i class="fas fa-envelope"></i> <a href="mailto:support@smarthousefinder.co.tz" style="color:inherit; text-decoration:none;">support@smarthousefinder.co.tz</a></p>
+      <p class="info-line"><i class="fas fa-phone"></i> +255 717 656 841</p>
+      <p class="info-line"><i class="fas fa-location-dot"></i> Mlimani City Tower, Sam Nujoma Rd, Dar es Salaam, Tanzania</p>
+      <iframe class="ssm-map" title="Office location" loading="lazy"
         src="https://www.openstreetmap.org/export/embed.html?bbox=39.20%2C-6.78%2C39.30%2C-6.74&layer=mapnik&marker=-6.7665%2C39.2418"></iframe>
     </div>
-    <form id="contactForm" class="form reveal" novalidate>
-      <div class="form-row"><label for="cf-name">Name</label><input id="cf-name" type="text" /><span class="error"></span></div>
-      <div class="form-row"><label for="cf-email">Email</label><input id="cf-email" type="email" /><span class="error"></span></div>
-      <div class="form-row"><label for="cf-msg">Message</label><textarea id="cf-msg"></textarea><span class="error"></span></div>
-      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Send message <i class="fas fa-paper-plane"></i></button>
+    <form id="contactForm" class="ssm-card ssm-form reveal" novalidate>
+      <div class="form-row"><label for="cf-name">Name</label><input id="cf-name" type="text" placeholder="John Doe" /><span class="error"></span></div>
+      <div class="form-row"><label for="cf-email">Email</label><input id="cf-email" type="email" placeholder="jdoe@example.com" /><span class="error"></span></div>
+      <div class="form-row"><label for="cf-msg">Message</label><textarea id="cf-msg" placeholder="Hi, I'm interested in viewing a property..."></textarea><span class="error"></span></div>
+      <button type="submit" class="btn btn-primary ssm-send">Send message <i class="fas fa-paper-plane"></i></button>
     </form>
   </div>
 </section>
