@@ -367,11 +367,19 @@
       const delBtn = (admin && l.dbId)
         ? `<button class="lc-del" data-no-nav onclick="event.stopPropagation(); deleteListing('${l.dbId}','${safeTitle}')" title="Delete listing"><i class="fas fa-trash"></i></button>`
         : '';
-      const media = l.img
+      const hasImg = !!l.img;
+      const hasVid = !!l.video_url;
+      const media = hasImg
         ? `<img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />`
-        : `<div class="lc-empty"><i class="fas ${l.has_video ? 'fa-circle-play' : 'fa-house'}"></i><span>${l.has_video ? 'VIDEO TOUR' : 'NO PHOTOS'}</span></div>`;
-      const playOverlay = (l.has_video && l.img)
-        ? `<div class="lc-play"><i class="fas fa-play"></i></div>` : '';
+        : (hasVid
+            ? `<img class="lc-poster" data-poster-src="${l.video_url}" src="" alt="${l.title}" style="background:#0f172a;" />`
+            : `<div class="lc-empty"><i class="fas fa-house"></i><span>NO PHOTOS</span></div>`);
+      const playOverlay = (hasVid && (hasImg || true) && (hasImg || hasVid))
+        ? (hasImg || hasVid ? `<div class="lc-play"><i class="fas fa-play"></i></div>` : '')
+        : '';
+      const videoBadge = hasVid
+        ? `<span class="lc-vidbadge"><i class="fas fa-play" style="font-size:.6rem;"></i> Video Tour</span>`
+        : '';
       const location = l.city || '';
       return `
       <article class="list-card" tabindex="0" role="link"
