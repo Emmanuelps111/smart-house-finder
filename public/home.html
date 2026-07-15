@@ -150,11 +150,10 @@
           <h3 class="lc-title">${l.title}</h3>
           <div class="lc-price">${SHF.formatPrice(l.price)} <small>/ month</small></div>
           <div class="lc-meta">
-            <span>🛏️ ${l.beds} Bed${l.beds===1?'':'s'}</span><span class="dot">•</span>
-            <span>🚿 ${l.baths} Bath${l.baths===1?'':'s'}</span><span class="dot">•</span>
-            <span>📐 ${l.area}</span>
+            <span><i class="fas fa-bed" style="color:#3B82F6;margin-right:.25rem;"></i> ${l.beds} Bed${l.beds===1?'':'s'}</span><span class="dot">•</span>
+            <span><i class="fas fa-bath" style="color:#3B82F6;margin-right:.25rem;"></i> ${l.baths} Bath${l.baths===1?'':'s'}</span><span class="dot">•</span>
+            <span><i class="fas fa-ruler-combined" style="color:#3B82F6;margin-right:.25rem;"></i> ${l.area}</span>
           </div>
-          <p class="lc-desc">${l.desc || ''}</p>
           <div class="lc-spacer"></div>
           ${prox ? `<div class="lc-prox">${prox.replace(/<div[^>]*>|<\/div>/g,'')}</div>` : ''}
           <div class="lc-foot">
