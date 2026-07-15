@@ -129,13 +129,43 @@
           }
           const unread = data.filter(n => !n.read).length;
           subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
+          // For any connect requests, prefetch sender profiles for the intro card
+          const connectSenderIds = Array.from(new Set(
+            data.filter(n => typeof n.type === 'string' && n.type.startsWith('roommate_connect_request:'))
+                .map(n => n.type.split(':')[1]).filter(Boolean)
+          ));
+          const senderMap = {};
+          if (connectSenderIds.length){
+            const { data: profs } = await sb.from('profiles')
+              .select('id, full_name, gender, course_major, home_campus, habit_tags')
+              .in('id', connectSenderIds);
+            (profs||[]).forEach(p => { senderMap[p.id] = p; });
+          }
+
           list.innerHTML = data.map(n => {
             const isConnect = typeof n.type === 'string' && n.type.startsWith('roommate_connect_request:');
             const iconKey = isConnect ? 'roommate_match' : n.type;
             const senderId = isConnect ? n.type.split(':')[1] : '';
-            const actionHtml = isConnect
-              ? `<button class="btn btn-primary" data-accept="${esc(senderId)}" data-notif="${n.id}" style="font-size:.78rem; padding:.35rem .7rem; margin-top:.4rem;"><i class="fas fa-check"></i> Accept & share contact</button>`
-              : '';
+            let actionHtml = '';
+            if (isConnect){
+              const sp = senderMap[senderId] || {};
+              const tags = Array.isArray(sp.habit_tags) ? sp.habit_tags : [];
+              const tagChips = tags.map(t => `<span style="display:inline-block; padding:.15rem .55rem; border-radius:9999px; background:rgba(59,130,246,.12); color:#1d4ed8; font-size:.72rem; font-weight:600;">${esc(t)}</span>`).join(' ');
+              const courseLine = [sp.course_major, sp.home_campus].filter(Boolean).map(esc).join(' — ');
+              actionHtml = `
+                <div class="connect-intro" style="margin-top:.6rem; padding:.85rem 1rem; border-radius:16px; background:rgba(255,255,255,.85); border:1px solid rgba(148,163,184,.35); box-shadow:inset 0 1px 0 rgba(255,255,255,.5);">
+                  <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.35rem;">
+                    <strong style="font-size:.95rem; color:#0f172a;">${esc(sp.full_name || 'Student')}</strong>
+                    ${sp.gender ? `<span style="font-size:.72rem; padding:.15rem .55rem; border-radius:9999px; background:rgba(15,23,42,.06); color:#334155; font-weight:600;">👤 ${esc(sp.gender)}</span>` : ''}
+                  </div>
+                  ${courseLine ? `<div style="font-size:.8rem; color:#64748b; display:flex; align-items:center; gap:.35rem; margin-bottom:.4rem;"><i class="fas fa-graduation-cap" style="color:#3B82F6;"></i><span>${courseLine}</span></div>` : ''}
+                  ${tagChips ? `<div style="display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.55rem;">${tagChips}</div>` : ''}
+                  <div style="display:flex; flex-wrap:wrap; gap:.4rem;">
+                    <button class="btn btn-primary" data-accept="${esc(senderId)}" data-notif="${n.id}" style="font-size:.8rem; padding:.4rem .9rem; border-radius:9999px; background:#3B82F6;"><i class="fas fa-check"></i> Accept &amp; share contact</button>
+                    <button data-decline-mute="${n.id}" data-sender="${esc(senderId)}" style="font-size:.8rem; padding:.4rem .9rem; border-radius:9999px; background:rgba(255,255,255,.85); border:1px solid rgba(239,68,68,.4); color:#dc2626; cursor:pointer; font-weight:600;">🔴 Decline &amp; Mute</button>
+                  </div>
+                </div>`;
+            }
             return `
             <div class="notif-card ${n.read?'':'unread'}" data-id="${n.id}" data-link="${esc(n.link||'')}">
               <div class="notif-icon ic-${esc(iconKey)}"><i class="fas fa-${iconFor(iconKey)}"></i></div>
@@ -152,7 +182,7 @@
           }).join('');
           list.querySelectorAll('.notif-card').forEach(c => {
             c.addEventListener('click', async (e) => {
-              if (e.target.closest('[data-del]') || e.target.closest('[data-accept]')) return;
+              if (e.target.closest('[data-del]') || e.target.closest('[data-accept]') || e.target.closest('[data-decline-mute]')) return;
               const id = c.dataset.id, link = c.dataset.link;
               if (c.classList.contains('unread')) {
                 await sb.from('notifications').update({ read: true }).eq('id', id);
@@ -169,6 +199,17 @@
             if (error){ window.toast.error(error.message || 'Could not accept.'); b.disabled = false; return; }
             await sb.from('notifications').update({ read: true }).eq('id', notifId);
             window.toast.success('Accepted! Contacts have been shared with both of you.');
+            load();
+          }));
+          list.querySelectorAll('[data-decline-mute]').forEach(b => b.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const notifId = b.getAttribute('data-decline-mute');
+            const senderId = b.getAttribute('data-sender');
+            b.disabled = true;
+            // Silent decline: quietly remove the notification from THIS user's view.
+            // No rejection notification is sent back to the sender — the request
+            // vanishes without creating a discouraging experience.
+            await sb.from('notifications').delete().eq('id', notifId);
             load();
           }));
           list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async (e) => {

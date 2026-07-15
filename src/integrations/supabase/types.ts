@@ -144,9 +144,13 @@ export type Database = {
           cleanliness_preference:
             | Database["public"]["Enums"]["cleanliness_pref"]
             | null
+          course_major: string | null
           created_at: string
           full_name: string | null
+          gender: string | null
           google_id: string | null
+          habit_tags: string[] | null
+          home_campus: string | null
           id: string
           national_id: string | null
           nid_back_url: string | null
@@ -174,9 +178,13 @@ export type Database = {
           cleanliness_preference?:
             | Database["public"]["Enums"]["cleanliness_pref"]
             | null
+          course_major?: string | null
           created_at?: string
           full_name?: string | null
+          gender?: string | null
           google_id?: string | null
+          habit_tags?: string[] | null
+          home_campus?: string | null
           id: string
           national_id?: string | null
           nid_back_url?: string | null
@@ -204,9 +212,13 @@ export type Database = {
           cleanliness_preference?:
             | Database["public"]["Enums"]["cleanliness_pref"]
             | null
+          course_major?: string | null
           created_at?: string
           full_name?: string | null
+          gender?: string | null
           google_id?: string | null
+          habit_tags?: string[] | null
+          home_campus?: string | null
           id?: string
           national_id?: string | null
           nid_back_url?: string | null
