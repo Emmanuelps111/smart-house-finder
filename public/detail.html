@@ -389,6 +389,11 @@
           const pref = d.preferred_gender || 'Any';
           const needed = d.roommates_needed || '1';
           const budget = d.max_budget ? Number(d.max_budget).toLocaleString() : null;
+          const courseMajor = escapeHtml(d.course_major || '');
+          const homeCampus = escapeHtml(d.home_campus || '');
+          const acadLine = (courseMajor || homeCampus)
+            ? `<div class="rm-acad" style="font-size:.8rem; color:#64748b; margin-top:.15rem; display:flex; align-items:center; gap:.35rem; flex-wrap:wrap;"><i class="fas fa-graduation-cap" style="color:#3B82F6;"></i><span>${[courseMajor, homeCampus].filter(Boolean).join(' — ')}</span></div>`
+            : '';
           const isMe = cached && cached.id === r.student_id;
           const compactTags = [
             `<span class="rm-chip">👤 ${escapeHtml(gender)}</span>`,
@@ -402,9 +407,12 @@
           return `<div class="rm-row" data-rm-idx="${idx}">
             <div class="rm-head" data-rm-toggle>
               ${avatarHtml(d.name||'Student', r.student_id)}
-              <div style="min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:.4rem;">
-                <span class="rm-name">${name}</span>
-                <span class="rm-inline-tags">${compactTags}</span>
+              <div style="min-width:0; display:flex; flex-direction:column; gap:.2rem; flex:1;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:.4rem;">
+                  <span class="rm-name">${name}</span>
+                  <span class="rm-inline-tags">${compactTags}</span>
+                </div>
+                ${acadLine}
               </div>
               <span class="rm-caret">▾</span>
             </div>
@@ -477,29 +485,48 @@
             .eq('id', userId).maybeSingle();
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem; overflow-y:auto;';
+          const pillFieldStyle = "width:100%; padding:.6rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:rgba(255,255,255,.85); color:#0f172a; box-shadow:inset 0 1px 0 rgba(255,255,255,.5); appearance:none; -webkit-appearance:none;";
+          const pillTextareaStyle = "width:100%; padding:.7rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:20px; background:rgba(255,255,255,.85); color:#0f172a; resize:vertical; font-family:inherit;";
           overlay.innerHTML = `
-            <div style="background:var(--surface,#fff); border-radius:16px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
-              <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;">🙋 Find a Roommate</h3>
+            <div style="background:var(--surface,#fff); border-radius:20px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
+              <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;">🙋 <span data-i18n>Find a Roommate</span></h3>
               <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.88rem;">Set your preferences. Your phone is saved privately to your profile and is <strong>never shown</strong> to other students — it's only shared when both of you accept a connect request.</p>
 
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Your name</label>
-              <input id="rm_name" type="text" value="${escapeHtml(prof?.full_name||'')}" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;" />
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your name</label>
+              <input id="rm_name" type="text" value="${escapeHtml(prof?.full_name||'')}" style="${pillFieldStyle} margin-bottom:.85rem;" />
 
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Phone <small style="color:var(--text-muted); font-weight:400;">— private, saved to your profile only</small></label>
-              <input id="rm_phone" type="tel" placeholder="+255…" value="${escapeHtml(prof?.phone||'')}" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;" />
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;"><span data-i18n>Phone</span> <small style="color:var(--text-muted); font-weight:400;" data-i18n>— private, saved to your profile only</small></label>
+              <input id="rm_phone" type="tel" placeholder="+255…" value="${escapeHtml(prof?.phone||'')}" style="${pillFieldStyle} margin-bottom:.85rem;" />
 
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
                 <div>
-                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Your Gender</label>
-                  <select id="rm_gender" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your University Course / Major</label>
+                  <input id="rm_course" type="text" placeholder="e.g., BSc Business Information Technology" style="${pillFieldStyle}" />
+                </div>
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Home Campus Branch</label>
+                  <select id="rm_campus" style="${pillFieldStyle}">
+                    <option value="">Select…</option>
+                    <option>Main Campus (Mlimani)</option>
+                    <option>COICT Kijitonyama</option>
+                    <option>MUHAS Upanga</option>
+                    <option>DUCE Chang'ombe</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
+                <div>
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Gender</label>
+                  <select id="rm_gender" style="${pillFieldStyle}">
                     <option value="">Select…</option>
                     <option>Male</option>
                     <option>Female</option>
                   </select>
                 </div>
                 <div>
-                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Preferred Roommate Gender</label>
-                  <select id="rm_pref_gender" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Preferred Roommate Gender</label>
+                  <select id="rm_pref_gender" style="${pillFieldStyle}">
                     <option value="">Select…</option>
                     <option>Same Gender Only</option>
                     <option>Any</option>
@@ -509,48 +536,48 @@
 
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
                 <div>
-                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Number of Roommates Needed</label>
-                  <select id="rm_count" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;">
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Number of Roommates Needed</label>
+                  <select id="rm_count" style="${pillFieldStyle}">
                     <option value="">Select…</option>
                     <option>1</option><option>2</option><option>3</option><option>4+</option>
                   </select>
                 </div>
                 <div>
-                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Maximum Rent Budget</label>
-                  <input id="rm_budget" type="number" min="0" placeholder="TSh per Month/Semester" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px;" />
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Maximum Rent Budget</label>
+                  <input id="rm_budget" type="number" min="0" placeholder="TSh per Month/Semester" style="${pillFieldStyle}" />
                 </div>
               </div>
 
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Smoking / Alcohol Tolerance</label>
-              <select id="rm_smoking" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Smoking / Alcohol Tolerance</label>
+              <select id="rm_smoking" style="${pillFieldStyle} margin-bottom:.85rem;">
                 <option value="">Select…</option>
                 <option>No Smoking/Drinking</option>
                 <option>Allowed Outside</option>
                 <option>No Preference</option>
               </select>
 
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Cleanliness preference</label>
-              <select id="rm_clean" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Cleanliness preference</label>
+              <select id="rm_clean" style="${pillFieldStyle} margin-bottom:.85rem;">
                 <option value="">Select…</option>
                 <option ${prof?.cleanliness_preference==='High'?'selected':''}>High</option>
                 <option ${prof?.cleanliness_preference==='Medium'?'selected':''}>Medium</option>
                 <option ${prof?.cleanliness_preference==='Flexible'?'selected':''}>Flexible</option>
               </select>
 
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Sleep schedule</label>
-              <select id="rm_sleep" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.85rem;">
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Sleep schedule</label>
+              <select id="rm_sleep" style="${pillFieldStyle} margin-bottom:.85rem;">
                 <option value="">Select…</option>
                 <option ${prof?.sleep_schedule==='Early Bird'?'selected':''}>Early Bird</option>
                 <option ${prof?.sleep_schedule==='Night Owl'?'selected':''}>Night Owl</option>
                 <option ${prof?.sleep_schedule==='Flexible'?'selected':''}>Flexible</option>
               </select>
 
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.25rem;">Short bio</label>
-              <textarea id="rm_bio" rows="2" maxlength="280" placeholder="A few words about you…" style="width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; resize:vertical; font-family:inherit; margin-bottom:.85rem;">${escapeHtml(prof?.bio||'')}</textarea>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Short bio</label>
+              <textarea id="rm_bio" rows="2" maxlength="280" placeholder="A few words about you…" style="${pillTextareaStyle} margin-bottom:.85rem;">${escapeHtml(prof?.bio||'')}</textarea>
 
               <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem;">
-                <button id="rm_cancel" class="btn btn-outline">Cancel</button>
-                <button id="rm_send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Post Roommate Request</button>
+                <button id="rm_cancel" class="btn btn-outline" style="border-radius:9999px;" data-i18n>Cancel</button>
+                <button id="rm_send" class="btn btn-primary" style="border-radius:9999px;"><i class="fas fa-paper-plane"></i> <span data-i18n>Post Roommate Request</span></button>
               </div>
             </div>`;
           document.body.appendChild(overlay);
@@ -568,7 +595,9 @@
             const cleanliness = overlay.querySelector('#rm_clean').value;
             const sleep = overlay.querySelector('#rm_sleep').value;
             const bio = overlay.querySelector('#rm_bio').value.trim();
-            if (!name || !phone || !gender || !preferred_gender || !roommates_needed || !max_budget || !smoking || !cleanliness || !sleep || !bio){
+            const course_major = overlay.querySelector('#rm_course').value.trim();
+            const home_campus = overlay.querySelector('#rm_campus').value;
+            if (!name || !phone || !gender || !preferred_gender || !roommates_needed || !max_budget || !smoking || !cleanliness || !sleep || !bio || !course_major || !home_campus){
               window.toast.error('Please fill all fields.'); return;
             }
             if (!/^\+?\d[\d\s-]{7,}$/.test(phone)){ window.toast.error('Enter a valid phone number.'); return; }
@@ -582,6 +611,7 @@
               name, gender, preferred_gender, roommates_needed,
               max_budget: Number(max_budget) || null,
               smoking, cleanliness, sleep, bio,
+              course_major, home_campus,
               property_title: l.title || null,
               submitted_at: new Date().toISOString(),
             };
