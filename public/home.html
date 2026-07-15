@@ -128,13 +128,10 @@
 <script>
   // Render featured listings
   const f = document.getElementById('featured');
-  function occPill(occ) {
-    const isOcc = occ === 'occupied';
-    return `<span class="lc-occ ${isOcc?'occupied':'vacant'}">${isOcc?'🔴 Occupied':'🟢 Vacant'}</span>`;
-  }
   function renderFeatured() {
     if (!f) return;
-    f.innerHTML = SHF_LISTINGS.slice(0,6).map(l => {
+    const available = SHF_LISTINGS.filter(l => l.occupancy !== 'occupied');
+    f.innerHTML = available.slice(0,6).map(l => {
       const media = l.img
         ? `<img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />`
         : `<div class="lc-empty"><i class="fas ${l.has_video ? 'fa-circle-play' : 'fa-house'}"></i><span>${l.has_video ? 'VIDEO TOUR' : 'NO PHOTOS'}</span></div>`;
