@@ -128,13 +128,10 @@
 <script>
   // Render featured listings
   const f = document.getElementById('featured');
-  function occPill(occ) {
-    const isOcc = occ === 'occupied';
-    return `<span class="lc-occ ${isOcc?'occupied':'vacant'}">${isOcc?'🔴 Occupied':'🟢 Vacant'}</span>`;
-  }
   function renderFeatured() {
     if (!f) return;
-    f.innerHTML = SHF_LISTINGS.slice(0,6).map(l => {
+    const available = SHF_LISTINGS.filter(l => l.occupancy !== 'occupied');
+    f.innerHTML = available.slice(0,6).map(l => {
       const media = l.img
         ? `<img data-lightbox src="${l.img}" alt="${l.title}" loading="lazy" />`
         : `<div class="lc-empty"><i class="fas ${l.has_video ? 'fa-circle-play' : 'fa-house'}"></i><span>${l.has_video ? 'VIDEO TOUR' : 'NO PHOTOS'}</span></div>`;
@@ -144,7 +141,7 @@
       <article class="list-card" tabindex="0" role="link"
         onclick="if(!event.target.closest('[data-lightbox]') && !event.target.closest('[data-no-nav]')) location.href='/detail.html?id=${l.id}'"
         onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('[data-no-nav]')){event.preventDefault();location.href='/detail.html?id=${l.id}'}">
-        <div class="lc-media">${media}${occPill(l.occupancy)}${playOverlay}</div>
+        <div class="lc-media">${media}${playOverlay}</div>
         <div class="lc-body">
           <div class="lc-location"><i class="fas fa-location-dot"></i> ${l.city||''}</div>
           <h3 class="lc-title">${l.title}</h3>
