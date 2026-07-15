@@ -532,6 +532,17 @@ export type Database = {
           selfie_url: string
         }[]
       }
+      get_roommate_sender_public: {
+        Args: { _sender: string }
+        Returns: {
+          course_major: string
+          full_name: string
+          gender: string
+          habit_tags: string[]
+          home_campus: string
+          id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
