@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Signing you in… — MakaziLink</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-family:Inter,system-ui,sans-serif;">
+  <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#3B82F6;"></i>
+  <p id="msg" style="color:#374151;">Finishing sign-in…</p>
+</div>
+<script src="/js/cloud.js"></script>
+<script>
+(async function () {
+  const msg = document.getElementById('msg');
+  try {
+    const sb = await window.SHFCloud.ready;
+    // Wait a moment for session to hydrate from URL hash
+    let attempts = 0;
+    let session = null;
+    while (attempts++ < 20) {
+      const { data } = await sb.auth.getSession();
+      if (data.session) { session = data.session; break; }
+      await new Promise(r => setTimeout(r, 150));
+    }
+    if (!session) {
+      msg.textContent = 'Sign-in failed. Redirecting to login…';
+      setTimeout(() => location.href = '/login.html', 1200);
+      return;
+    }
+
+    const uid = session.user.id;
+    // Check if a role has been assigned
+    const { data: roles } = await sb.from('user_roles').select('role').eq('user_id', uid);
+    await window.SHFCloud.syncLocalUser(sb, session);
+
+    if (!roles || roles.length === 0) {
+      // First-time OAuth user — pick role
+      msg.textContent = 'Almost there — one quick step…';
+      location.href = '/select-role.html';
+      return;
+    }
+    const role = roles[0].role;
+    msg.textContent = 'Welcome back!';
+    const target = role === 'admin' ? '/admin'
+      : role === 'landlord' ? '/dashboard.html'
+      : '/listings.html';
+    setTimeout(() => location.href = target, 400);
+  } catch (err) {
+    msg.textContent = err.message || 'Something went wrong.';
+    setTimeout(() => location.href = '/login.html', 1500);
+  }
+})();
+</script>
+</body>
+</html>

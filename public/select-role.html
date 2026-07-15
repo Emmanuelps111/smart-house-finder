@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Choose your account type — MakaziLink</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="/css/styles.css" />
+<style>
+  .role-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-top:1.5rem; }
+  @media (max-width: 640px) { .role-grid { grid-template-columns: 1fr; } }
+  .role-card {
+    border: 2px solid #e5e7eb; border-radius: 14px; padding: 1.5rem 1rem;
+    background: #fff; cursor: pointer; text-align: center;
+    transition: transform .15s, border-color .15s, box-shadow .15s;
+  }
+  .role-card:hover { transform: translateY(-2px); border-color:#3B82F6; box-shadow:0 8px 24px rgba(59,130,246,.15); }
+  .role-card.selected { border-color:#3B82F6; background: #EFF6FF; }
+  .role-card i { font-size: 2rem; color:#3B82F6; margin-bottom:.5rem; }
+  .role-card h4 { margin:.4rem 0 .2rem; }
+  .role-card p { font-size:.85rem; color:#6b7280; margin:0; }
+</style>
+</head>
+<body>
+<div id="header-mount"></div>
+<div class="auth-wrap">
+  <div class="auth-card" style="max-width:640px;">
+    <h2 style="text-align:center;">Welcome to MakaziLink 👋</h2>
+    <p style="text-align:center;color:#6b7280;">Choose the account type that best describes you. You can only pick one.</p>
+
+    <div class="role-grid">
+      <div class="role-card" data-role="renter">
+        <i class="fas fa-user"></i>
+        <h4>Renter</h4>
+        <p>Looking for a home to rent.</p>
+      </div>
+      <div class="role-card" data-role="student">
+        <i class="fas fa-user-graduate"></i>
+        <h4>Student</h4>
+        <p>Verified student — commission-free rentals.</p>
+      </div>
+      <div class="role-card" data-role="landlord">
+        <i class="fas fa-key"></i>
+        <h4>Landlord</h4>
+        <p>List and manage rental properties.</p>
+      </div>
+    </div>
+
+    <button id="continueBtn" class="btn btn-primary" style="width:100%;margin-top:1.5rem;justify-content:center;" disabled>
+      Continue
+    </button>
+  </div>
+</div>
+<div id="footer-mount"></div>
+<script src="/js/cloud.js"></script>
+<script src="/partials.js"></script>
+<script>
+(async function () {
+  const sb = await window.SHFCloud.ready;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { location.href = '/login.html'; return; }
+
+  // If a role already exists, skip this page
+  const { data: existing } = await sb.from('user_roles').select('role').eq('user_id', session.user.id);
+  if (existing && existing.length) {
+    const r = existing[0].role;
+    location.href = r === 'landlord' ? '/dashboard.html' : r === 'admin' ? '/admin' : '/listings.html';
+    return;
+  }
+
+  let selected = null;
+  const cards = document.querySelectorAll('.role-card');
+  const btn = document.getElementById('continueBtn');
+  cards.forEach(c => c.addEventListener('click', () => {
+    cards.forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+    selected = c.dataset.role;
+    btn.disabled = false;
+  }));
+
+  btn.addEventListener('click', async () => {
+    if (!selected) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Setting up…';
+    try {
+      const { error } = await sb.rpc('set_initial_role', { _role: selected });
+      if (error) throw error;
+      await window.SHFCloud.syncLocalUser(sb, session);
+      window.toast.success('Account ready!');
+      const target = selected === 'landlord' ? '/dashboard.html' : '/listings.html';
+      setTimeout(() => location.href = target, 500);
+    } catch (err) {
+      window.toast.error(err.message || 'Could not save your selection.');
+      btn.disabled = false;
+      btn.innerHTML = 'Continue';
+    }
+  });
+})();
+</script>
+</body>
+</html>

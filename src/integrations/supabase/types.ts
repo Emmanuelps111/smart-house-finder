@@ -139,12 +139,14 @@ export type Database = {
       profiles: {
         Row: {
           agency_status: string
+          avatar_url: string | null
           bio: string | null
           cleanliness_preference:
             | Database["public"]["Enums"]["cleanliness_pref"]
             | null
           created_at: string
           full_name: string | null
+          google_id: string | null
           id: string
           national_id: string | null
           nid_back_url: string | null
@@ -167,12 +169,14 @@ export type Database = {
         }
         Insert: {
           agency_status?: string
+          avatar_url?: string | null
           bio?: string | null
           cleanliness_preference?:
             | Database["public"]["Enums"]["cleanliness_pref"]
             | null
           created_at?: string
           full_name?: string | null
+          google_id?: string | null
           id: string
           national_id?: string | null
           nid_back_url?: string | null
@@ -195,12 +199,14 @@ export type Database = {
         }
         Update: {
           agency_status?: string
+          avatar_url?: string | null
           bio?: string | null
           cleanliness_preference?:
             | Database["public"]["Enums"]["cleanliness_pref"]
             | null
           created_at?: string
           full_name?: string | null
+          google_id?: string | null
           id?: string
           national_id?: string | null
           nid_back_url?: string | null
@@ -548,6 +554,10 @@ export type Database = {
       }
       send_roommate_connect: {
         Args: { _property_key: string; _target: string }
+        Returns: undefined
+      }
+      set_initial_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: undefined
       }
     }
