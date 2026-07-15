@@ -173,6 +173,7 @@ window.SHF.fetchDbListings = async function () {
       amenities: Array.isArray(p.amenities) ? p.amenities : [],
       image_urls: photos,
       img: photos[0] || '',
+      video_url: p.video_url || '',
       has_video: !!p.video_url,
       lat: p.lat != null ? Number(p.lat) : null,
       lng: p.lng != null ? Number(p.lng) : null,
@@ -204,3 +205,41 @@ if (!window.SHFCloud) {
     setTimeout(retry, 50);
   }
 }
+
+// === Video first-frame poster capture (cached) ===
+window.SHF.__posterCache = window.SHF.__posterCache || {};
+window.SHF.capturePoster = function (videoUrl) {
+  if (!videoUrl) return Promise.reject(new Error('no url'));
+  const cache = window.SHF.__posterCache;
+  if (cache[videoUrl]) return cache[videoUrl];
+  cache[videoUrl] = new Promise((resolve, reject) => {
+    try {
+      const v = document.createElement('video');
+      v.preload = 'metadata';
+      v.crossOrigin = 'anonymous';
+      v.muted = true;
+      v.playsInline = true;
+      v.src = videoUrl;
+      const done = (err, url) => {
+        v.remove();
+        if (err) { delete cache[videoUrl]; reject(err); } else { resolve(url); }
+      };
+      v.addEventListener('loadeddata', () => {
+        try { v.currentTime = 0.05; } catch(e){}
+      });
+      v.addEventListener('seeked', () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = v.videoWidth || 640;
+          c.height = v.videoHeight || 480;
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          done(null, c.toDataURL('image/jpeg', 0.82));
+        } catch (e) { done(e); }
+      }, { once: true });
+      v.addEventListener('error', () => done(new Error('video load error')), { once: true });
+      setTimeout(() => done(new Error('timeout')), 8000);
+    } catch (e) { reject(e); }
+  });
+  return cache[videoUrl];
+};
+

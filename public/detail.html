@@ -40,6 +40,20 @@
   .back-link { display:inline-flex; align-items:center; gap:.4rem; margin-bottom:1rem; color:var(--primary); text-decoration:none; font-weight:500; }
   .back-link:hover { text-decoration:underline; }
   .not-found { text-align:center; padding:4rem 1rem; }
+  .media-switch { display:flex; gap:.5rem; margin-bottom:.9rem; flex-wrap:wrap; }
+  .ms-btn {
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.55rem 1.1rem; border-radius:9999px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.55);
+    backdrop-filter: blur(10px) saturate(140%);
+    color:var(--text); font: inherit; font-weight:600; font-size:.88rem;
+    cursor:pointer; transition:all .18s;
+  }
+  [data-theme="dark"] .ms-btn { background:rgba(30,41,59,.55); }
+  .ms-btn:hover { border-color:#3B82F6; color:#3B82F6; }
+  .ms-btn.active { background:#3B82F6; color:#fff; border-color:#3B82F6; box-shadow:0 6px 18px -6px rgba(59,130,246,.55); }
+  #mediaStage video.hero-img { width:100%; max-height:520px; background:#000; }
 </style>
 </head>
 <body>
@@ -80,7 +94,12 @@
   async function renderDetail(l){
     rendered = true;
     document.title = `${l.title} — MakaziLink`;
-    const gallery = (Array.isArray(l.image_urls) && l.image_urls.length) ? l.image_urls : [];
+    const gallery = (Array.isArray(l.image_urls) && l.image_urls.length) ? l.image_urls.slice() : [];
+    const hasVideo = !!l.video_url;
+    let posterSrc = '';
+    if (!gallery.length && hasVideo) {
+      try { posterSrc = await window.SHF.capturePoster(l.video_url); gallery.push(posterSrc); } catch(e){}
+    }
     const heroSrc = gallery[0] || '';
 
     const amenitiesHtml = (Array.isArray(l.amenities) && l.amenities.length)
@@ -91,24 +110,27 @@
       : `<p style="color:var(--text-muted); font-style:italic;">No amenities listed.</p>`;
 
     const thumbsHtml = gallery.length > 1
-      ? `<div class="thumb-row">${gallery.slice(0,8).map(g => `<img src="${escapeHtml(g)}" alt="thumbnail" data-thumb />`).join('')}</div>`
+      ? `<div class="thumb-row" id="thumbRow">${gallery.slice(0,8).map(g => `<img src="${escapeHtml(g)}" alt="thumbnail" data-thumb />`).join('')}</div>`
       : '';
 
+    const switchBar = `
+      <div class="media-switch" role="tablist" aria-label="Media">
+        <button type="button" class="ms-btn active" data-media-tab="photos"><span>📷</span> Photo Gallery</button>
+        ${hasVideo ? `<button type="button" class="ms-btn" data-media-tab="video"><span>🎥</span> Video Tour</button>` : ''}
+      </div>`;
+
     const heroHtml = heroSrc
-      ? `<img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" />`
-      : (l.video_url
-          ? `<video class="hero-img" src="${escapeHtml(l.video_url)}" controls preload="metadata" style="width:100%; max-height:480px; background:#000; border-radius:var(--radius);"></video>`
-          : `<div class="hero-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#1E3A8A,#3B82F6); color:#fff; gap:.6rem; min-height:320px; border-radius:var(--radius);"><i class="fas fa-house" style="font-size:3rem;"></i><span style="font-weight:600;">No media uploaded</span></div>`);
+      ? `<div id="mediaStage" data-video-url="${escapeHtml(l.video_url||'')}"><img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" /></div>`
+      : `<div id="mediaStage" class="hero-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#1E3A8A,#3B82F6); color:#fff; gap:.6rem; min-height:320px; border-radius:var(--radius);"><i class="fas fa-house" style="font-size:3rem;"></i><span style="font-weight:600;">No media uploaded</span></div>`;
+
 
     root.innerHTML = `
       <div class="detail-grid">
         <div>
+          ${switchBar}
           ${heroHtml}
           ${thumbsHtml}
-          ${l.video_url && heroSrc ? `<div class="info-card" style="margin-top:1.5rem;">
-            <h3 style="margin-top:0;"><i class="fas fa-video"></i> Video tour</h3>
-            <video src="${escapeHtml(l.video_url)}" controls preload="metadata" style="width:100%; max-height:480px; border-radius:8px; background:#000;"></video>
-          </div>` : ''}
+
           <div class="info-card" style="margin-top:1.5rem;">
             <h3 style="margin-top:0;">About this property</h3>
             <p>${escapeHtml(l.desc) || '<em>No description provided.</em>'}</p>
@@ -206,9 +228,44 @@
         </aside>
       </div>`;
 
+    // === Media switch (Photo Gallery / Video Tour) ===
+    const stage = document.getElementById('mediaStage');
+    const thumbRow = document.getElementById('thumbRow');
+    const heroTitle = escapeHtml(l.title);
+    function showPhotos(src) {
+      if (!stage) return;
+      const s = src || heroSrc;
+      stage.innerHTML = s ? `<img id="heroImg" class="hero-img" src="${escapeHtml(s)}" alt="${heroTitle}" />` : '';
+      if (thumbRow) thumbRow.style.display = '';
+    }
+    function showVideo() {
+      if (!stage || !hasVideo) return;
+      stage.innerHTML = `<video id="heroVideo" class="hero-img" src="${escapeHtml(l.video_url)}" controls autoplay preload="metadata" playsinline></video>`;
+      if (thumbRow) thumbRow.style.display = 'none';
+    }
+    document.querySelectorAll('[data-media-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-media-tab]').forEach(b => b.classList.toggle('active', b === btn));
+        if (btn.dataset.mediaTab === 'video') showVideo(); else showPhotos();
+      });
+    });
+    // Thumbnails update primary viewport (photo mode)
     document.querySelectorAll('[data-thumb]').forEach(t => t.addEventListener('click', () => {
-      document.getElementById('heroImg').src = t.src;
+      const btnPhotos = document.querySelector('[data-media-tab="photos"]');
+      if (btnPhotos && !btnPhotos.classList.contains('active')) btnPhotos.click();
+      const img = document.getElementById('heroImg');
+      if (img) img.src = t.src;
     }));
+    // Click the poster to jump straight to video (video-only listings)
+    if (hasVideo && !l.image_urls?.length) {
+      stage?.addEventListener('click', (e) => {
+        if (e.target.id === 'heroImg') {
+          const vb = document.querySelector('[data-media-tab="video"]');
+          if (vb) vb.click();
+        }
+      });
+    }
+
 
     if (l.lat != null && l.lng != null) {
       const m = L.map('detailMap').setView([l.lat, l.lng], 14);
