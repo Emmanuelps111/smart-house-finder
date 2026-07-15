@@ -228,9 +228,44 @@
         </aside>
       </div>`;
 
+    // === Media switch (Photo Gallery / Video Tour) ===
+    const stage = document.getElementById('mediaStage');
+    const thumbRow = document.getElementById('thumbRow');
+    const heroTitle = escapeHtml(l.title);
+    function showPhotos(src) {
+      if (!stage) return;
+      const s = src || heroSrc;
+      stage.innerHTML = s ? `<img id="heroImg" class="hero-img" src="${escapeHtml(s)}" alt="${heroTitle}" />` : '';
+      if (thumbRow) thumbRow.style.display = '';
+    }
+    function showVideo() {
+      if (!stage || !hasVideo) return;
+      stage.innerHTML = `<video id="heroVideo" class="hero-img" src="${escapeHtml(l.video_url)}" controls autoplay preload="metadata" playsinline></video>`;
+      if (thumbRow) thumbRow.style.display = 'none';
+    }
+    document.querySelectorAll('[data-media-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-media-tab]').forEach(b => b.classList.toggle('active', b === btn));
+        if (btn.dataset.mediaTab === 'video') showVideo(); else showPhotos();
+      });
+    });
+    // Thumbnails update primary viewport (photo mode)
     document.querySelectorAll('[data-thumb]').forEach(t => t.addEventListener('click', () => {
-      document.getElementById('heroImg').src = t.src;
+      const btnPhotos = document.querySelector('[data-media-tab="photos"]');
+      if (btnPhotos && !btnPhotos.classList.contains('active')) btnPhotos.click();
+      const img = document.getElementById('heroImg');
+      if (img) img.src = t.src;
     }));
+    // Click the poster to jump straight to video (video-only listings)
+    if (hasVideo && !l.image_urls?.length) {
+      stage?.addEventListener('click', (e) => {
+        if (e.target.id === 'heroImg') {
+          const vb = document.querySelector('[data-media-tab="video"]');
+          if (vb) vb.click();
+        }
+      });
+    }
+
 
     if (l.lat != null && l.lng != null) {
       const m = L.map('detailMap').setView([l.lat, l.lng], 14);
