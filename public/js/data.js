@@ -206,6 +206,19 @@ if (!window.SHFCloud) {
   }
 }
 
+// Realtime: refetch when any property row changes (e.g. landlord flips occupancy)
+(async () => {
+  try {
+    if (!window.SHFCloud || !window.SHFCloud.ready) return;
+    const sb = await window.SHFCloud.ready;
+    sb.channel('shf-properties-public')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'properties' },
+          () => window.SHF.fetchDbListings())
+      .subscribe();
+  } catch(e) { /* noop */ }
+})();
+
+
 // === Video first-frame poster capture (cached) ===
 window.SHF.__posterCache = window.SHF.__posterCache || {};
 window.SHF.capturePoster = function (videoUrl) {
