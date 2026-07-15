@@ -350,6 +350,7 @@
     const minBed = parseInt(bedF.value) || 0;
     const maxPrice = parseInt(priceF.value) || Infinity;
     const filtered = SHF_LISTINGS.filter(l =>
+      (l.occupancy !== 'occupied') &&
       (!q || l.title.toLowerCase().includes(q) || l.city.toLowerCase().includes(q)) &&
       l.beds >= minBed && l.price <= maxPrice
     );
