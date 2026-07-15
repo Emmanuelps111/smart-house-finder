@@ -129,17 +129,23 @@
           }
           const unread = data.filter(n => !n.read).length;
           subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
-          // For any connect requests, prefetch sender profiles for the intro card
+          // For any connect requests, prefetch sender profiles via a SECURITY DEFINER RPC.
+          // RLS on `profiles` blocks direct reads of other users' rows, so we call
+          // `get_roommate_sender_public` which only returns a sender's public bits
+          // when they've actually sent the current user a connect request.
           const connectSenderIds = Array.from(new Set(
             data.filter(n => typeof n.type === 'string' && n.type.startsWith('roommate_connect_request:'))
                 .map(n => n.type.split(':')[1]).filter(Boolean)
           ));
           const senderMap = {};
           if (connectSenderIds.length){
-            const { data: profs } = await sb.from('profiles')
-              .select('id, full_name, gender, course_major, home_campus, habit_tags')
-              .in('id', connectSenderIds);
-            (profs||[]).forEach(p => { senderMap[p.id] = p; });
+            const results = await Promise.all(
+              connectSenderIds.map(sid => sb.rpc('get_roommate_sender_public', { _sender: sid }))
+            );
+            results.forEach((res, i) => {
+              const row = res && res.data && res.data[0];
+              if (row) senderMap[connectSenderIds[i]] = row;
+            });
           }
 
           list.innerHTML = data.map(n => {
