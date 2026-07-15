@@ -51,6 +51,13 @@
       background:var(--surface); border:1px dashed var(--border); border-radius:14px; font-weight: 500;
     }
     .empty i{font-size:2.5rem; color:#3b82f6; margin-bottom:.6rem;}
+    .connect-intro .connect-name{color:#0f172a;}
+    .connect-intro .connect-course{color:#64748b;}
+    .connect-intro .connect-chip{background:rgba(15,23,42,.06); color:#334155;}
+    [data-theme="dark"] .connect-intro{background:rgba(9,17,36,.85) !important; border-color:rgba(30,41,59,.8) !important;}
+    [data-theme="dark"] .connect-intro .connect-name{color:#f1f5f9;}
+    [data-theme="dark"] .connect-intro .connect-course{color:#94a3b8;}
+    [data-theme="dark"] .connect-intro .connect-chip{background:rgba(148,163,184,.15); color:#cbd5e1;}
     .site-footer { margin-top: auto; background: var(--surface); border-top: 1px solid var(--border); }
     @media (max-width:520px){ .notif-card{padding:.85rem;} .notif-icon{width:36px;height:36px;} .notif-wrap { padding-top: 1rem; } }
   </style>
@@ -129,17 +136,23 @@
           }
           const unread = data.filter(n => !n.read).length;
           subtitle.textContent = unread ? `${unread} unread · ${data.length} total` : `${data.length} notifications`;
-          // For any connect requests, prefetch sender profiles for the intro card
+          // For any connect requests, prefetch sender profiles via a SECURITY DEFINER RPC.
+          // RLS on `profiles` blocks direct reads of other users' rows, so we call
+          // `get_roommate_sender_public` which only returns a sender's public bits
+          // when they've actually sent the current user a connect request.
           const connectSenderIds = Array.from(new Set(
             data.filter(n => typeof n.type === 'string' && n.type.startsWith('roommate_connect_request:'))
                 .map(n => n.type.split(':')[1]).filter(Boolean)
           ));
           const senderMap = {};
           if (connectSenderIds.length){
-            const { data: profs } = await sb.from('profiles')
-              .select('id, full_name, gender, course_major, home_campus, habit_tags')
-              .in('id', connectSenderIds);
-            (profs||[]).forEach(p => { senderMap[p.id] = p; });
+            const results = await Promise.all(
+              connectSenderIds.map(sid => sb.rpc('get_roommate_sender_public', { _sender: sid }))
+            );
+            results.forEach((res, i) => {
+              const row = res && res.data && res.data[0];
+              if (row) senderMap[connectSenderIds[i]] = row;
+            });
           }
 
           list.innerHTML = data.map(n => {
@@ -153,15 +166,15 @@
               const tagChips = tags.map(t => `<span style="display:inline-block; padding:.15rem .55rem; border-radius:9999px; background:rgba(59,130,246,.12); color:#1d4ed8; font-size:.72rem; font-weight:600;">${esc(t)}</span>`).join(' ');
               const courseLine = [sp.course_major, sp.home_campus].filter(Boolean).map(esc).join(' — ');
               actionHtml = `
-                <div class="connect-intro" style="margin-top:.6rem; padding:.85rem 1rem; border-radius:16px; background:rgba(255,255,255,.85); border:1px solid rgba(148,163,184,.35); box-shadow:inset 0 1px 0 rgba(255,255,255,.5);">
+                <div class="connect-intro" data-theme-card style="margin-top:.6rem; padding:.85rem 1rem; border-radius:16px; background:rgba(255,255,255,.85); border:1px solid rgba(148,163,184,.6); box-shadow:inset 0 1px 0 rgba(255,255,255,.5);">
                   <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.35rem;">
-                    <strong style="font-size:.95rem; color:#0f172a;">${esc(sp.full_name || 'Student')}</strong>
-                    ${sp.gender ? `<span style="font-size:.72rem; padding:.15rem .55rem; border-radius:9999px; background:rgba(15,23,42,.06); color:#334155; font-weight:600;">👤 ${esc(sp.gender)}</span>` : ''}
+                    <strong class="connect-name" style="font-size:.95rem;">${esc(sp.full_name || 'Student')}</strong>
+                    ${sp.gender ? `<span class="connect-chip" style="font-size:.72rem; padding:.15rem .55rem; border-radius:9999px; font-weight:600;">👤 ${esc(sp.gender)}</span>` : ''}
                   </div>
-                  ${courseLine ? `<div style="font-size:.8rem; color:#64748b; display:flex; align-items:center; gap:.35rem; margin-bottom:.4rem;"><i class="fas fa-graduation-cap" style="color:#3B82F6;"></i><span>${courseLine}</span></div>` : ''}
-                  ${tagChips ? `<div style="display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.55rem;">${tagChips}</div>` : ''}
+                  ${courseLine ? `<div class="connect-course" style="font-size:.8rem; display:flex; align-items:center; gap:.35rem; margin-bottom:.4rem;"><i class="fas fa-graduation-cap" style="color:#3B82F6;"></i><span>🎓 ${courseLine}</span></div>` : ''}
+                  ${tagChips ? `<div style="display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.55rem;">${tagChips}</div>` : (senderId ? '<div class="connect-course" style="font-size:.75rem; opacity:.7; margin-bottom:.55rem;">No habit tags shared yet.</div>' : '')}
                   <div style="display:flex; flex-wrap:wrap; gap:.4rem;">
-                    <button class="btn btn-primary" data-accept="${esc(senderId)}" data-notif="${n.id}" style="font-size:.8rem; padding:.4rem .9rem; border-radius:9999px; background:#3B82F6;"><i class="fas fa-check"></i> Accept &amp; share contact</button>
+                    <button class="btn btn-primary" data-accept="${esc(senderId)}" data-notif="${n.id}" style="font-size:.8rem; padding:.4rem .9rem; border-radius:9999px; background:#3B82F6; color:#fff; border:none; cursor:pointer; font-weight:600;"><i class="fas fa-check"></i> Accept &amp; share contact</button>
                     <button data-decline-mute="${n.id}" data-sender="${esc(senderId)}" style="font-size:.8rem; padding:.4rem .9rem; border-radius:9999px; background:rgba(255,255,255,.85); border:1px solid rgba(239,68,68,.4); color:#dc2626; cursor:pointer; font-weight:600;">🔴 Decline &amp; Mute</button>
                   </div>
                 </div>`;
@@ -201,17 +214,33 @@
             window.toast.success('Accepted! Contacts have been shared with both of you.');
             load();
           }));
-          list.querySelectorAll('[data-decline-mute]').forEach(b => b.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const notifId = b.getAttribute('data-decline-mute');
-            const senderId = b.getAttribute('data-sender');
-            b.disabled = true;
-            // Silent decline: quietly remove the notification from THIS user's view.
-            // No rejection notification is sent back to the sender — the request
-            // vanishes without creating a discouraging experience.
-            await sb.from('notifications').delete().eq('id', notifId);
-            load();
-          }));
+          // Isolated Decline & Mute handler — strictly a DELETE on the notification row.
+          // It does NOT call accept_roommate_connect, does NOT insert any acceptance
+          // notification, and does NOT reload the full list (which could re-surface
+          // unrelated "You accepted..." rows from earlier actions). It just slides
+          // this single card out of the local DOM after the delete succeeds.
+          list.querySelectorAll('[data-decline-mute]').forEach(b => {
+            b.addEventListener('click', async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              const notifId = b.getAttribute('data-decline-mute');
+              if (!notifId || b.disabled) return;
+              b.disabled = true;
+              const { error } = await sb.from('notifications').delete().eq('id', notifId);
+              if (error) { b.disabled = false; return; }
+              const card = b.closest('.notif-card');
+              if (card) {
+                card.style.transition = 'opacity .2s ease, transform .2s ease, max-height .25s ease, margin .25s ease, padding .25s ease';
+                card.style.overflow = 'hidden';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(12px)';
+                card.style.maxHeight = card.offsetHeight + 'px';
+                requestAnimationFrame(() => { card.style.maxHeight = '0'; card.style.margin = '0'; card.style.padding = '0'; });
+                setTimeout(() => card.remove(), 260);
+              }
+            });
+          });
           list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async (e) => {
             e.stopPropagation();
             const id = b.dataset.del;
