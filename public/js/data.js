@@ -173,6 +173,7 @@ window.SHF.fetchDbListings = async function () {
       amenities: Array.isArray(p.amenities) ? p.amenities : [],
       image_urls: photos,
       img: photos[0] || '',
+      video_url: p.video_url || '',
       has_video: !!p.video_url,
       lat: p.lat != null ? Number(p.lat) : null,
       lng: p.lng != null ? Number(p.lng) : null,
