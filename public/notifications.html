@@ -206,16 +206,10 @@
             const notifId = b.getAttribute('data-decline-mute');
             const senderId = b.getAttribute('data-sender');
             b.disabled = true;
-            // Silent: delete the notification for this user and mark any matching
-            // roommate_requests row as declined. Do NOT create a rejection notification
-            // for the sender — the request vanishes silently.
+            // Silent decline: quietly remove the notification from THIS user's view.
+            // No rejection notification is sent back to the sender — the request
+            // vanishes without creating a discouraging experience.
             await sb.from('notifications').delete().eq('id', notifId);
-            if (senderId){
-              await sb.from('roommate_requests')
-                .update({ status: 'declined' })
-                .eq('student_id', senderId)
-                .eq('status', 'searching');
-            }
             load();
           }));
           list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async (e) => {
