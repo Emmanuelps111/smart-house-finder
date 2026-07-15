@@ -876,6 +876,28 @@
       btn.innerHTML = original;
     }
   });
+
+  // === Google OAuth ===
+  document.getElementById('googleBtn').addEventListener('click', async () => {
+    const gBtn = document.getElementById('googleBtn');
+    const gLabel = document.getElementById('googleBtnLabel');
+    const original = gLabel.textContent;
+    try {
+      gBtn.disabled = true;
+      gLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting to Google…';
+      const sb = await window.SHFCloud.ready;
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/auth-callback.html' }
+      });
+      if (error) throw error;
+    } catch (err) {
+      window.toast.error(err.message || 'Google sign-in failed.');
+      gBtn.disabled = false;
+      gLabel.textContent = original;
+    }
+  });
+
   refresh();
 </script>
 </body>
