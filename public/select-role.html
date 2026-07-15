@@ -84,10 +84,8 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Setting up…';
     try {
-      const { error } = await sb.from('user_roles').insert({ user_id: session.user.id, role: selected });
+      const { error } = await sb.rpc('set_initial_role', { _role: selected });
       if (error) throw error;
-      // Update profile role column to match (best-effort)
-      await sb.from('profiles').update({ role: selected }).eq('id', session.user.id);
       await window.SHFCloud.syncLocalUser(sb, session);
       window.toast.success('Account ready!');
       const target = selected === 'landlord' ? '/dashboard.html' : '/listings.html';
