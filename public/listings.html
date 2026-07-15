@@ -412,6 +412,12 @@
         </div>
       </article>`;
     }).join('');
+    // Hydrate video posters (video-only listings)
+    grid.querySelectorAll('img[data-poster-src]').forEach(imgEl => {
+      const url = imgEl.getAttribute('data-poster-src');
+      imgEl.removeAttribute('data-poster-src');
+      window.SHF.capturePoster(url).then(dataUrl => { imgEl.src = dataUrl; }).catch(() => {});
+    });
   }
   [search, bedF].forEach(el => el && el.addEventListener('input', render));
   window.addEventListener('shf:listings-updated', render);
