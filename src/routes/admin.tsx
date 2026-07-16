@@ -647,7 +647,53 @@ function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="testimonials" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader><CardTitle className="text-blue-900">Pending Testimonials</CardTitle></CardHeader>
+              <CardContent>
+                {testimonials.filter(t => !t.is_approved).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending testimonials.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {testimonials.filter(t => !t.is_approved).map(t => (
+                      <div key={t.id} className="p-4 border border-blue-100 rounded-lg bg-blue-50/30">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="font-semibold text-blue-900">{t.user_name} <span className="text-xs font-normal text-muted-foreground">— {t.user_location}</span></div>
+                            <blockquote className="mt-2 text-sm italic text-slate-700">"{t.quote}"</blockquote>
+                            <div className="text-xs text-muted-foreground mt-2">Submitted {new Date(t.created_at).toLocaleString()}</div>
+                          </div>
+                          <div className="flex flex-col gap-2 shrink-0">
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => approveTestimonial(t.id)}>Approve</Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {testimonials.filter(t => t.is_approved).length > 0 && (
+                  <div className="mt-8">
+                    <h4 className="font-semibold text-blue-900 mb-3">Approved ({testimonials.filter(t => t.is_approved).length})</h4>
+                    <div className="space-y-2">
+                      {testimonials.filter(t => t.is_approved).map(t => (
+                        <div key={t.id} className="p-3 border border-slate-200 rounded-lg bg-white flex items-start justify-between gap-3">
+                          <div className="flex-1 text-sm">
+                            <span className="font-medium">{t.user_name}</span> <span className="text-muted-foreground text-xs">— {t.user_location}</span>
+                            <div className="text-slate-600 italic mt-1">"{t.quote}"</div>
+                          </div>
+                          <Button size="sm" variant="destructive" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
 
       </main>
 
