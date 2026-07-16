@@ -159,7 +159,11 @@ export type Database = {
           ocr_data: Json | null
           phone: string | null
           rejection_reason: string | null
+          reset_attempts: number
+          reset_locked_until: string | null
           role: Database["public"]["Enums"]["profile_role"]
+          security_answer_hash: string | null
+          security_question: string | null
           selfie_url: string | null
           sleep_schedule:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
@@ -193,7 +197,11 @@ export type Database = {
           ocr_data?: Json | null
           phone?: string | null
           rejection_reason?: string | null
+          reset_attempts?: number
+          reset_locked_until?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
+          security_answer_hash?: string | null
+          security_question?: string | null
           selfie_url?: string | null
           sleep_schedule?:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
@@ -227,7 +235,11 @@ export type Database = {
           ocr_data?: Json | null
           phone?: string | null
           rejection_reason?: string | null
+          reset_attempts?: number
+          reset_locked_until?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
+          security_answer_hash?: string | null
+          security_question?: string | null
           selfie_url?: string | null
           sleep_schedule?:
             | Database["public"]["Enums"]["sleep_schedule_pref"]
@@ -570,6 +582,10 @@ export type Database = {
           id: string
         }[]
       }
+      get_security_question_for_email: {
+        Args: { _email: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -609,6 +625,14 @@ export type Database = {
       set_initial_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: undefined
+      }
+      set_security_question: {
+        Args: { _answer: string; _question: string }
+        Returns: undefined
+      }
+      verify_security_answer: {
+        Args: { _answer: string; _email: string }
+        Returns: string
       }
     }
     Enums: {

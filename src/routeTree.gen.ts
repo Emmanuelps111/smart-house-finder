@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiVerifyIdRouteImport } from './routes/api/verify-id'
+import { Route as ApiPublicResetPasswordRouteImport } from './routes/api/public/reset-password'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -28,35 +29,49 @@ const ApiVerifyIdRoute = ApiVerifyIdRouteImport.update({
   path: '/api/verify-id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicResetPasswordRoute = ApiPublicResetPasswordRouteImport.update({
+  id: '/api/public/reset-password',
+  path: '/api/public/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/api/verify-id': typeof ApiVerifyIdRoute
+  '/api/public/reset-password': typeof ApiPublicResetPasswordRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/api/verify-id': typeof ApiVerifyIdRoute
+  '/api/public/reset-password': typeof ApiPublicResetPasswordRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/api/verify-id': typeof ApiVerifyIdRoute
+  '/api/public/reset-password': typeof ApiPublicResetPasswordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/verify-id'
+  fullPaths: '/' | '/admin' | '/api/verify-id' | '/api/public/reset-password'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/api/verify-id'
-  id: '__root__' | '/' | '/admin' | '/api/verify-id'
+  to: '/' | '/admin' | '/api/verify-id' | '/api/public/reset-password'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/api/verify-id'
+    | '/api/public/reset-password'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ApiVerifyIdRoute: typeof ApiVerifyIdRoute
+  ApiPublicResetPasswordRoute: typeof ApiPublicResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +97,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVerifyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/reset-password': {
+      id: '/api/public/reset-password'
+      path: '/api/public/reset-password'
+      fullPath: '/api/public/reset-password'
+      preLoaderRoute: typeof ApiPublicResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +111,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ApiVerifyIdRoute: ApiVerifyIdRoute,
+  ApiPublicResetPasswordRoute: ApiPublicResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

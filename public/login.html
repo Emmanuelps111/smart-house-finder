@@ -9,10 +9,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link rel="stylesheet" href="/css/styles.css" />
 <style>
-  .landlord-only, .student-only, .renter-only { display: none; }
+  .landlord-only, .student-only, .renter-only, .signup-only { display: none; }
   body.is-landlord.is-signup .landlord-only { display: block; }
   body.is-student.is-signup .student-only { display: block; }
   body.is-renter.is-signup .renter-only { display: block; }
+  body.is-signup .signup-only { display: block; }
   .file-input-wrap {
     border: 2px dashed var(--border, #d1d5db);
     border-radius: 10px;
@@ -81,6 +82,36 @@
           <button type="button" class="pw-toggle" data-pw-toggle="au-pass" aria-label="Show password"><i class="fas fa-eye"></i></button>
         </div>
         <span class="error"></span>
+      </div>
+
+      <!-- Signup only: security question (for password recovery without email) -->
+      <div class="signup-only">
+        <div class="section-title"><i class="fas fa-shield-halved"></i> Security question (for password recovery)</div>
+        <div class="form-row">
+          <label for="au-secq">Choose a question</label>
+          <select id="au-secq">
+            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+            <option value="What primary school did you attend?">What primary school did you attend?</option>
+            <option value="What is your favorite childhood nickname?">What is your favorite childhood nickname?</option>
+            <option value="What is the name of the street you grew up on?">What is the name of the street you grew up on?</option>
+            <option value="__custom__">Write my own question…</option>
+          </select>
+          <span class="error"></span>
+        </div>
+        <div class="form-row" id="au-secq-custom-row" style="display:none;">
+          <label for="au-secq-custom">Your question</label>
+          <input id="au-secq-custom" type="text" maxlength="120" placeholder="e.g. What was my first car?" />
+          <span class="error"></span>
+        </div>
+        <div class="form-row">
+          <label for="au-seca">Your answer</label>
+          <input id="au-seca" type="text" maxlength="120" autocomplete="off" placeholder="Something only you know" />
+          <div style="font-size:.8rem; color:var(--muted,#6b7280); margin-top:.3rem;">
+            Stored securely (hashed). Not case-sensitive. Used if you ever forget your password.
+          </div>
+          <span class="error"></span>
+        </div>
       </div>
 
       <!-- Renter-only signup fields -->
@@ -250,7 +281,7 @@
 
 
 
-      <p style="text-align:center; margin-top:1rem; font-size:.9rem;"><a href="#" id="forgotLink">Forgot password?</a></p>
+      <p style="text-align:center; margin-top:1rem; font-size:.9rem;"><a href="/forgot-password.html" id="forgotLink">Forgot password?</a></p>
       <p style="text-align:center; margin-top:.5rem; font-size:.9rem; color:var(--muted,#6b7280);">
         Still can't access your account?
         <a href="https://wa.me/255717656841?text=Hi%20Smart%20House%20Finder%20support,%20I%20need%20help%20resetting%20my%20password" target="_blank" rel="noopener noreferrer" style="font-weight:600; color:#25d366;">
@@ -319,27 +350,35 @@
   });
 
   // ============ Forgot password ============
-  document.getElementById('forgotLink').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const prefill = (document.querySelector('input[type="email"]')?.value || '').trim();
-    const email = window.prompt("Enter the email address for your account. We'll send you a password reset link.", prefill);
-    if (!email) return;
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      window.toast?.error?.('Please enter a valid email address.');
-      return;
-    }
+  // Forgot password now navigates to the dedicated in-app flow (no email required).
+  // The anchor's href handles navigation; no JS needed here.
+
+  // Toggle custom security question input
+  const secqSel = document.getElementById('au-secq');
+  const secqCustomRow = document.getElementById('au-secq-custom-row');
+  if (secqSel && secqCustomRow) {
+    secqSel.addEventListener('change', () => {
+      secqCustomRow.style.display = secqSel.value === '__custom__' ? 'block' : 'none';
+    });
+  }
+
+  // Helper: persist security question for the currently signed-in user
+  async function saveSecurityQuestion(sb) {
+    if (tab !== 'signup') return;
+    const sel = document.getElementById('au-secq');
+    const custom = document.getElementById('au-secq-custom');
+    const ans = document.getElementById('au-seca');
+    if (!sel || !ans) return;
+    const question = sel.value === '__custom__' ? (custom?.value || '').trim() : sel.value;
+    const answer = (ans.value || '').trim();
+    if (!question || question.length < 5 || !answer || answer.length < 2) return;
     try {
-      const sb = await window.SHFCloud.ready;
-      const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: window.location.origin + '/reset-password.html'
-      });
-      if (error) throw error;
-      window.toast?.success?.('Check your email for a reset link. It may take a minute to arrive.');
-    } catch (err) {
-      console.error(err);
-      window.toast?.error?.(err.message || 'Could not send reset email. Please try again.');
-    }
-  });
+      const { error } = await sb.rpc('set_security_question', { _question: question, _answer: answer });
+      if (error) console.warn('set_security_question failed:', error);
+    } catch (e) { console.warn('set_security_question threw:', e); }
+  }
+  window.__saveSecurityQuestion = saveSecurityQuestion;
+
 
   function bindFile(inputId, labelId) {
     const inp = document.getElementById(inputId);
@@ -660,6 +699,14 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) { setError('au-email','Enter a valid email.'); ok = false; }
     if (passEl.value.length < 6) { setError('au-pass','Password must be at least 6 characters.'); ok = false; }
     if (tab === 'signup' && nameEl.value.trim().length < 2) { setError('au-name','Enter your full name.'); ok = false; }
+    if (tab === 'signup') {
+      const secqSelEl = document.getElementById('au-secq');
+      const secqCustomEl = document.getElementById('au-secq-custom');
+      const secaEl = document.getElementById('au-seca');
+      const chosenQ = secqSelEl.value === '__custom__' ? (secqCustomEl.value || '').trim() : secqSelEl.value;
+      if (secqSelEl.value === '__custom__' && chosenQ.length < 5) { setError('au-secq-custom','Enter your custom question (at least 5 characters).'); ok = false; }
+      if (!secaEl.value.trim() || secaEl.value.trim().length < 2) { setError('au-seca','Enter an answer (at least 2 characters).'); ok = false; }
+    }
 
     let landlordMeta = {};
     let studentMeta = {};
@@ -792,6 +839,7 @@
             const { data: signinData } = await sb.auth.signInWithPassword({ email: emailEl.value.trim(), password: passEl.value });
             if (signinData?.user?.id) {
               await sb.from('profiles').update({ verification_status: 'approved', verified_at: new Date().toISOString(), phone: renterMeta.phone }).eq('id', signinData.user.id);
+              await window.__saveSecurityQuestion?.(sb);
               await sb.auth.signOut();
             }
           } catch (e) { console.warn('renter auto-approve skipped:', e); }
@@ -809,6 +857,8 @@
           showFinalPanel('Confirm your email', `We sent a confirmation link to <strong>${emailEl.value}</strong>. Open it, then return here to upload your ID and complete verification.`, 'envelope-circle-check');
           return;
         }
+        // Persist security question while we have a session
+        await window.__saveSecurityQuestion?.(sb);
 
         const ctx = {
           sb, session, uid: session.user.id,
