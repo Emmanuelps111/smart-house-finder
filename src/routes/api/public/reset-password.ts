@@ -39,7 +39,7 @@ export const Route = createFileRoute('/api/public/reset-password')({
             },
           });
 
-          const { data: check, error: rpcErr } = await pub.rpc('check_security_answer', {
+          const { data: check, error: rpcErr } = await (pub as any).rpc('check_security_answer', {
             _email: email,
             _answer: answer,
           });
