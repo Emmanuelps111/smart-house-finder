@@ -158,6 +158,8 @@ function AdminPage() {
     if (rooms.data) setRoommates(rooms.data as unknown as RoommateRequest[]);
     const { data: agencies } = await (supabase as unknown as { rpc: (n: string) => Promise<{ data: PendingAgency[] | null }> }).rpc("list_pending_agencies");
     if (agencies) setPendingAgencies(agencies);
+    const { data: tData } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { order: (col: string, o: { ascending: boolean }) => Promise<{ data: Testimonial[] | null }> } } }).from("testimonials").select("*").order("created_at", { ascending: false });
+    if (tData) setTestimonials(tData);
   }, []);
 
 
