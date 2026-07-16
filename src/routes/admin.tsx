@@ -99,6 +99,7 @@ type RoommateRequest = {
 
 
 type PendingAgency = { id: string; full_name: string | null; phone: string | null; email: string | null; created_at: string };
+type Testimonial = { id: string; user_name: string; user_location: string; quote: string; is_approved: boolean; created_at: string };
 
 type AuthState = "loading" | "unauthenticated" | "forbidden" | "ok";
 
