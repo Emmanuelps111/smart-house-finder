@@ -857,6 +857,8 @@
           showFinalPanel('Confirm your email', `We sent a confirmation link to <strong>${emailEl.value}</strong>. Open it, then return here to upload your ID and complete verification.`, 'envelope-circle-check');
           return;
         }
+        // Persist security question while we have a session
+        await window.__saveSecurityQuestion?.(sb);
 
         const ctx = {
           sb, session, uid: session.user.id,
