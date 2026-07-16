@@ -131,6 +131,8 @@ function AdminPage() {
   const [announceLink, setAnnounceLink] = useState("");
   const [sendingAnnounce, setSendingAnnounce] = useState(false);
   const [pendingAgencies, setPendingAgencies] = useState<PendingAgency[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
 
 
   const loadData = useCallback(async () => {
