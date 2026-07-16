@@ -39,15 +39,27 @@ export const Route = createFileRoute('/api/public/reset-password')({
             },
           });
 
-          const { data: userId, error: rpcErr } = await pub.rpc('verify_security_answer', {
+          const { data: check, error: rpcErr } = await pub.rpc('check_security_answer', {
             _email: email,
             _answer: answer,
           });
 
-          if (rpcErr || !userId) {
-            // Generic message — do not leak whether email exists or was locked
+          if (rpcErr) {
+            return Response.json({ ok: false, error: 'Server error verifying answer.' }, { status: 500 });
+          }
+
+          const status = (check as any)?.status as string | undefined;
+          const userId = (check as any)?.user_id as string | undefined;
+
+          if (status !== 'ok' || !userId) {
+            const messages: Record<string, string> = {
+              no_account: "We couldn't find an account with that email.",
+              no_question: "This account doesn't have a security question set. Please contact support.",
+              locked: 'Too many failed attempts. Please try again in about 30 minutes.',
+              wrong: 'That answer is not correct. Check spelling — spaces and capitalization are ignored.',
+            };
             return Response.json(
-              { ok: false, error: 'Invalid details, or too many attempts. Try again later.' },
+              { ok: false, error: messages[status ?? 'wrong'] || 'Invalid details. Please try again.' },
               { status: 401 }
             );
           }
