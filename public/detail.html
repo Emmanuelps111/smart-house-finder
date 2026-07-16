@@ -556,8 +556,8 @@
           const habitOptions = ['Non-smoker','Early bird','Night owl','Quiet','Social','Neat','Studious','Fitness'];
           const savedTags = new Set(Array.isArray(prof?.habit_tags) ? prof.habit_tags : []);
           const isDark = document.documentElement.classList.contains('dark') || matchMedia('(prefers-color-scheme: dark)').matches;
-          const surfaceBg = isDark ? 'rgba(9,17,36,.85)' : 'rgba(255,255,255,.85)';
-          const surfaceFg = isDark ? '#e2e8f0' : '#0f172a';
+          const surfaceBg = isDark ? 'rgba(9,17,36,.85)' : 'var(--surface)';
+          const surfaceFg = isDark ? '#e2e8f0' : 'var(--text)';
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem; overflow-y:auto;';
           const pillFieldStyle = `width:100%; padding:.6rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:${surfaceBg}; color:${surfaceFg}; box-shadow:inset 0 1px 0 rgba(255,255,255,.5); appearance:none; -webkit-appearance:none;`;
