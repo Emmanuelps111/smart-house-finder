@@ -361,6 +361,14 @@
       const dd = document.querySelector('.user-dropdown');
       if (toggle && dd) {
         dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+        // Close the notification bell panel so the two menus don't overlap
+        const bp = document.querySelector('.shf-bell-panel');
+        if (bp && bp.classList.contains('open')) {
+          bp.classList.remove('open');
+          bp.setAttribute('aria-hidden', 'true');
+          const bb = document.querySelector('[data-bell-toggle]');
+          if (bb) bb.setAttribute('aria-expanded', 'false');
+        }
         return;
       }
       if (e.target.closest('[data-logout]')) {
