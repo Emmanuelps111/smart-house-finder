@@ -84,6 +84,36 @@
         <span class="error"></span>
       </div>
 
+      <!-- Signup only: security question (for password recovery without email) -->
+      <div class="signup-only">
+        <div class="section-title"><i class="fas fa-shield-halved"></i> Security question (for password recovery)</div>
+        <div class="form-row">
+          <label for="au-secq">Choose a question</label>
+          <select id="au-secq">
+            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+            <option value="What primary school did you attend?">What primary school did you attend?</option>
+            <option value="What is your favorite childhood nickname?">What is your favorite childhood nickname?</option>
+            <option value="What is the name of the street you grew up on?">What is the name of the street you grew up on?</option>
+            <option value="__custom__">Write my own question…</option>
+          </select>
+          <span class="error"></span>
+        </div>
+        <div class="form-row" id="au-secq-custom-row" style="display:none;">
+          <label for="au-secq-custom">Your question</label>
+          <input id="au-secq-custom" type="text" maxlength="120" placeholder="e.g. What was my first car?" />
+          <span class="error"></span>
+        </div>
+        <div class="form-row">
+          <label for="au-seca">Your answer</label>
+          <input id="au-seca" type="text" maxlength="120" autocomplete="off" placeholder="Something only you know" />
+          <div style="font-size:.8rem; color:var(--muted,#6b7280); margin-top:.3rem;">
+            Stored securely (hashed). Not case-sensitive. Used if you ever forget your password.
+          </div>
+          <span class="error"></span>
+        </div>
+      </div>
+
       <!-- Renter-only signup fields -->
       <div class="renter-only">
         <div class="section-title"><i class="fas fa-user"></i> Contact details</div>
