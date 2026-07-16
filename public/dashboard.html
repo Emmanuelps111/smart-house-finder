@@ -261,9 +261,17 @@
     document.getElementById('processUpload').addEventListener('click', processBulkUpload);
   }
 
+  const BULK_HEADERS = ['title','city','neighbourhood','price_per_month','bedrooms','bathrooms','size_sqm','property_type','furnishing','available_from','occupancy_status','amenities','latitude','longitude','deposit_months','image_urls'];
+  const KNOWN_AMENITIES = ['Wi-Fi','Parking','Security','Water tank','Generator','Air conditioning','Kitchen','Laundry','Pet friendly','Garden','Balcony','Furnished'];
+  function normalizeAmenityToken(tok){
+    const t = String(tok||'').replace(/_/g,' ').trim().toLowerCase();
+    if (!t) return null;
+    return KNOWN_AMENITIES.find(a => a.toLowerCase() === t) || null;
+  }
+
   function downloadTemplate() {
-    const headers = ['title','price_per_month','description','region','neighbourhood','latitude','longitude','bedrooms','bathrooms','contact_phone','image_urls'];
-    const example = ['Cozy 2BR near UDSM','450000','Bright apartment with parking','Dar es Salaam','Mikocheni','','','2','1','+255700000000','https://example.com/a.jpg,https://example.com/b.jpg'];
+    const headers = BULK_HEADERS;
+    const example = ['Cozy 2BR near UDSM','Dar es Salaam','Mikocheni','450000','2','1','75','Apartment','Furnished','2026-08-01','vacant','Wi-Fi Water_tank Kitchen Parking','-6.7654','39.2422','2','https://example.com/a.jpg https://example.com/b.jpg'];
     const csv = headers.join(',') + '\n' + example.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',') + '\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
@@ -310,7 +318,7 @@
   function renderPreview(headers) {
     const el = document.getElementById('bulkPreview');
     el.style.display = 'block';
-    const cols = ['title','price_per_month','region','neighbourhood','bedrooms','bathrooms','image_urls'];
+    const cols = ['title','city','neighbourhood','price_per_month','bedrooms','bathrooms','amenities','image_urls'];
     el.innerHTML = `
       <div style="padding:.5rem .75rem; background:var(--bg); font-weight:600; font-size:.85rem;">${bulkRows.length} row${bulkRows.length===1?'':'s'} ready</div>
       <table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
@@ -328,25 +336,36 @@
     try {
       const payload = bulkRows.map(r => {
         let lat = parseFloat(r.latitude), lng = parseFloat(r.longitude);
-        if (isNaN(lat) || isNaN(lng)) {
+        const hasLat = r.latitude && String(r.latitude).trim() !== '' && !isNaN(lat);
+        const hasLng = r.longitude && String(r.longitude).trim() !== '' && !isNaN(lng);
+        if (!hasLat || !hasLng) {
           const c = coordsForNeighbourhood(r.neighbourhood);
           if (c) { lat = c[0]; lng = c[1]; }
         }
-        const imgs = (r.image_urls || '').split(',').map(s => s.trim()).filter(Boolean);
-        const city = r.region || null;
+        const imgs = (r.image_urls || '').split(' ').map(s => s.trim()).filter(Boolean);
+        const amenities = (r.amenities || '').split(' ')
+          .map(normalizeAmenityToken)
+          .filter(Boolean);
+        const city = r.city || null;
         const area = r.neighbourhood || null;
+        const occ = String(r.occupancy_status || 'vacant').toLowerCase() === 'occupied' ? 'occupied' : 'vacant';
         return {
           landlord_id: user.id,
           status: 'pending',
           title: r.title || 'Untitled listing',
-          description: r.description || null,
-          price: +r.price_per_month || 0,
+          price: parseInt(r.price_per_month, 10) || 0,
           city,
           neighbourhood: area,
           address: area ? `${area}, ${city||''}`.replace(/,\s*$/,'') : (city || ''),
-          beds: +r.bedrooms || 0,
-          baths: +r.bathrooms || 0,
-          contact_phone: r.contact_phone || null,
+          beds: parseInt(r.bedrooms, 10) || 0,
+          baths: parseInt(r.bathrooms, 10) || 0,
+          size_sqm: r.size_sqm ? (parseInt(r.size_sqm, 10) || null) : null,
+          property_type: r.property_type || null,
+          furnishing: r.furnishing || null,
+          available_from: r.available_from || null,
+          occupancy: occ,
+          amenities,
+          deposit_months: r.deposit_months ? (parseInt(r.deposit_months, 10) || null) : null,
           lat: isNaN(lat) ? null : lat,
           lng: isNaN(lng) ? null : lng,
           image_urls: imgs,
