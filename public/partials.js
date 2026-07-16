@@ -296,6 +296,9 @@
   /* Notification bell dropdown */
   .shf-bell-panel { position: absolute; right: 0; top: calc(100% + .55rem); width: 360px; max-width: calc(100vw - 1.5rem); max-height: 460px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 20px 45px -15px rgba(0,0,0,.28); z-index: 1500; overflow: hidden; display: flex; flex-direction: column; opacity: 0; transform: translateY(-6px) scale(.98); pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
   .shf-bell-panel.open { opacity: 1; transform: none; pointer-events: auto; }
+  @media (max-width: 640px){
+    .shf-bell-panel { position: fixed; top: calc(var(--header-h, 64px) + .4rem); right: .6rem; left: .6rem; width: auto; max-width: none; max-height: calc(100vh - var(--header-h, 64px) - 1rem); }
+  }
   .shf-bell-head { display:flex; align-items:center; justify-content:space-between; padding:.85rem 1rem; border-bottom:1px solid var(--border); font-size:.9rem; color:var(--text); }
   .shf-bell-head strong i { color: var(--primary); margin-right:.35rem; }
   .shf-bell-list { overflow-y: auto; flex: 1; }
@@ -358,6 +361,14 @@
       const dd = document.querySelector('.user-dropdown');
       if (toggle && dd) {
         dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+        // Close the notification bell panel so the two menus don't overlap
+        const bp = document.querySelector('.shf-bell-panel');
+        if (bp && bp.classList.contains('open')) {
+          bp.classList.remove('open');
+          bp.setAttribute('aria-hidden', 'true');
+          const bb = document.querySelector('[data-bell-toggle]');
+          if (bb) bb.setAttribute('aria-expanded', 'false');
+        }
         return;
       }
       if (e.target.closest('[data-logout]')) {
