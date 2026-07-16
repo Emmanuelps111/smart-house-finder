@@ -173,6 +173,73 @@
   }
   renderFeatured();
   window.addEventListener('shf:listings-updated', renderFeatured);
+
+  // ---- Testimonials: load approved + submission form ----
+  (async function initTestimonials(){
+    const track = document.getElementById('testimonialTrack');
+    const dots = document.getElementById('testimonialDots');
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function render(items){
+      if (!items.length){
+        track.innerHTML = '<div class="testimonial"><blockquote>Be the first to share your experience with MakaziLink.</blockquote></div>';
+        dots.innerHTML = '';
+        return;
+      }
+      track.innerHTML = items.map(t => `
+        <div class="testimonial">
+          <blockquote>"${escapeHtml(t.quote)}"</blockquote>
+          <cite>— ${escapeHtml(t.user_name)}, ${escapeHtml(t.user_location)}</cite>
+        </div>`).join('');
+      dots.innerHTML = items.map((_,i) => `<button class="${i===0?'active':''}" aria-label="Slide ${i+1}"></button>`).join('');
+      // Re-init carousel behaviour if app.js exposes one
+      if (window.SHF && typeof window.SHF.initCarousels === 'function') window.SHF.initCarousels();
+    }
+    try {
+      const sb = await window.SHFCloud.ready;
+      const { data, error } = await sb.from('testimonials')
+        .select('id,user_name,user_location,quote,created_at')
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      render(data || []);
+    } catch(err){
+      console.error('testimonials load', err);
+      render([]);
+    }
+
+    const form = document.getElementById('testimonialForm');
+    const btn = document.getElementById('tSubmit');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('tName').value.trim();
+      const location = document.getElementById('tLocation').value.trim();
+      const quote = document.getElementById('tQuote').value.trim();
+      if (!name || !location || quote.length < 10) {
+        window.toast && window.toast.error('Please fill in all fields (testimonial min 10 characters).');
+        return;
+      }
+      btn.disabled = true;
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+      try {
+        const sb = await window.SHFCloud.ready;
+        const { error } = await sb.from('testimonials').insert({
+          user_name: name, user_location: location, quote, is_approved: false
+        });
+        if (error) throw error;
+        form.reset();
+        window.toast && window.toast.success('Thank you! Your testimonial has been submitted for admin approval.');
+      } catch(err){
+        console.error(err);
+        window.toast && window.toast.error(err.message || 'Could not submit your testimonial.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    });
+  })();
 </script>
+
 </body>
 </html>
