@@ -54,52 +54,6 @@
   .ms-btn:hover { border-color:#3B82F6; color:#3B82F6; }
   .ms-btn.active { background:#3B82F6; color:#fff; border-color:#3B82F6; box-shadow:0 6px 18px -6px rgba(59,130,246,.55); }
   #mediaStage video.hero-img { width:100%; max-height:520px; background:#000; }
-
-  /* Roommate modal theme-aware surfaces */
-  .rm-modal {
-    background: rgba(255,255,255,0.95);
-    color: #0f172a;
-    border: 1px solid rgba(226,232,240,0.6);
-  }
-  [data-theme="dark"] .rm-modal {
-    background: rgba(9,17,36,0.95);
-    color: #e2e8f0;
-    border-color: rgba(51,65,85,0.6);
-  }
-  .rm-label { color: #0f172a; }
-  [data-theme="dark"] .rm-label { color: #e2e8f0; }
-  .rm-input, .rm-select, .rm-textarea {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #0f172a;
-  }
-  [data-theme="dark"] .rm-input,
-  [data-theme="dark"] .rm-select,
-  [data-theme="dark"] .rm-textarea {
-    border-color: #334155;
-    background: rgba(9,17,36,0.85);
-    color: #e2e8f0;
-  }
-  .rm-tag {
-    border-radius: 9999px;
-    padding: .4rem .85rem;
-    font-size: .82rem;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #0f172a;
-    cursor: pointer;
-  }
-  [data-theme="dark"] .rm-tag {
-    border-color: #334155;
-    background: rgba(9,17,36,0.85);
-    color: #e2e8f0;
-  }
-  .rm-tag.active {
-    background: #3B82F6;
-    border-color: #3B82F6;
-    color: #fff;
-  }
 </style>
 </head>
 <body>
@@ -601,29 +555,32 @@
             .eq('id', userId).maybeSingle();
           const habitOptions = ['Non-smoker','Early bird','Night owl','Quiet','Social','Neat','Studious','Fitness'];
           const savedTags = new Set(Array.isArray(prof?.habit_tags) ? prof.habit_tags : []);
+          const isDark = document.documentElement.classList.contains('dark') || matchMedia('(prefers-color-scheme: dark)').matches;
+          const surfaceBg = isDark ? 'rgba(9,17,36,.85)' : 'var(--surface)';
+          const surfaceFg = isDark ? '#e2e8f0' : 'var(--text)';
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem; overflow-y:auto;';
-          const fieldBase = 'padding:.6rem 1rem; border-radius:9999px; box-shadow:inset 0 1px 0 rgba(255,255,255,.5); appearance:none; -webkit-appearance:none;';
-          const textareaBase = 'padding:.7rem 1rem; border-radius:20px; resize:vertical; font-family:inherit;';
+          const pillFieldStyle = `width:100%; padding:.6rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:${surfaceBg}; color:${surfaceFg}; box-shadow:inset 0 1px 0 rgba(255,255,255,.5); appearance:none; -webkit-appearance:none;`;
+          const pillTextareaStyle = `width:100%; padding:.7rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:20px; background:${surfaceBg}; color:${surfaceFg}; resize:vertical; font-family:inherit;`;
           overlay.innerHTML = `
-            <div class="rm-modal" style="border-radius:24px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto; backdrop-filter:blur(12px);">
+            <div style="background:${surfaceBg}; color:${surfaceFg}; border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto; backdrop-filter:blur(12px);">
               <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;">🙋 <span data-i18n>Find a Roommate</span></h3>
               <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.88rem;">Set your preferences. Your phone is saved privately to your profile and is <strong>never shown</strong> to other students — it's only shared when both of you accept a connect request.</p>
 
-              <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your name</label>
-              <input id="rm_name" class="rm-input" type="text" value="${escapeHtml(prof?.full_name||'')}" style="${fieldBase} margin-bottom:.85rem;" />
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your name</label>
+              <input id="rm_name" type="text" value="${escapeHtml(prof?.full_name||'')}" style="${pillFieldStyle} margin-bottom:.85rem;" />
 
-              <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;"><span data-i18n>Phone</span> <small style="color:var(--text-muted); font-weight:400;" data-i18n>— private, saved to your profile only</small></label>
-              <input id="rm_phone" class="rm-input" type="tel" placeholder="+255…" value="${escapeHtml(prof?.phone||'')}" style="${fieldBase} margin-bottom:.85rem;" />
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;"><span data-i18n>Phone</span> <small style="color:var(--text-muted); font-weight:400;" data-i18n>— private, saved to your profile only</small></label>
+              <input id="rm_phone" type="tel" placeholder="+255…" value="${escapeHtml(prof?.phone||'')}" style="${pillFieldStyle} margin-bottom:.85rem;" />
 
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
                 <div>
-                  <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your University Course / Major</label>
-                  <input id="rm_course" class="rm-input" type="text" placeholder="e.g., BSc Business Information Technology" value="${escapeHtml(prof?.course_major||'')}" style="${fieldBase}" />
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your University Course / Major</label>
+                  <input id="rm_course" type="text" placeholder="e.g., BSc Business Information Technology" value="${escapeHtml(prof?.course_major||'')}" style="${pillFieldStyle}" />
                 </div>
                 <div>
-                  <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Home Campus Branch</label>
-                  <select id="rm_campus" class="rm-select" style="${fieldBase}">
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Home Campus Branch</label>
+                  <select id="rm_campus" style="${pillFieldStyle}">
                     <option value="">Select…</option>
                     <option ${prof?.home_campus==='Main Campus (Mlimani)'?'selected':''}>Main Campus (Mlimani)</option>
                     <option ${prof?.home_campus==="COICT Kijitonyama"?'selected':''}>COICT Kijitonyama</option>
@@ -635,16 +592,16 @@
 
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
                 <div>
-                  <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Gender</label>
-                  <select id="rm_gender" class="rm-select" style="${fieldBase}">
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Gender</label>
+                  <select id="rm_gender" style="${pillFieldStyle}">
                     <option value="">Select…</option>
                     <option ${prof?.gender==='Male'?'selected':''}>Male</option>
                     <option ${prof?.gender==='Female'?'selected':''}>Female</option>
                   </select>
                 </div>
                 <div>
-                  <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Preferred Roommate Gender</label>
-                  <select id="rm_pref_gender" class="rm-select" style="${fieldBase}">
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Preferred Roommate Gender</label>
+                  <select id="rm_pref_gender" style="${pillFieldStyle}">
                     <option value="">Select…</option>
                     <option>Same Gender Only</option>
                     <option>Any</option>
@@ -652,52 +609,52 @@
                 </div>
               </div>
 
-              <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;">Room Habits <small style="color:var(--text-muted); font-weight:400;">(tap to select — saved to your profile)</small></label>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Room Habits <small style="color:var(--text-muted); font-weight:400;">(tap to select — saved to your profile)</small></label>
               <div id="rm_habits" style="display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem;">
-                ${habitOptions.map(t => `<button type="button" data-tag="${escapeHtml(t)}" class="rm-tag ${savedTags.has(t)?'active':''}">${escapeHtml(t)}</button>`).join('')}
+                ${habitOptions.map(t => `<button type="button" data-tag="${escapeHtml(t)}" class="rm-tag" style="border-radius:9999px; padding:.4rem .85rem; font-size:.82rem; border:1px solid rgba(148,163,184,.5); background:${savedTags.has(t)?'#3B82F6':surfaceBg}; color:${savedTags.has(t)?'#fff':surfaceFg}; cursor:pointer;">${escapeHtml(t)}</button>`).join('')}
               </div>
 
 
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
                 <div>
-                  <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Number of Roommates Needed</label>
-                  <select id="rm_count" class="rm-select" style="${fieldBase}">
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Number of Roommates Needed</label>
+                  <select id="rm_count" style="${pillFieldStyle}">
                     <option value="">Select…</option>
                     <option>1</option><option>2</option><option>3</option><option>4+</option>
                   </select>
                 </div>
                 <div>
-                  <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Maximum Rent Budget</label>
-                  <input id="rm_budget" class="rm-input" type="number" min="0" placeholder="TSh per Month/Semester" style="${fieldBase}" />
+                  <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Maximum Rent Budget</label>
+                  <input id="rm_budget" type="number" min="0" placeholder="TSh per Month/Semester" style="${pillFieldStyle}" />
                 </div>
               </div>
 
-              <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Smoking / Alcohol Tolerance</label>
-              <select id="rm_smoking" class="rm-select" style="${fieldBase} margin-bottom:.85rem;">
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Smoking / Alcohol Tolerance</label>
+              <select id="rm_smoking" style="${pillFieldStyle} margin-bottom:.85rem;">
                 <option value="">Select…</option>
                 <option>No Smoking/Drinking</option>
                 <option>Allowed Outside</option>
                 <option>No Preference</option>
               </select>
 
-              <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Cleanliness preference</label>
-              <select id="rm_clean" class="rm-select" style="${fieldBase} margin-bottom:.85rem;">
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Cleanliness preference</label>
+              <select id="rm_clean" style="${pillFieldStyle} margin-bottom:.85rem;">
                 <option value="">Select…</option>
                 <option ${prof?.cleanliness_preference==='High'?'selected':''}>High</option>
                 <option ${prof?.cleanliness_preference==='Medium'?'selected':''}>Medium</option>
                 <option ${prof?.cleanliness_preference==='Flexible'?'selected':''}>Flexible</option>
               </select>
 
-              <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Sleep schedule</label>
-              <select id="rm_sleep" class="rm-select" style="${fieldBase} margin-bottom:.85rem;">
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Sleep schedule</label>
+              <select id="rm_sleep" style="${pillFieldStyle} margin-bottom:.85rem;">
                 <option value="">Select…</option>
                 <option ${prof?.sleep_schedule==='Early Bird'?'selected':''}>Early Bird</option>
                 <option ${prof?.sleep_schedule==='Night Owl'?'selected':''}>Night Owl</option>
                 <option ${prof?.sleep_schedule==='Flexible'?'selected':''}>Flexible</option>
               </select>
 
-              <label class="rm-label" style="display:block; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Short bio</label>
-              <textarea id="rm_bio" class="rm-textarea" rows="2" maxlength="280" placeholder="A few words about you…" style="${textareaBase} margin-bottom:.85rem;">${escapeHtml(prof?.bio||'')}</textarea>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Short bio</label>
+              <textarea id="rm_bio" rows="2" maxlength="280" placeholder="A few words about you…" style="${pillTextareaStyle} margin-bottom:.85rem;">${escapeHtml(prof?.bio||'')}</textarea>
 
               <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem;">
                 <button id="rm_cancel" class="btn btn-outline" style="border-radius:9999px;" data-i18n>Cancel</button>
@@ -712,8 +669,8 @@
           const selectedTags = new Set(savedTags);
           overlay.querySelectorAll('.rm-tag').forEach(btn => btn.addEventListener('click', () => {
             const tag = btn.getAttribute('data-tag');
-            if (selectedTags.has(tag)){ selectedTags.delete(tag); btn.classList.remove('active'); }
-            else { selectedTags.add(tag); btn.classList.add('active'); }
+            if (selectedTags.has(tag)){ selectedTags.delete(tag); btn.style.background = surfaceBg; btn.style.color = surfaceFg; }
+            else { selectedTags.add(tag); btn.style.background = '#3B82F6'; btn.style.color = '#fff'; }
           }));
           overlay.querySelector('#rm_send').addEventListener('click', async () => {
             const name = overlay.querySelector('#rm_name').value.trim();
