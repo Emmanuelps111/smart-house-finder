@@ -180,19 +180,22 @@
     const dots = document.getElementById('testimonialDots');
     function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function render(items){
-      if (!items.length){
+      const testimonials = Array.isArray(items) ? items : [];
+      if (!testimonials.length){
         track.innerHTML = '<div class="testimonial"><blockquote>Be the first to share your experience with MakaziLink.</blockquote></div>';
-        dots.innerHTML = '';
+        dots.innerHTML = '<button type="button" class="active" data-slide-index="0" aria-label="Slide 1" aria-current="true"></button>';
+        if (window.SHF && typeof window.SHF.initCarousels === 'function') window.SHF.initCarousels(document.getElementById('testimonialCarousel'));
         return;
       }
-      track.innerHTML = items.map(t => `
+      track.innerHTML = testimonials.map(t => `
         <div class="testimonial">
           <blockquote>"${escapeHtml(t.quote)}"</blockquote>
           <cite>— ${escapeHtml(t.user_name)}, ${escapeHtml(t.user_location)}</cite>
         </div>`).join('');
-      dots.innerHTML = items.map((_,i) => `<button class="${i===0?'active':''}" aria-label="Slide ${i+1}"></button>`).join('');
-      // Re-init carousel behaviour if app.js exposes one
-      if (window.SHF && typeof window.SHF.initCarousels === 'function') window.SHF.initCarousels();
+      dots.innerHTML = testimonials.map((_,i) => `<button type="button" class="${i===0?'active':''}" data-slide-index="${i}" aria-label="Slide ${i+1}" aria-current="${i===0?'true':'false'}"></button>`).join('');
+      const carousel = document.getElementById('testimonialCarousel');
+      if (carousel) carousel.dataset.currentIndex = '0';
+      if (window.SHF && typeof window.SHF.initCarousels === 'function') window.SHF.initCarousels(carousel || document);
     }
     try {
       const sb = await window.SHFCloud.ready;
