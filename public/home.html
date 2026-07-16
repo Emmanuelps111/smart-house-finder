@@ -95,29 +95,39 @@
       <div class="eyebrow">Testimonials</div>
       <h2>Trusted by thousands</h2>
     </div>
-    <div class="carousel reveal">
-      <div class="carousel-track">
-        <div class="testimonial">
-          <blockquote>"I found my student flat in Mwenge in just two days. The map view made comparing neighborhoods around UDSM so easy."</blockquote>
-          <cite>— Amina H., Dar es Salaam</cite>
-        </div>
-        <div class="testimonial">
-          <blockquote>"As a landlord in Kinondoni, I had three viewings booked within a week. Far better than older platforms."</blockquote>
-          <cite>— Juma K., Landlord, Dar es Salaam</cite>
-        </div>
-        <div class="testimonial">
-          <blockquote>"Verified badges gave me confidence when renting near SUA. No scams, no time wasted, great support."</blockquote>
-          <cite>— Neema M., Morogoro</cite>
-        </div>
+    <div class="carousel reveal" id="testimonialCarousel">
+      <div class="carousel-track" id="testimonialTrack">
+        <div class="testimonial"><blockquote>Loading testimonials…</blockquote></div>
       </div>
-      <div class="carousel-dots">
-        <button class="active" aria-label="Slide 1"></button>
-        <button aria-label="Slide 2"></button>
-        <button aria-label="Slide 3"></button>
+      <div class="carousel-dots" id="testimonialDots"></div>
+    </div>
+
+    <div class="reveal" style="max-width:640px; margin:3rem auto 0;">
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:2rem; box-shadow:var(--shadow-sm);">
+        <h3 style="margin:0 0 .35rem; font-size:1.35rem;">Share Your Experience</h3>
+        <p style="margin:0 0 1.25rem; color:var(--text-muted); font-size:.9rem;">Tell other renters and landlords about your MakaziLink journey. Reviews are shown after admin approval.</p>
+        <form id="testimonialForm" style="display:flex; flex-direction:column; gap:.9rem;">
+          <div>
+            <label for="tName" style="display:block; font-size:.8rem; font-weight:600; margin-bottom:.35rem;">Name</label>
+            <input id="tName" name="name" type="text" required maxlength="80" placeholder="Your name" style="width:100%; padding:.7rem .9rem; border:1px solid var(--border); border-radius:10px; font:inherit; background:var(--surface);" />
+          </div>
+          <div>
+            <label for="tLocation" style="display:block; font-size:.8rem; font-weight:600; margin-bottom:.35rem;">Location</label>
+            <input id="tLocation" name="location" type="text" required maxlength="80" placeholder="City / region" style="width:100%; padding:.7rem .9rem; border:1px solid var(--border); border-radius:10px; font:inherit; background:var(--surface);" />
+          </div>
+          <div>
+            <label for="tQuote" style="display:block; font-size:.8rem; font-weight:600; margin-bottom:.35rem;">Your Testimonial</label>
+            <textarea id="tQuote" name="quote" required minlength="10" maxlength="600" rows="4" placeholder="What did you love about MakaziLink?" style="width:100%; padding:.7rem .9rem; border:1px solid var(--border); border-radius:10px; font:inherit; background:var(--surface); resize:vertical;"></textarea>
+          </div>
+          <button type="submit" id="tSubmit" class="btn btn-primary" style="align-self:flex-start;">
+            <i class="fas fa-paper-plane"></i> Submit Review
+          </button>
+        </form>
       </div>
     </div>
   </div>
 </section>
+
 
 
 <div id="footer-mount"></div>
