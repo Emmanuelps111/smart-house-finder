@@ -559,7 +559,7 @@
           const pillFieldStyle = `width:100%; padding:.6rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:${surfaceBg}; color:${surfaceFg}; box-shadow:inset 0 1px 0 rgba(255,255,255,.5); appearance:none; -webkit-appearance:none;`;
           const pillTextareaStyle = `width:100%; padding:.7rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:20px; background:${surfaceBg}; color:${surfaceFg}; resize:vertical; font-family:inherit;`;
           overlay.innerHTML = `
-            <div style="background:var(--surface,#fff); border-radius:20px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
+            <div style="background:${surfaceBg}; color:${surfaceFg}; border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto; backdrop-filter:blur(12px);">
               <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;">🙋 <span data-i18n>Find a Roommate</span></h3>
               <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.88rem;">Set your preferences. Your phone is saved privately to your profile and is <strong>never shown</strong> to other students — it's only shared when both of you accept a connect request.</p>
 
@@ -572,16 +572,16 @@
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
                 <div>
                   <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your University Course / Major</label>
-                  <input id="rm_course" type="text" placeholder="e.g., BSc Business Information Technology" style="${pillFieldStyle}" />
+                  <input id="rm_course" type="text" placeholder="e.g., BSc Business Information Technology" value="${escapeHtml(prof?.course_major||'')}" style="${pillFieldStyle}" />
                 </div>
                 <div>
                   <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Home Campus Branch</label>
                   <select id="rm_campus" style="${pillFieldStyle}">
                     <option value="">Select…</option>
-                    <option>Main Campus (Mlimani)</option>
-                    <option>COICT Kijitonyama</option>
-                    <option>MUHAS Upanga</option>
-                    <option>DUCE Chang'ombe</option>
+                    <option ${prof?.home_campus==='Main Campus (Mlimani)'?'selected':''}>Main Campus (Mlimani)</option>
+                    <option ${prof?.home_campus==="COICT Kijitonyama"?'selected':''}>COICT Kijitonyama</option>
+                    <option ${prof?.home_campus==='MUHAS Upanga'?'selected':''}>MUHAS Upanga</option>
+                    <option ${prof?.home_campus==="DUCE Chang'ombe"?'selected':''}>DUCE Chang'ombe</option>
                   </select>
                 </div>
               </div>
@@ -591,8 +591,8 @@
                   <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your Gender</label>
                   <select id="rm_gender" style="${pillFieldStyle}">
                     <option value="">Select…</option>
-                    <option>Male</option>
-                    <option>Female</option>
+                    <option ${prof?.gender==='Male'?'selected':''}>Male</option>
+                    <option ${prof?.gender==='Female'?'selected':''}>Female</option>
                   </select>
                 </div>
                 <div>
@@ -604,6 +604,12 @@
                   </select>
                 </div>
               </div>
+
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Room Habits <small style="color:var(--text-muted); font-weight:400;">(tap to select — saved to your profile)</small></label>
+              <div id="rm_habits" style="display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem;">
+                ${habitOptions.map(t => `<button type="button" data-tag="${escapeHtml(t)}" class="rm-tag" style="border-radius:9999px; padding:.4rem .85rem; font-size:.82rem; border:1px solid rgba(148,163,184,.5); background:${savedTags.has(t)?'#3B82F6':surfaceBg}; color:${savedTags.has(t)?'#fff':surfaceFg}; cursor:pointer;">${escapeHtml(t)}</button>`).join('')}
+              </div>
+
 
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.85rem;">
                 <div>
