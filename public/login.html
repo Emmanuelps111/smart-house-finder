@@ -9,10 +9,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link rel="stylesheet" href="/css/styles.css" />
 <style>
-  .landlord-only, .student-only, .renter-only { display: none; }
+  .landlord-only, .student-only, .renter-only, .signup-only { display: none; }
   body.is-landlord.is-signup .landlord-only { display: block; }
   body.is-student.is-signup .student-only { display: block; }
   body.is-renter.is-signup .renter-only { display: block; }
+  body.is-signup .signup-only { display: block; }
   .file-input-wrap {
     border: 2px dashed var(--border, #d1d5db);
     border-radius: 10px;
