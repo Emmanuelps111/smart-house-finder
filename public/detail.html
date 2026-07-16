@@ -451,19 +451,15 @@
         }
 
         function openProfileCompletionModal(userId, target, b, existing){
-          const isDark = document.documentElement.classList.contains('dark') || matchMedia('(prefers-color-scheme: dark)').matches;
-          const surfaceBg = isDark ? 'rgba(9,17,36,.85)' : 'var(--surface)';
-          const surfaceFg = isDark ? '#e2e8f0' : 'var(--text)';
-          const mutedColor = isDark ? '#94a3b8' : 'var(--text-muted)';
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:10000; padding:1rem; overflow-y:auto;';
-          const pill = `width:100%; padding:.65rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:${surfaceBg}; color:${surfaceFg}; appearance:none; -webkit-appearance:none; box-shadow:inset 0 1px 0 rgba(255,255,255,.5);`;
+          const pill = "width:100%; padding:.65rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:rgba(255,255,255,.85); color:#0f172a; appearance:none; -webkit-appearance:none; box-shadow:inset 0 1px 0 rgba(255,255,255,.5);";
           const chipTags = ['Non-smoker','Early bird','Night owl','Quiet','Social','Neat','Studious','Fitness'];
           const existingTags = new Set(existing?.habit_tags || []);
           overlay.innerHTML = `
-            <div style="background:${surfaceBg}; color:${surfaceFg}; border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.6rem; max-width:520px; width:100%; box-shadow:0 30px 80px rgba(15,23,42,.35); max-height:92vh; overflow-y:auto; backdrop-filter:blur(12px);">
+            <div style="background:rgba(255,255,255,.96); border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.6rem; max-width:520px; width:100%; box-shadow:0 30px 80px rgba(15,23,42,.35); max-height:92vh; overflow-y:auto;">
               <h3 style="margin:0 0 .35rem; font-size:1.25rem; display:flex; align-items:center; gap:.5rem;">🎨 Complete Your Student Card</h3>
-              <p style="margin:0 0 1.2rem; color:${mutedColor}; font-size:.88rem; line-height:1.5;">Complete Your Student Card! Before you can team up with other peers, please take 10 seconds to confirm your University Course, Gender, and Room Habits so they know who they are connecting with.</p>
+              <p style="margin:0 0 1.2rem; color:#64748b; font-size:.88rem; line-height:1.5;">Complete Your Student Card! Before you can team up with other peers, please take 10 seconds to confirm your University Course, Gender, and Room Habits so they know who they are connecting with.</p>
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Gender</label>
               <select id="jit_gender" style="${pill} margin-bottom:.85rem;">
                 <option value="">Select…</option>
@@ -472,9 +468,9 @@
               </select>
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Course / Major</label>
               <input id="jit_course" type="text" placeholder="e.g., BSc Business Information Technology" value="${escapeHtml(existing?.course_major||'')}" style="${pill} margin-bottom:.85rem;" />
-              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Room Habits <small style="color:${mutedColor}; font-weight:400;">(tap to select)</small></label>
+              <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Room Habits <small style="color:#64748b; font-weight:400;">(tap to select)</small></label>
               <div id="jit_tags" style="display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1.1rem;">
-                ${chipTags.map(t => `<button type="button" data-tag="${escapeHtml(t)}" class="jit-tag" style="border-radius:9999px; padding:.4rem .85rem; font-size:.82rem; border:1px solid rgba(148,163,184,.5); background:${existingTags.has(t)?'#3B82F6':surfaceBg}; color:${existingTags.has(t)?'#fff':surfaceFg}; cursor:pointer;">${escapeHtml(t)}</button>`).join('')}
+                ${chipTags.map(t => `<button type="button" data-tag="${escapeHtml(t)}" class="jit-tag" style="border-radius:9999px; padding:.4rem .85rem; font-size:.82rem; border:1px solid rgba(148,163,184,.5); background:${existingTags.has(t)?'#3B82F6':'rgba(255,255,255,.85)'}; color:${existingTags.has(t)?'#fff':'#0f172a'}; cursor:pointer;">${escapeHtml(t)}</button>`).join('')}
               </div>
               <div style="display:flex; gap:.5rem; justify-content:flex-end;">
                 <button id="jit_cancel" class="btn btn-outline" style="border-radius:9999px;">Cancel</button>
@@ -488,7 +484,7 @@
           const selected = new Set(existingTags);
           overlay.querySelectorAll('.jit-tag').forEach(btn => btn.addEventListener('click', () => {
             const tag = btn.getAttribute('data-tag');
-            if (selected.has(tag)){ selected.delete(tag); btn.style.background=surfaceBg; btn.style.color=surfaceFg; }
+            if (selected.has(tag)){ selected.delete(tag); btn.style.background='rgba(255,255,255,.85)'; btn.style.color='#0f172a'; }
             else { selected.add(tag); btn.style.background='#3B82F6'; btn.style.color='#fff'; }
           }));
           overlay.querySelector('#jit_save').addEventListener('click', async () => {
@@ -556,8 +552,8 @@
           const habitOptions = ['Non-smoker','Early bird','Night owl','Quiet','Social','Neat','Studious','Fitness'];
           const savedTags = new Set(Array.isArray(prof?.habit_tags) ? prof.habit_tags : []);
           const isDark = document.documentElement.classList.contains('dark') || matchMedia('(prefers-color-scheme: dark)').matches;
-          const surfaceBg = isDark ? 'rgba(9,17,36,.85)' : 'var(--surface)';
-          const surfaceFg = isDark ? '#e2e8f0' : 'var(--text)';
+          const surfaceBg = isDark ? 'rgba(9,17,36,.85)' : 'rgba(255,255,255,.85)';
+          const surfaceFg = isDark ? '#e2e8f0' : '#0f172a';
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem; overflow-y:auto;';
           const pillFieldStyle = `width:100%; padding:.6rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:9999px; background:${surfaceBg}; color:${surfaceFg}; box-shadow:inset 0 1px 0 rgba(255,255,255,.5); appearance:none; -webkit-appearance:none;`;
