@@ -64,7 +64,10 @@
   // Carousel
   window.SHF = window.SHF || {};
   window.SHF.initCarousels = function initCarousels(root = document) {
-    root.querySelectorAll('.carousel').forEach(c => {
+    const carousels = root.matches && root.matches('.carousel')
+      ? [root]
+      : Array.from(root.querySelectorAll('.carousel'));
+    carousels.forEach(c => {
       if (c._shfCarouselTimer) {
         clearInterval(c._shfCarouselTimer);
         c._shfCarouselTimer = null;
