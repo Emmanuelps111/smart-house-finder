@@ -699,6 +699,14 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) { setError('au-email','Enter a valid email.'); ok = false; }
     if (passEl.value.length < 6) { setError('au-pass','Password must be at least 6 characters.'); ok = false; }
     if (tab === 'signup' && nameEl.value.trim().length < 2) { setError('au-name','Enter your full name.'); ok = false; }
+    if (tab === 'signup') {
+      const secqSelEl = document.getElementById('au-secq');
+      const secqCustomEl = document.getElementById('au-secq-custom');
+      const secaEl = document.getElementById('au-seca');
+      const chosenQ = secqSelEl.value === '__custom__' ? (secqCustomEl.value || '').trim() : secqSelEl.value;
+      if (secqSelEl.value === '__custom__' && chosenQ.length < 5) { setError('au-secq-custom','Enter your custom question (at least 5 characters).'); ok = false; }
+      if (!secaEl.value.trim() || secaEl.value.trim().length < 2) { setError('au-seca','Enter an answer (at least 2 characters).'); ok = false; }
+    }
 
     let landlordMeta = {};
     let studentMeta = {};
