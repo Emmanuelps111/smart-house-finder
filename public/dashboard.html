@@ -318,7 +318,7 @@
   function renderPreview(headers) {
     const el = document.getElementById('bulkPreview');
     el.style.display = 'block';
-    const cols = ['title','price_per_month','region','neighbourhood','bedrooms','bathrooms','image_urls'];
+    const cols = ['title','city','neighbourhood','price_per_month','bedrooms','bathrooms','amenities','image_urls'];
     el.innerHTML = `
       <div style="padding:.5rem .75rem; background:var(--bg); font-weight:600; font-size:.85rem;">${bulkRows.length} row${bulkRows.length===1?'':'s'} ready</div>
       <table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
