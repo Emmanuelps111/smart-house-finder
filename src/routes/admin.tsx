@@ -251,6 +251,29 @@ function AdminPage() {
     setPendingAgencies((arr) => arr.filter((a) => a.id !== userId));
   };
 
+  const tClient = () => (supabase as unknown as {
+    from: (t: string) => {
+      update: (v: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> };
+      delete: () => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> };
+    };
+  }).from("testimonials");
+
+  const approveTestimonial = async (id: string) => {
+    const { error } = await tClient().update({ is_approved: true }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Testimonial approved");
+    setTestimonials((arr) => arr.map(t => t.id === id ? { ...t, is_approved: true } : t));
+  };
+  const deleteTestimonial = async (id: string) => {
+    if (!window.confirm("Delete this testimonial permanently?")) return;
+    const { error } = await tClient().delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Testimonial deleted");
+    setTestimonials((arr) => arr.filter(t => t.id !== id));
+  };
+
+
+
 
 
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
