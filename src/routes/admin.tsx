@@ -323,27 +323,27 @@ function AdminPage() {
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Tabs defaultValue="overview">
-          <TabsList className="bg-blue-100/60 border border-blue-200">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
-            <TabsTrigger value="moderation" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingCount}</Badge>}</TabsTrigger>
-            <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">All properties</TabsTrigger>
-            <TabsTrigger value="verifications" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1 h-auto w-full bg-blue-100/60 border border-blue-200 p-1">
+            <TabsTrigger value="overview" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
+            <TabsTrigger value="moderation" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingCount}</Badge>}</TabsTrigger>
+            <TabsTrigger value="all" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">All properties</TabsTrigger>
+            <TabsTrigger value="verifications" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Verifications{pendingVerifications.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingVerifications.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
-            <TabsTrigger value="messages" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="users" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
+            <TabsTrigger value="messages" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Messages{messages.filter(m => m.status === 'new').length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{messages.filter(m => m.status === 'new').length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="roommates" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="roommates" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Roommates{roommates.filter(r => r.status === 'searching').length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{roommates.filter(r => r.status === 'searching').length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="agencies" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="agencies" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Agencies{pendingAgencies.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingAgencies.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="testimonials" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="testimonials" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Testimonials{testimonials.filter(t => !t.is_approved).length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{testimonials.filter(t => !t.is_approved).length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="announce" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">📣 Announce</TabsTrigger>
+            <TabsTrigger value="announce" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">📣 Announce</TabsTrigger>
           </TabsList>
 
 
