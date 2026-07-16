@@ -54,6 +54,52 @@
   .ms-btn:hover { border-color:#3B82F6; color:#3B82F6; }
   .ms-btn.active { background:#3B82F6; color:#fff; border-color:#3B82F6; box-shadow:0 6px 18px -6px rgba(59,130,246,.55); }
   #mediaStage video.hero-img { width:100%; max-height:520px; background:#000; }
+
+  /* Roommate modal theme-aware surfaces */
+  .rm-modal {
+    background: rgba(255,255,255,0.95);
+    color: #0f172a;
+    border: 1px solid rgba(226,232,240,0.6);
+  }
+  [data-theme="dark"] .rm-modal {
+    background: rgba(9,17,36,0.95);
+    color: #e2e8f0;
+    border-color: rgba(51,65,85,0.6);
+  }
+  .rm-label { color: #0f172a; }
+  [data-theme="dark"] .rm-label { color: #e2e8f0; }
+  .rm-input, .rm-select, .rm-textarea {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #0f172a;
+  }
+  [data-theme="dark"] .rm-input,
+  [data-theme="dark"] .rm-select,
+  [data-theme="dark"] .rm-textarea {
+    border-color: #334155;
+    background: rgba(9,17,36,0.85);
+    color: #e2e8f0;
+  }
+  .rm-tag {
+    border-radius: 9999px;
+    padding: .4rem .85rem;
+    font-size: .82rem;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #0f172a;
+    cursor: pointer;
+  }
+  [data-theme="dark"] .rm-tag {
+    border-color: #334155;
+    background: rgba(9,17,36,0.85);
+    color: #e2e8f0;
+  }
+  .rm-tag.active {
+    background: #3B82F6;
+    border-color: #3B82F6;
+    color: #fff;
+  }
 </style>
 </head>
 <body>
