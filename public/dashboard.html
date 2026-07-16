@@ -261,9 +261,17 @@
     document.getElementById('processUpload').addEventListener('click', processBulkUpload);
   }
 
+  const BULK_HEADERS = ['title','city','neighbourhood','price_per_month','bedrooms','bathrooms','size_sqm','property_type','furnishing','available_from','occupancy_status','amenities','latitude','longitude','deposit_months','image_urls'];
+  const KNOWN_AMENITIES = ['Wi-Fi','Parking','Security','Water tank','Generator','Air conditioning','Kitchen','Laundry','Pet friendly','Garden','Balcony','Furnished'];
+  function normalizeAmenityToken(tok){
+    const t = String(tok||'').replace(/_/g,' ').trim().toLowerCase();
+    if (!t) return null;
+    return KNOWN_AMENITIES.find(a => a.toLowerCase() === t) || null;
+  }
+
   function downloadTemplate() {
-    const headers = ['title','price_per_month','description','region','neighbourhood','latitude','longitude','bedrooms','bathrooms','contact_phone','image_urls'];
-    const example = ['Cozy 2BR near UDSM','450000','Bright apartment with parking','Dar es Salaam','Mikocheni','','','2','1','+255700000000','https://example.com/a.jpg,https://example.com/b.jpg'];
+    const headers = BULK_HEADERS;
+    const example = ['Cozy 2BR near UDSM','Dar es Salaam','Mikocheni','450000','2','1','75','Apartment','Furnished','2026-08-01','vacant','Wi-Fi Water_tank Kitchen Parking','-6.7654','39.2422','2','https://example.com/a.jpg https://example.com/b.jpg'];
     const csv = headers.join(',') + '\n' + example.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',') + '\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
