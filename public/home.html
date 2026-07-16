@@ -60,23 +60,83 @@
   </div>
 </section>
 
-<section>
+<style>
+  .orbit-section { display:block; }
+  .mobile-ribbon { display:none; }
+  @media (max-width: 767px){
+    .orbit-section { display:none !important; }
+    .mobile-ribbon { display:block; padding:1rem; }
+    .mobile-ribbon a { display:block; text-align:center; padding:.85rem 1rem; border-radius:999px; background:linear-gradient(90deg,#3B82F6,#6366F1); color:#fff; font-weight:600; text-decoration:none; box-shadow:0 6px 20px rgba(59,130,246,.35); font-size:.9rem; }
+  }
+  .orbit-wrap { position:relative; display:flex; align-items:center; justify-content:center; gap:1.25rem; min-height:340px; padding:1.5rem 0; }
+  .orbit-side { display:flex; flex-direction:column; gap:.9rem; align-items:center; }
+  .orbit-token { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:color-mix(in oklab, #3B82F6 12%, var(--bg)); color:#3B82F6; font-size:1.1rem; cursor:pointer; border:1px solid var(--border); opacity:.55; transition:all .5s cubic-bezier(.4,0,.2,1); box-shadow:var(--shadow-sm); }
+  .orbit-token:hover { opacity:1; transform:scale(1.1); }
+  .orbit-center { flex:0 0 auto; width:min(440px,90%); padding:2.25rem 2rem; border-radius:24px; background:color-mix(in oklab, var(--bg) 60%, transparent); backdrop-filter:blur(18px) saturate(140%); border:1px solid color-mix(in oklab, #3B82F6 25%, var(--border)); box-shadow:0 20px 60px -20px rgba(59,130,246,.35); text-align:center; }
+  .orbit-center .oc-icon { font-size:3rem; color:#3B82F6; margin-bottom:1rem; display:inline-block; }
+  .orbit-center h3 { margin:0 0 .5rem; font-size:1.5rem; }
+  .orbit-center p { margin:0; color:var(--text-muted); line-height:1.6; }
+  .orbit-center.swap { animation:ocSwap .55s cubic-bezier(.4,0,.2,1); }
+  @keyframes ocSwap { 0%{opacity:0; transform:translateX(30px) scale(.92);} 100%{opacity:1; transform:translateX(0) scale(1);} }
+  @media (max-width:1024px){ .orbit-center{ width:min(360px,80%); padding:1.75rem 1.4rem; } .orbit-token{ width:48px; height:48px; font-size:1rem; } }
+</style>
+<section class="orbit-section">
   <div class="container">
     <div class="section-head reveal">
       <div class="eyebrow">Why MakaziLink</div>
       <h2>Everything renters and landlords need</h2>
       <p style="color:white;">A trusted platform that connects students with verified landlords and quality housing.</p>
     </div>
-    <div class="grid-3">
-      <div class="feature reveal"><i class="fas fa-shield-halved"></i><h3>Verified Listings</h3><p>Every property is reviewed for accuracy so you avoid scams and surprises.</p></div>
-      <div class="feature reveal"><i class="fas fa-map-location-dot"></i><h3>Interactive Map</h3><p>Find homes by neighborhood, transport links and proximity to your campus.</p></div>
-      <div class="feature reveal"><i class="fas fa-user-graduate"></i><h3>Built for Students</h3><p>Filters tailored to budget, room type, and shared housing preferences.</p></div>
-      <div class="feature reveal"><i class="fas fa-comments"></i><h3>Direct Connection</h3><p>Talk to landlords without middlemen. No hidden fees, just clarity.</p></div>
-      <div class="feature reveal"><i class="fas fa-bolt"></i><h3>Fast Listings</h3><p>Landlords can post a new property in under three minutes.</p></div>
-      <div class="feature reveal"><i class="fas fa-lock"></i><h3>Secure Accounts</h3><p>Separate logins for students and landlords with role-based protection.</p></div>
+    <div class="orbit-wrap reveal" id="orbit">
+      <div class="orbit-side" id="orbit-left"></div>
+      <div class="orbit-center" id="orbit-center"></div>
+      <div class="orbit-side" id="orbit-right"></div>
     </div>
   </div>
 </section>
+<section class="mobile-ribbon">
+  <a href="/student-portal.html">💡 Why choose MakaziLink? Tap to view student portal benefits & features</a>
+</section>
+<script>
+  (function(){
+    const features = [
+      { i:'fa-shield-halved', t:'Verified Listings', d:'Every property is reviewed for accuracy so you avoid scams and surprises.' },
+      { i:'fa-map-location-dot', t:'Interactive Map', d:'Find homes by neighborhood, transport links and proximity to your campus.' },
+      { i:'fa-user-graduate', t:'Built for Students', d:'Filters tailored to budget, room type, and shared housing preferences.' },
+      { i:'fa-comments', t:'Direct Connection', d:'Talk to landlords without middlemen. No hidden fees, just clarity.' },
+      { i:'fa-bolt', t:'Fast Listings', d:'Landlords can post a new property in under three minutes.' },
+      { i:'fa-lock', t:'Secure Accounts', d:'Separate logins for students and landlords with role-based protection.' },
+    ];
+    let active = 0;
+    const center = document.getElementById('orbit-center');
+    const left = document.getElementById('orbit-left');
+    const right = document.getElementById('orbit-right');
+    function render(){
+      const f = features[active];
+      center.classList.remove('swap');
+      void center.offsetWidth;
+      center.innerHTML = '<i class="fas '+f.i+' oc-icon"></i><h3>'+f.t+'</h3><p>'+f.d+'</p>';
+      center.classList.add('swap');
+      const others = features.map((x,idx)=>Object.assign({},x,{idx:idx})).filter(x=>x.idx!==active);
+      const half = Math.ceil(others.length/2);
+      const l = others.slice(0,half), r = others.slice(half);
+      left.innerHTML = l.map(x=>'<div class="orbit-token" data-idx="'+x.idx+'" title="'+x.t+'"><i class="fas '+x.i+'"></i></div>').join('');
+      right.innerHTML = r.map(x=>'<div class="orbit-token" data-idx="'+x.idx+'" title="'+x.t+'"><i class="fas '+x.i+'"></i></div>').join('');
+    }
+    render();
+    document.getElementById('orbit').addEventListener('click', function(e){
+      const t = e.target.closest('.orbit-token');
+      if(!t) return;
+      active = parseInt(t.dataset.idx,10);
+      render();
+    });
+    let timer = setInterval(tick, 4500);
+    function tick(){ active = (active+1) % features.length; render(); }
+    center.addEventListener('mouseenter', function(){ clearInterval(timer); timer=null; });
+    center.addEventListener('mouseleave', function(){ if(!timer) timer = setInterval(tick, 4500); });
+  })();
+</script>
+
 
 <section style="background:var(--surface);">
   <div class="container">
