@@ -99,6 +99,7 @@ type RoommateRequest = {
 
 
 type PendingAgency = { id: string; full_name: string | null; phone: string | null; email: string | null; created_at: string };
+type Testimonial = { id: string; user_name: string; user_location: string; quote: string; is_approved: boolean; created_at: string };
 
 type AuthState = "loading" | "unauthenticated" | "forbidden" | "ok";
 
@@ -130,6 +131,8 @@ function AdminPage() {
   const [announceLink, setAnnounceLink] = useState("");
   const [sendingAnnounce, setSendingAnnounce] = useState(false);
   const [pendingAgencies, setPendingAgencies] = useState<PendingAgency[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
 
 
   const loadData = useCallback(async () => {
@@ -155,6 +158,8 @@ function AdminPage() {
     if (rooms.data) setRoommates(rooms.data as unknown as RoommateRequest[]);
     const { data: agencies } = await (supabase as unknown as { rpc: (n: string) => Promise<{ data: PendingAgency[] | null }> }).rpc("list_pending_agencies");
     if (agencies) setPendingAgencies(agencies);
+    const { data: tData } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { order: (col: string, o: { ascending: boolean }) => Promise<{ data: Testimonial[] | null }> } } }).from("testimonials").select("*").order("created_at", { ascending: false });
+    if (tData) setTestimonials(tData);
   }, []);
 
 
@@ -246,6 +251,29 @@ function AdminPage() {
     setPendingAgencies((arr) => arr.filter((a) => a.id !== userId));
   };
 
+  const tClient = () => (supabase as unknown as {
+    from: (t: string) => {
+      update: (v: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> };
+      delete: () => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> };
+    };
+  }).from("testimonials");
+
+  const approveTestimonial = async (id: string) => {
+    const { error } = await tClient().update({ is_approved: true }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Testimonial approved");
+    setTestimonials((arr) => arr.map(t => t.id === id ? { ...t, is_approved: true } : t));
+  };
+  const deleteTestimonial = async (id: string) => {
+    if (!window.confirm("Delete this testimonial permanently?")) return;
+    const { error } = await tClient().delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Testimonial deleted");
+    setTestimonials((arr) => arr.filter(t => t.id !== id));
+  };
+
+
+
 
 
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
@@ -312,8 +340,12 @@ function AdminPage() {
             <TabsTrigger value="agencies" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Agencies{pendingAgencies.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingAgencies.length}</Badge>}
             </TabsTrigger>
+            <TabsTrigger value="testimonials" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Testimonials{testimonials.filter(t => !t.is_approved).length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{testimonials.filter(t => !t.is_approved).length}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="announce" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">📣 Announce</TabsTrigger>
           </TabsList>
+
 
 
 
@@ -615,7 +647,53 @@ function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="testimonials" className="mt-6">
+            <Card className="border-blue-200">
+              <CardHeader><CardTitle className="text-blue-900">Pending Testimonials</CardTitle></CardHeader>
+              <CardContent>
+                {testimonials.filter(t => !t.is_approved).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending testimonials.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {testimonials.filter(t => !t.is_approved).map(t => (
+                      <div key={t.id} className="p-4 border border-blue-100 rounded-lg bg-blue-50/30">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="font-semibold text-blue-900">{t.user_name} <span className="text-xs font-normal text-muted-foreground">— {t.user_location}</span></div>
+                            <blockquote className="mt-2 text-sm italic text-slate-700">"{t.quote}"</blockquote>
+                            <div className="text-xs text-muted-foreground mt-2">Submitted {new Date(t.created_at).toLocaleString()}</div>
+                          </div>
+                          <div className="flex flex-col gap-2 shrink-0">
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => approveTestimonial(t.id)}>Approve</Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {testimonials.filter(t => t.is_approved).length > 0 && (
+                  <div className="mt-8">
+                    <h4 className="font-semibold text-blue-900 mb-3">Approved ({testimonials.filter(t => t.is_approved).length})</h4>
+                    <div className="space-y-2">
+                      {testimonials.filter(t => t.is_approved).map(t => (
+                        <div key={t.id} className="p-3 border border-slate-200 rounded-lg bg-white flex items-start justify-between gap-3">
+                          <div className="flex-1 text-sm">
+                            <span className="font-medium">{t.user_name}</span> <span className="text-muted-foreground text-xs">— {t.user_location}</span>
+                            <div className="text-slate-600 italic mt-1">"{t.quote}"</div>
+                          </div>
+                          <Button size="sm" variant="destructive" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
 
       </main>
 
