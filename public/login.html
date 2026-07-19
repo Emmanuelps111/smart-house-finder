@@ -928,6 +928,20 @@
           return;
         }
 
+        if (isStudentSignup) {
+          // Students skip OCR entirely — route straight to 6-digit OTP screen.
+          await showStudentOtpPanel({
+            sb,
+            email: emailEl.value.trim(),
+            password: passEl.value,
+            name: nameEl.value.trim(),
+            studentMeta,
+          });
+          return;
+        }
+
+
+
         // Landlord or Student: sign in (or skip if email confirmation required), upload, verify
         let session = null;
         try {
