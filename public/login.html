@@ -677,8 +677,93 @@
   function setError(id, msg) {
     const el = document.getElementById(id);
     if (!el) return;
+    const gate = document.getElementById('udsmGate');
+    if (msg === '__UDSM_GATE__') {
+      el.parentElement.querySelector('.error').textContent = 'Use your UDSM campus email.';
+      if (gate) {
+        gate.style.display = 'block';
+        gate.innerHTML = '🔒 <strong>Institutional Access Restricted.</strong> MakaziLink is currently open exclusively to verified University of Dar es Salaam (UDSM) students. Please register using your official campus webmail address (<strong>@student.udsm.ac.tz</strong>).';
+        gate.scrollIntoView({ behavior:'smooth', block:'center' });
+      }
+      return;
+    }
+    if (!msg && gate) gate.style.display = 'none';
     el.parentElement.querySelector('.error').textContent = msg || '';
   }
+
+  async function showStudentOtpPanel({ sb, email, password, name, studentMeta }) {
+    const card = document.querySelector('.auth-card');
+    card.innerHTML = `
+      <div style="text-align:center;">
+        <i class="fas fa-envelope-open-text" style="font-size:3rem; color:var(--primary,#3B82F6); margin-bottom:.75rem;"></i>
+        <h2 style="margin:.25rem 0;">Enter your 6-digit pin</h2>
+        <p style="color:#475569; font-size:.95rem;">We sent a confirmation pin to <strong>${email}</strong>. Enter it below to activate your student account.</p>
+      </div>
+      <div style="background: rgba(255,255,255,.85); backdrop-filter: blur(10px); border:1px solid rgba(148,163,184,.35); border-radius:16px; padding:1.25rem; margin-top:1rem;">
+        <div style="display:flex; gap:.5rem; justify-content:center; margin:.5rem 0 1rem;">
+          <input id="otp-input" inputmode="numeric" pattern="\\d{6}" maxlength="6"
+            style="width:220px; text-align:center; letter-spacing:.6rem; font-size:1.5rem; font-weight:600; padding:.75rem 1rem; border-radius:9999px; border:1px solid #cbd5e1; background:#fff;" placeholder="••••••" />
+        </div>
+        <button id="otp-verify" class="btn btn-primary" style="width:100%; justify-content:center; border-radius:9999px;">Verify pin</button>
+        <p id="otp-error" style="color:#dc2626; font-size:.85rem; text-align:center; margin-top:.5rem; min-height:1.2em;"></p>
+        <p style="text-align:center; font-size:.85rem; color:#64748b; margin-top:.5rem;">
+          Didn't get it? <a href="#" id="otp-resend" style="color:var(--primary,#3B82F6); font-weight:600;">Resend pin</a>
+        </p>
+      </div>
+    `;
+    const input = document.getElementById('otp-input');
+    const err = document.getElementById('otp-error');
+    const btn = document.getElementById('otp-verify');
+    input.focus();
+
+    async function finalize(session) {
+      try {
+        const uid = session.user.id;
+        await sb.from('profiles').update({
+          university: studentMeta.university,
+          student_reg_no: studentMeta.student_reg_no,
+          phone: studentMeta.phone,
+          verification_status: 'approved',
+          verified_at: new Date().toISOString(),
+        }).eq('id', uid);
+        await window.__saveSecurityQuestion?.(sb);
+      } catch (e) { console.warn('finalize student:', e); }
+      window.toast.success('Student account verified!');
+      setTimeout(() => { location.href = '/listings.html'; }, 500);
+    }
+
+    btn.addEventListener('click', async () => {
+      err.textContent = '';
+      const token = (input.value || '').trim();
+      if (!/^\d{6}$/.test(token)) { err.textContent = 'Enter the 6-digit pin.'; return; }
+      btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying…';
+      try {
+        const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'signup' });
+        if (error) throw error;
+        if (data?.session) return finalize(data.session);
+        const { data: si, error: siErr } = await sb.auth.signInWithPassword({ email, password });
+        if (siErr) throw siErr;
+        return finalize(si.session);
+      } catch (e) {
+        err.textContent = e.message || 'Invalid or expired pin.';
+        btn.disabled = false; btn.innerHTML = 'Verify pin';
+      }
+    });
+
+    document.getElementById('otp-resend').addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      err.textContent = '';
+      try {
+        await sb.auth.resend({ type: 'signup', email });
+        window.toast.success('New pin sent to your inbox.');
+      } catch (e) {
+        err.textContent = e.message || 'Could not resend pin.';
+      }
+    });
+  }
+  window.__showStudentOtpPanel = showStudentOtpPanel;
+
+
 
   document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
