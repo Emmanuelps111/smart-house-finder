@@ -452,13 +452,13 @@
       const orig = verifyBtn.innerHTML;
       verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying…';
       try {
-        const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'signup' });
-        if (error) {
+        let result = await sb.auth.verifyOtp({ email, token, type: 'signup' });
+        if (result.error) {
           const alt = await sb.auth.verifyOtp({ email, token, type: 'email' });
-          if (alt.error) throw error;
-          data = alt.data;
+          if (alt.error) throw result.error;
+          result = alt;
         }
-        const uid = data?.user?.id;
+        const uid = result.data?.user?.id;
         if (uid) {
           await sb.from('profiles').update({
             university: studentMeta.university,
