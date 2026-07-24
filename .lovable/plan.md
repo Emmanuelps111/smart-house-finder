@@ -1,38 +1,17 @@
-## Goal
+## Problem
 
-Replace the broken 6-digit OTP flow for students with the default Supabase magic-link confirmation, keep the UDSM institutional email gate, and move student profile auto-approval into `auth-callback.html`.
+On `public/detail.html`, the two-column `.detail-grid` (`1.4fr 1fr`) collapses/stretches when a roommate request contains a very long unbroken string (e.g. "sshhshshshshshs…"). CSS grid tracks with `fr` still expand to their content's min-size, and neither the grid columns nor `.rm-quote` currently allow that text to break, so the left column pushes wider than its track, shoving the gallery, "About this property", and reviews out of the side-by-side frame.
 
-## Changes
+## Fix (CSS-only, `public/detail.html`)
 
-### 1. `public/login.html`
+1. Add `min-width: 0;` to `.detail-grid > *` so each column respects its `fr` track instead of growing to fit unbreakable content.
+2. Add `overflow-wrap: anywhere; word-break: break-word;` to `.rm-quote` (the long bio quote) and to `.rm-summary` / `.rm-name` for safety, so pathological strings wrap inside the card.
+3. Add the same wrap rules to the property description block ("About this property") and reviews text to prevent identical overflow from those sources.
+4. Ensure the embedded map wrapper has `min-width: 0; overflow: hidden;` and its `#map` container keeps `width:100%` so it stays framed inside the right column on all viewports.
 
-- Remove the `showStudentOtpPanel` function entirely (the 6-digit input, `verifyOtp` calls, resend button, and stored `__pendingStudentOtp` state).
-- Keep the UDSM email gate: `/@(student\.udsm\.ac\.tz|udsm\.ac.tz)$/` regex plus the `showInstitutionalGateError` helper.
-- In the signup handler, when `role === 'student'`:
-  - Call `sb.auth.signUp({ email, password, options: { emailRedirectTo: <origin>/auth-callback.html, data: { full_name, role: 'student', phone, university, student_reg_no, is_student_pending_approval: true } } })`.
-  - After signUp returns without error, save the security question (if provided) using the existing helper.
-  - Show a "Check your MakaziLink email" panel (reuse `showFinalPanel` styling) telling the student to click the confirmation link sent to their UDSM address. No code input, no `verifyOtp`.
-- Keep landlord/renter branches unchanged.
-
-### 2. `public/auth-callback.html`
-
-- After the session hydrates and before the role-based redirect, detect first-time student confirmations:
-  - Read the signed-in user's `user_roles` (already done) and `profiles` row.
-  - If the role is `student` AND `verification_status` is not `approved`, run a single `UPDATE profiles` setting `verification_status = 'approved'`, `verified_at = now()`, and copy `phone`, `university`, `student_reg_no` from `session.user.user_metadata` when the profile columns are empty.
-  - Then re-sync the local cache via `SHFCloud.syncLocalUser`.
-- Route students to `/listings.html` (unchanged), landlords to `/dashboard.html`, admins to `/admin`.
-- Keep the existing "no roles → /select-role.html" branch: if a Google/OAuth student ever lands here without a role, the role-picker still handles them.
-
-### 3. Documentation-only touches (no logic change)
-
-- Update the small helper text under the student signup form (if present) to mention "we'll email you a confirmation link" instead of "6-digit code".
-
-## Out of scope
-
-- No email domain setup, no custom auth templates, no `scaffold_auth_email_templates`. The default Supabase confirmation email (which contains the magic link) is what the student receives.
-- No changes to landlord OCR flow, renter auto-approve, forgot-password, or admin surfaces.
+No JS or data changes. No visual restyle beyond wrapping behavior. Mobile stacked layout (`@media max-width:900px`) remains untouched.
 
 ## Verification
 
-- Read `public/login.html` and `public/auth-callback.html` after edits to confirm no leftover `verifyOtp`, `stOtp`, `showStudentOtpPanel`, or 6-digit UI references remain.
-- Manual smoke steps for the user: sign up as a student with a `@student.udsm.ac.tz` address → receive email → click confirmation link → land on `/auth-callback.html` → auto-approved → redirected to `/listings.html`.
+- Reload a detail page, expand a roommate card with the long test string from the screenshot; the left column stays inside its track and the gallery/about/reviews stay aligned with the right column.
+- Map still renders full-width inside the right column with rounded corners intact.
