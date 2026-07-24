@@ -883,14 +883,12 @@
           return;
         }
 
-        // Students: skip OCR entirely — verify via 6-digit code sent to institutional email
+        // Students: confirm via magic link sent to their institutional inbox.
+        // Profile auto-approval + metadata persistence happens in /auth-callback.html
+        // once they click the link and the session hydrates.
         if (isStudentSignup) {
-          showStudentOtpPanel({
-            sb,
-            email: emailEl.value.trim(),
-            password: passEl.value,
-            studentMeta,
-          });
+          try { await window.__saveSecurityQuestion?.(sb); } catch (_) {}
+          showStudentCheckEmailPanel(emailEl.value.trim());
           return;
         }
 
