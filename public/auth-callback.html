@@ -34,17 +34,58 @@
     }
 
     const uid = session.user.id;
-    // Check if a role has been assigned
+    const meta = session.user.user_metadata || {};
+    const email = (session.user.email || '').toLowerCase();
+
+    // Check assigned role
     const { data: roles } = await sb.from('user_roles').select('role').eq('user_id', uid);
+    const role = roles && roles.length ? roles[0].role : null;
+
+    // First-time student confirmations: auto-approve profile + persist metadata.
+    // Guarded to student role so landlords still go through OCR verification.
+    if (role === 'student') {
+      try {
+        const { data: prof } = await sb.from('profiles')
+          .select('verification_status, phone, university, student_reg_no')
+          .eq('id', uid)
+          .maybeSingle();
+        if (!prof || prof.verification_status !== 'approved') {
+          msg.textContent = 'Activating your student account…';
+          const update = {
+            verification_status: 'approved',
+            verified_at: new Date().toISOString(),
+          };
+          if (!prof?.phone && meta.phone) update.phone = meta.phone;
+          if (!prof?.university && meta.university) update.university = meta.university;
+          if (!prof?.student_reg_no && meta.student_reg_no) update.student_reg_no = meta.student_reg_no;
+          await sb.from('profiles').update(update).eq('id', uid);
+
+          // Apply pending security question captured during signup (same device)
+          try {
+            const raw = localStorage.getItem('shf-pending-secq');
+            if (raw) {
+              const stash = JSON.parse(raw);
+              if (stash && stash.email === email && stash.question && stash.answer) {
+                await sb.rpc('set_security_question', {
+                  _question: stash.question,
+                  _answer: stash.answer,
+                });
+              }
+              localStorage.removeItem('shf-pending-secq');
+            }
+          } catch (_) {}
+        }
+      } catch (e) { console.warn('student auto-approve skipped:', e); }
+    }
+
     await window.SHFCloud.syncLocalUser(sb, session);
 
-    if (!roles || roles.length === 0) {
+    if (!role) {
       // First-time OAuth user — pick role
       msg.textContent = 'Almost there — one quick step…';
       location.href = '/select-role.html';
       return;
     }
-    const role = roles[0].role;
     msg.textContent = 'Welcome back!';
     const target = role === 'admin' ? '/admin'
       : role === 'landlord' ? '/dashboard.html'
