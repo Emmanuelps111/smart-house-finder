@@ -814,8 +814,6 @@
           phone: landlordMeta.phone || studentMeta.phone || renterMeta.phone,
           ...landlordMeta,
           ...(isStudent ? {
-            university: studentMeta.university,
-            student_reg_no: studentMeta.student_reg_no,
             is_student_pending_approval: true,
           } : {}),
         };
