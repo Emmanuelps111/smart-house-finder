@@ -537,8 +537,8 @@
               </div>
             </div>`;
           document.body.appendChild(overlay);
-          if (window.SHFi18n && window.SHFi18n.currentLang && window.SHFi18n.currentLang() === 'sw'){
-            try { window.SHFi18n.translateNode ? window.SHFi18n.translateNode(overlay, 'sw') : null; } catch(e){}
+          if (window.SHFi18n && window.SHFi18n.lang === 'sw'){
+            try { window.SHFi18n.translate && window.SHFi18n.translate(overlay, 'sw'); } catch(e){}
           }
           const close = () => overlay.remove();
           overlay.querySelector('#del_cancel').addEventListener('click', close);
