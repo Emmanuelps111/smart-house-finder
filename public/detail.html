@@ -581,10 +581,15 @@
             .order('created_at', { ascending: false });
           if (error){ listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load roommate requests.</div>'; return; }
           renderCards(data);
-          if (cached && data && data.some(r => r.student_id === cached.id)){
+          const onList = cached && data && data.some(r => r.student_id === cached.id);
+          if (onList){
             btn.innerHTML = '<i class="fas fa-check"></i> You\'re on the roommate list';
             btn.disabled = true;
             btn.classList.add('btn-outline'); btn.classList.remove('btn-primary');
+          } else {
+            btn.innerHTML = '<i class="fas fa-hand"></i> 🙋‍♂️ Find a Roommate to Split Cost';
+            btn.disabled = false;
+            btn.classList.add('btn-primary'); btn.classList.remove('btn-outline');
           }
         }
         btn.addEventListener('click', async () => {
