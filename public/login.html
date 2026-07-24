@@ -382,7 +382,22 @@
   bindFile('ll-nid-file', 'll-nid-file-name');
   bindFile('ll-selfie', 'll-selfie-name');
   bindFile('ll-deed', 'll-deed-name');
-  bindFile('st-id-file', 'st-id-file-name');
+
+  function showInstitutionalGateError() {
+    const em = document.getElementById('au-email');
+    if (!em) return;
+    const row = em.closest('.form-row') || em.parentElement;
+    let box = document.getElementById('inst-gate-error');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'inst-gate-error';
+      box.style.cssText = 'background:rgba(255,255,255,.85); backdrop-filter:blur(8px); border:1px solid rgba(239,68,68,.35); border-left:3px solid #ef4444; color:#1e293b; border-radius:12px; padding:.75rem .9rem; margin-top:.5rem; font-size:.87rem; box-shadow:0 4px 12px rgba(15,23,42,.06);';
+      row.appendChild(box);
+    }
+    box.innerHTML = '<i class="fas fa-graduation-cap" style="color:#ef4444;"></i> <strong>UDSM email required.</strong> Student accounts must sign up with an official <code>@student.udsm.ac.tz</code> or <code>@udsm.ac.tz</code> address.';
+    setTimeout(() => { box?.remove(); }, 8000);
+  }
+
 
   // ============ Verification flow (OCR + retry) ============
   async function uploadVerifFile(sb, uid, file, prefix) {
