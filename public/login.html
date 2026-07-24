@@ -142,19 +142,9 @@
           <input id="st-regno" type="text" placeholder="e.g. 2021-04-12345" />
           <span class="error"></span>
         </div>
-        <div class="form-row">
-          <label>Upload student ID card (front)</label>
-          <label class="file-input-wrap" for="st-id-file">
-            <i class="fas fa-id-badge" style="font-size:1.5rem; color:var(--primary,#3B82F6);"></i>
-            <div>Click to upload student ID — JPG or PNG (max 5MB)</div>
-            <span class="file-name" id="st-id-file-name">No file selected</span>
-            <input id="st-id-file" type="file" accept="image/*" />
-          </label>
-          <span class="error"></span>
-        </div>
-        <div style="background: rgba(59,130,246,.08); border-left:3px solid var(--primary,#3B82F6); padding:.75rem 1rem; border-radius:6px; font-size:.85rem; margin: .5rem 0 1rem;">
-          <i class="fas fa-shield-halved" style="color:var(--primary,#3B82F6);"></i>
-          Student status is verified by our team within 24 hours. You can browse listings immediately; viewing requests unlock after verification.
+        <div style="background: rgba(255,255,255,.85); backdrop-filter: blur(8px); border:1px solid rgba(226,232,240,.6); border-left:3px solid var(--primary,#3B82F6); padding:.75rem 1rem; border-radius:12px; font-size:.85rem; margin: .5rem 0 1rem; color:#1e293b;">
+          <i class="fas fa-envelope-circle-check" style="color:var(--primary,#3B82F6);"></i>
+          You'll be verified instantly via your official UDSM email address. Enter the 6-digit code we send to your campus inbox to activate your account.
         </div>
       </div>
 
@@ -392,7 +382,22 @@
   bindFile('ll-nid-file', 'll-nid-file-name');
   bindFile('ll-selfie', 'll-selfie-name');
   bindFile('ll-deed', 'll-deed-name');
-  bindFile('st-id-file', 'st-id-file-name');
+
+  function showInstitutionalGateError() {
+    const em = document.getElementById('au-email');
+    if (!em) return;
+    const row = em.closest('.form-row') || em.parentElement;
+    let box = document.getElementById('inst-gate-error');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'inst-gate-error';
+      box.style.cssText = 'background:rgba(255,255,255,.85); backdrop-filter:blur(8px); border:1px solid rgba(239,68,68,.35); border-left:3px solid #ef4444; color:#1e293b; border-radius:12px; padding:.75rem .9rem; margin-top:.5rem; font-size:.87rem; box-shadow:0 4px 12px rgba(15,23,42,.06);';
+      row.appendChild(box);
+    }
+    box.innerHTML = '<i class="fas fa-graduation-cap" style="color:#ef4444;"></i> <strong>UDSM email required.</strong> Student accounts must sign up with an official <code>@student.udsm.ac.tz</code> or <code>@udsm.ac.tz</code> address.';
+    setTimeout(() => { box?.remove(); }, 8000);
+  }
+
 
   // ============ Verification flow (OCR + retry) ============
   async function uploadVerifFile(sb, uid, file, prefix) {
@@ -413,6 +418,80 @@
         <p>${html}</p>
         <a href="/login.html" class="btn btn-primary" style="margin-top:1rem;">Continue to sign in</a>
       </div>`;
+  }
+
+  function showStudentOtpPanel({ sb, email, password, studentMeta }) {
+    const card = document.querySelector('.auth-card');
+    card.innerHTML = `
+      <div style="text-align:center; padding:1rem 0;">
+        <div style="display:inline-flex; width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#3B82F6,#8b5cf6); align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(59,130,246,.35);">
+          <i class="fas fa-envelope-open-text" style="font-size:2rem; color:white;"></i>
+        </div>
+        <h2 style="margin-top:.75rem;">Check your UDSM inbox</h2>
+        <p style="color:#475569; font-size:.92rem;">We sent a 6-digit verification code to <strong>${email}</strong>. Enter it below to activate your student account.</p>
+        <div style="background:rgba(255,255,255,.85); backdrop-filter:blur(8px); border:1px solid rgba(226,232,240,.6); border-radius:14px; padding:1.1rem; margin:1rem 0; text-align:left;">
+          <label for="stOtp" style="font-weight:600; color:#1e293b; font-size:.9rem;">6-digit code</label>
+          <input id="stOtp" type="text" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" style="width:100%; margin-top:.4rem; text-align:center; letter-spacing:.6rem; font-size:1.4rem; font-weight:700; padding:.7rem 1rem; border-radius:999px; border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a;" />
+          <div id="stOtpError" style="color:#ef4444; font-size:.82rem; margin-top:.4rem; min-height:1em;"></div>
+          <button id="stOtpVerify" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.6rem;">Verify &amp; activate account</button>
+          <button id="stOtpResend" type="button" class="btn btn-outline" style="width:100%; justify-content:center; margin-top:.5rem;">Resend code</button>
+        </div>
+        <p style="font-size:.82rem; color:#64748b;">Didn't get it? Check spam, or resend after ~60 seconds.</p>
+      </div>`;
+
+    const errEl = document.getElementById('stOtpError');
+    const inp = document.getElementById('stOtp');
+    const verifyBtn = document.getElementById('stOtpVerify');
+    const resendBtn = document.getElementById('stOtpResend');
+
+    verifyBtn.addEventListener('click', async () => {
+      const token = (inp.value || '').trim();
+      errEl.textContent = '';
+      if (!/^\d{6}$/.test(token)) { errEl.textContent = 'Enter the 6-digit code exactly as received.'; return; }
+      verifyBtn.disabled = true;
+      const orig = verifyBtn.innerHTML;
+      verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying…';
+      try {
+        let result = await sb.auth.verifyOtp({ email, token, type: 'signup' });
+        if (result.error) {
+          const alt = await sb.auth.verifyOtp({ email, token, type: 'email' });
+          if (alt.error) throw result.error;
+          result = alt;
+        }
+        const uid = result.data?.user?.id;
+        if (uid) {
+          await sb.from('profiles').update({
+            university: studentMeta.university,
+            student_reg_no: studentMeta.student_reg_no,
+            phone: studentMeta.phone,
+            verification_status: 'approved',
+            verified_at: new Date().toISOString(),
+          }).eq('id', uid);
+          await window.__saveSecurityQuestion?.(sb);
+        }
+        window.toast?.success?.('Student account verified!');
+        showFinalPanel('You are verified! 🎉', `Welcome to MakaziLink. Sign in with <strong>${email}</strong> to browse commission-free student rentals.`, 'circle-check');
+      } catch (e) {
+        errEl.textContent = e?.message || 'That code is invalid or expired. Please try again or resend.';
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = orig;
+      }
+    });
+
+    resendBtn.addEventListener('click', async () => {
+      resendBtn.disabled = true;
+      const orig = resendBtn.innerHTML;
+      resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+      try {
+        const { error } = await sb.auth.resend({ type: 'signup', email });
+        if (error) throw error;
+        window.toast?.success?.('A fresh code was sent to your inbox.');
+      } catch (e) {
+        window.toast?.error?.(e?.message || 'Could not resend right now.');
+      } finally {
+        setTimeout(() => { resendBtn.disabled = false; resendBtn.innerHTML = orig; }, 30000);
+      }
+    });
   }
 
   async function runVerification(ctx, replacementFiles) {
@@ -750,12 +829,15 @@
       const university = document.getElementById('st-university').value.trim();
       const regno = document.getElementById('st-regno').value.trim();
       const phone = document.getElementById('st-phone').value.trim();
-      const idFile = document.getElementById('st-id-file').files;
+      const emVal = (emailEl.value || '').trim().toLowerCase();
+      if (!/@(student\.udsm\.ac\.tz|udsm\.ac\.tz)$/.test(emVal)) {
+        setError('au-email','');
+        showInstitutionalGateError();
+        ok = false;
+      }
       if (!/^\+255\d{9}$/.test(phone)) { setError('st-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
       if (university.length < 2) { setError('st-university','Enter your university or college.'); ok = false; }
       if (regno.length < 3) { setError('st-regno','Enter your student registration number.'); ok = false; }
-      if (!idFile || !idFile.length) { setError('st-id-file','Please upload a photo of your student ID.'); ok = false; }
-      else if (idFile[0].size > 5*1024*1024) { setError('st-id-file','File must be under 5MB.'); ok = false; }
       studentMeta = { university, student_reg_no: regno, phone };
     }
 
@@ -847,7 +929,18 @@
           return;
         }
 
-        // Landlord or Student: sign in (or skip if email confirmation required), upload, verify
+        // Students: skip OCR entirely — verify via 6-digit code sent to institutional email
+        if (isStudentSignup) {
+          showStudentOtpPanel({
+            sb,
+            email: emailEl.value.trim(),
+            password: passEl.value,
+            studentMeta,
+          });
+          return;
+        }
+
+        // Landlord: sign in (or skip if email confirmation required), upload, verify
         let session = null;
         try {
           const r = await sb.auth.signInWithPassword({ email: emailEl.value.trim(), password: passEl.value });
@@ -857,7 +950,6 @@
           showFinalPanel('Confirm your email', `We sent a confirmation link to <strong>${emailEl.value}</strong>. Open it, then return here to upload your ID and complete verification.`, 'envelope-circle-check');
           return;
         }
-        // Persist security question while we have a session
         await window.__saveSecurityQuestion?.(sb);
 
         const ctx = {
@@ -868,16 +960,9 @@
           landlordMeta, studentMeta,
           attempts: 0,
         };
-        // Persist role-specific profile metadata first
-        if (isLandlordSignup) {
-          await sb.from('profiles').update({
-            phone: landlordMeta.phone, national_id: landlordMeta.national_id,
-          }).eq('id', ctx.uid);
-        } else {
-          await sb.from('profiles').update({
-            university: studentMeta.university, student_reg_no: studentMeta.student_reg_no, phone: studentMeta.phone,
-          }).eq('id', ctx.uid);
-        }
+        await sb.from('profiles').update({
+          phone: landlordMeta.phone, national_id: landlordMeta.national_id,
+        }).eq('id', ctx.uid);
         await runVerification(ctx);
         return;
       }
