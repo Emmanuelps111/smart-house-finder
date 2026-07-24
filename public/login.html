@@ -771,8 +771,6 @@
 
     let renterMeta = {};
     if (tab === 'signup' && role === 'student') {
-      const university = document.getElementById('st-university').value.trim();
-      const regno = document.getElementById('st-regno').value.trim();
       const phone = document.getElementById('st-phone').value.trim();
       const emVal = (emailEl.value || '').trim().toLowerCase();
       if (!/@(student\.udsm\.ac\.tz|udsm\.ac\.tz)$/.test(emVal)) {
@@ -781,9 +779,7 @@
         ok = false;
       }
       if (!/^\+255\d{9}$/.test(phone)) { setError('st-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
-      if (university.length < 2) { setError('st-university','Enter your university or college.'); ok = false; }
-      if (regno.length < 3) { setError('st-regno','Enter your student registration number.'); ok = false; }
-      studentMeta = { university, student_reg_no: regno, phone };
+      studentMeta = { phone };
     }
 
     if (tab === 'signup' && role === 'renter') {
