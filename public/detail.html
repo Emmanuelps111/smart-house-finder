@@ -21,8 +21,11 @@
 <link rel="stylesheet" href="/css/styles.css" />
 <style>
   .detail-wrap { margin-top: var(--header-h); padding: 2rem 0 4rem; }
-  .detail-grid { display:grid; grid-template-columns: 1.4fr 1fr; gap:2rem; }
-  @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } }
+  .detail-grid { display:grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap:2rem; }
+  .detail-grid > * { min-width: 0; }
+  .info-card, .info-card * { overflow-wrap: anywhere; word-break: break-word; }
+  #detailMap { min-width: 0; overflow: hidden; }
+  @media (max-width: 900px) { .detail-grid { grid-template-columns: minmax(0, 1fr); } }
   .hero-img { width:100%; border-radius:14px; overflow:hidden; aspect-ratio: 16/10; object-fit:cover; box-shadow: 0 10px 30px -12px rgba(0,0,0,.25); background:#f1f5f9; }
   .thumb-row { display:grid; grid-template-columns: repeat(4,1fr); gap:.6rem; margin-top:.75rem; }
   .thumb-row img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; cursor:pointer; opacity:.85; transition:opacity .2s, transform .2s; }
