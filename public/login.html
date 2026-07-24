@@ -887,7 +887,19 @@
         // Profile auto-approval + metadata persistence happens in /auth-callback.html
         // once they click the link and the session hydrates.
         if (isStudentSignup) {
-          try { await window.__saveSecurityQuestion?.(sb); } catch (_) {}
+          try {
+            const sel = document.getElementById('au-secq');
+            const custom = document.getElementById('au-secq-custom');
+            const ans = document.getElementById('au-seca');
+            const question = sel ? (sel.value === '__custom__' ? (custom?.value || '').trim() : sel.value) : '';
+            const answer = ans ? (ans.value || '').trim() : '';
+            if (question && question.length >= 5 && answer && answer.length >= 2) {
+              localStorage.setItem('shf-pending-secq', JSON.stringify({
+                email: emailEl.value.trim().toLowerCase(),
+                question, answer,
+              }));
+            }
+          } catch (_) {}
           showStudentCheckEmailPanel(emailEl.value.trim());
           return;
         }
