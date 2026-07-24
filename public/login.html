@@ -855,7 +855,18 @@
           return;
         }
 
-        // Landlord or Student: sign in (or skip if email confirmation required), upload, verify
+        // Students: skip OCR entirely — verify via 6-digit code sent to institutional email
+        if (isStudentSignup) {
+          showStudentOtpPanel({
+            sb,
+            email: emailEl.value.trim(),
+            password: passEl.value,
+            studentMeta,
+          });
+          return;
+        }
+
+        // Landlord: sign in (or skip if email confirmation required), upload, verify
         let session = null;
         try {
           const r = await sb.auth.signInWithPassword({ email: emailEl.value.trim(), password: passEl.value });
@@ -865,7 +876,6 @@
           showFinalPanel('Confirm your email', `We sent a confirmation link to <strong>${emailEl.value}</strong>. Open it, then return here to upload your ID and complete verification.`, 'envelope-circle-check');
           return;
         }
-        // Persist security question while we have a session
         await window.__saveSecurityQuestion?.(sb);
 
         const ctx = {
@@ -876,16 +886,9 @@
           landlordMeta, studentMeta,
           attempts: 0,
         };
-        // Persist role-specific profile metadata first
-        if (isLandlordSignup) {
-          await sb.from('profiles').update({
-            phone: landlordMeta.phone, national_id: landlordMeta.national_id,
-          }).eq('id', ctx.uid);
-        } else {
-          await sb.from('profiles').update({
-            university: studentMeta.university, student_reg_no: studentMeta.student_reg_no, phone: studentMeta.phone,
-          }).eq('id', ctx.uid);
-        }
+        await sb.from('profiles').update({
+          phone: landlordMeta.phone, national_id: landlordMeta.national_id,
+        }).eq('id', ctx.uid);
         await runVerification(ctx);
         return;
       }
