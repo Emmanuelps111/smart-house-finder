@@ -807,17 +807,27 @@
       const supabaseRole = role === 'landlord' ? 'landlord' : role === 'student' ? 'student' : 'renter';
 
       if (tab === 'signup') {
+        const isStudent = role === 'student';
+        const signupRedirect = isStudent
+          ? `${window.location.origin}/auth-callback.html`
+          : window.location.origin;
+        const signupMeta = {
+          full_name: nameEl.value.trim(),
+          role: supabaseRole,
+          phone: landlordMeta.phone || studentMeta.phone || renterMeta.phone,
+          ...landlordMeta,
+          ...(isStudent ? {
+            university: studentMeta.university,
+            student_reg_no: studentMeta.student_reg_no,
+            is_student_pending_approval: true,
+          } : {}),
+        };
         const { data: signupData, error } = await sb.auth.signUp({
           email: emailEl.value.trim(),
           password: passEl.value,
           options: {
-            emailRedirectTo: window.location.origin,
-            data: {
-              full_name: nameEl.value.trim(),
-              role: supabaseRole,
-              phone: landlordMeta.phone || studentMeta.phone || renterMeta.phone,
-              ...landlordMeta,
-            },
+            emailRedirectTo: signupRedirect,
+            data: signupMeta,
           },
         });
 
