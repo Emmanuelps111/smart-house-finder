@@ -420,78 +420,22 @@
       </div>`;
   }
 
-  function showStudentOtpPanel({ sb, email, password, studentMeta }) {
-    const card = document.querySelector('.auth-card');
-    card.innerHTML = `
-      <div style="text-align:center; padding:1rem 0;">
+  function showStudentCheckEmailPanel(email) {
+    document.querySelector('.auth-card').innerHTML = `
+      <div style="text-align:center; padding:1.5rem 0;">
         <div style="display:inline-flex; width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#3B82F6,#8b5cf6); align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(59,130,246,.35);">
           <i class="fas fa-envelope-open-text" style="font-size:2rem; color:white;"></i>
         </div>
-        <h2 style="margin-top:.75rem;">Check your UDSM inbox</h2>
-        <p style="color:#475569; font-size:.92rem;">We sent a 6-digit verification code to <strong>${email}</strong>. Enter it below to activate your student account.</p>
-        <div style="background:rgba(255,255,255,.85); backdrop-filter:blur(8px); border:1px solid rgba(226,232,240,.6); border-radius:14px; padding:1.1rem; margin:1rem 0; text-align:left;">
-          <label for="stOtp" style="font-weight:600; color:#1e293b; font-size:.9rem;">6-digit code</label>
-          <input id="stOtp" type="text" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" style="width:100%; margin-top:.4rem; text-align:center; letter-spacing:.6rem; font-size:1.4rem; font-weight:700; padding:.7rem 1rem; border-radius:999px; border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a;" />
-          <div id="stOtpError" style="color:#ef4444; font-size:.82rem; margin-top:.4rem; min-height:1em;"></div>
-          <button id="stOtpVerify" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.6rem;">Verify &amp; activate account</button>
-          <button id="stOtpResend" type="button" class="btn btn-outline" style="width:100%; justify-content:center; margin-top:.5rem;">Resend code</button>
+        <h2 style="margin-top:.9rem;">Check your UDSM inbox</h2>
+        <p style="color:#475569; font-size:.95rem; max-width:26rem; margin:.5rem auto 1rem;">
+          We sent a confirmation link to <strong>${email}</strong>. Open the email from MakaziLink and click the confirmation link to activate your student account.
+        </p>
+        <div style="background:rgba(255,255,255,.85); backdrop-filter:blur(8px); border:1px solid rgba(226,232,240,.6); border-radius:14px; padding:1rem 1.1rem; margin:.5rem auto 1rem; max-width:26rem; text-align:left; font-size:.85rem; color:#475569;">
+          <p style="margin:0 0 .35rem;"><i class="fas fa-circle-info" style="color:#3B82F6; margin-right:.4rem;"></i> Didn't receive it within a few minutes? Check your spam or promotions folder.</p>
+          <p style="margin:0;"><i class="fas fa-shield-halved" style="color:#3B82F6; margin-right:.4rem;"></i> Only official <code>@student.udsm.ac.tz</code> and <code>@udsm.ac.tz</code> addresses are accepted.</p>
         </div>
-        <p style="font-size:.82rem; color:#64748b;">Didn't get it? Check spam, or resend after ~60 seconds.</p>
+        <a href="/login.html" class="btn btn-primary" style="margin-top:.5rem;">Back to sign in</a>
       </div>`;
-
-    const errEl = document.getElementById('stOtpError');
-    const inp = document.getElementById('stOtp');
-    const verifyBtn = document.getElementById('stOtpVerify');
-    const resendBtn = document.getElementById('stOtpResend');
-
-    verifyBtn.addEventListener('click', async () => {
-      const token = (inp.value || '').trim();
-      errEl.textContent = '';
-      if (!/^\d{6}$/.test(token)) { errEl.textContent = 'Enter the 6-digit code exactly as received.'; return; }
-      verifyBtn.disabled = true;
-      const orig = verifyBtn.innerHTML;
-      verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying…';
-      try {
-        let result = await sb.auth.verifyOtp({ email, token, type: 'signup' });
-        if (result.error) {
-          const alt = await sb.auth.verifyOtp({ email, token, type: 'email' });
-          if (alt.error) throw result.error;
-          result = alt;
-        }
-        const uid = result.data?.user?.id;
-        if (uid) {
-          await sb.from('profiles').update({
-            university: studentMeta.university,
-            student_reg_no: studentMeta.student_reg_no,
-            phone: studentMeta.phone,
-            verification_status: 'approved',
-            verified_at: new Date().toISOString(),
-          }).eq('id', uid);
-          await window.__saveSecurityQuestion?.(sb);
-        }
-        window.toast?.success?.('Student account verified!');
-        showFinalPanel('You are verified! 🎉', `Welcome to MakaziLink. Sign in with <strong>${email}</strong> to browse commission-free student rentals.`, 'circle-check');
-      } catch (e) {
-        errEl.textContent = e?.message || 'That code is invalid or expired. Please try again or resend.';
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = orig;
-      }
-    });
-
-    resendBtn.addEventListener('click', async () => {
-      resendBtn.disabled = true;
-      const orig = resendBtn.innerHTML;
-      resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
-      try {
-        const { error } = await sb.auth.resend({ type: 'signup', email });
-        if (error) throw error;
-        window.toast?.success?.('A fresh code was sent to your inbox.');
-      } catch (e) {
-        window.toast?.error?.(e?.message || 'Could not resend right now.');
-      } finally {
-        setTimeout(() => { resendBtn.disabled = false; resendBtn.innerHTML = orig; }, 30000);
-      }
-    });
   }
 
   async function runVerification(ctx, replacementFiles) {
