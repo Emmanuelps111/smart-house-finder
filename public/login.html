@@ -943,11 +943,25 @@
       }
 
       // Sign in
+      const signinEmail = emailEl.value.trim();
       const { data, error } = await sb.auth.signInWithPassword({
-        email: emailEl.value.trim(),
+        email: signinEmail,
         password: passEl.value,
       });
-      if (error) throw error;
+      if (error) {
+        const msg = (error.message || '').toLowerCase();
+        const code = (error.code || '').toLowerCase();
+        const unconfirmed = code === 'email_not_confirmed' || msg.includes('not confirmed') || msg.includes('confirm');
+        const isUdsm = /@(student\.udsm\.ac\.tz|udsm\.ac\.tz)$/i.test(signinEmail);
+        if (unconfirmed && isUdsm) {
+          showPendingBanner(signinEmail);
+          btn.disabled = false;
+          btn.innerHTML = original;
+          return;
+        }
+        throw error;
+      }
+      hidePendingBanner();
 
       // Enforce that the toggle-selected role matches a role assigned to this user
       const { data: roleRows, error: roleErr } = await sb.from('user_roles').select('role').eq('user_id', data.user.id);
