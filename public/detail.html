@@ -402,7 +402,7 @@
           const rulesText = /no|non|never/i.test(smoking) ? '🚫 No Smoking/Drinking' : `🍃 Smoking/Drinking: ${smoking}`;
           const summary = `${escapeHtml(gender)} student looking for ${escapeHtml(String(needed))} co-tenant (${escapeHtml(pref)})`;
           const action = isMe
-            ? `<div class="rm-own">✓ This is your listing</div>`
+            ? `<button type="button" data-delete-req="${r.id}" style="font-size:.85rem; padding:.5rem 1.1rem; border-radius:9999px; background:rgba(254,226,226,.9); color:#dc2626; border:1px solid rgba(220,38,38,.35); font-weight:600; cursor:pointer; transition:background .18s ease;" onmouseover="this.style.background='rgba(254,202,202,.95)'" onmouseout="this.style.background='rgba(254,226,226,.9)'">🗑️ Delete / Take Down Request</button>`
             : `<button class="btn btn-primary" data-connect="${r.student_id}" style="font-size:.85rem; padding:.5rem .85rem;">🤝 Request to Team Up</button>`;
           return `<div class="rm-row" data-rm-idx="${idx}">
             <div class="rm-head" data-rm-toggle>
@@ -517,6 +517,52 @@
           }
           await sendConnect(target, b);
         }));
+
+        listEl.querySelectorAll('[data-delete-req]').forEach(b => b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const reqId = b.getAttribute('data-delete-req');
+          openDeleteRequestModal(reqId, b);
+        }));
+
+        function openDeleteRequestModal(reqId, btnEl){
+          const overlay = document.createElement('div');
+          overlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:10000; padding:1rem;';
+          overlay.innerHTML = `
+            <div style="background:rgba(255,255,255,.97); border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.5rem 1.6rem; max-width:440px; width:100%; box-shadow:0 30px 80px rgba(15,23,42,.35);">
+              <h3 style="margin:0 0 .5rem; font-size:1.15rem; display:flex; align-items:center; gap:.5rem;">🗑️ <span data-i18n>Take down request?</span></h3>
+              <p style="margin:0 0 1.2rem; color:#64748b; font-size:.9rem; line-height:1.5;" data-i18n>Are you sure you want to take down your roommate request?</p>
+              <div style="display:flex; gap:.5rem; justify-content:flex-end;">
+                <button type="button" id="del_cancel" class="btn btn-outline" style="border-radius:9999px;" data-i18n>Cancel</button>
+                <button type="button" id="del_confirm" style="border-radius:9999px; padding:.55rem 1.1rem; background:#dc2626; color:#fff; border:none; font-weight:600; cursor:pointer;" data-i18n>Yes, take it down</button>
+              </div>
+            </div>`;
+          document.body.appendChild(overlay);
+          if (window.SHFi18n && window.SHFi18n.lang === 'sw'){
+            try { window.SHFi18n.translate && window.SHFi18n.translate(overlay, 'sw'); } catch(e){}
+          }
+          const close = () => overlay.remove();
+          overlay.querySelector('#del_cancel').addEventListener('click', close);
+          overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+          overlay.querySelector('#del_confirm').addEventListener('click', async () => {
+            const cbtn = overlay.querySelector('#del_confirm');
+            cbtn.disabled = true; cbtn.textContent = '…';
+            const sb2 = await window.SHFCloud.ready;
+            const { error } = await sb2.from('roommate_requests').delete().eq('id', reqId);
+            if (error){ window.toast.error(error.message || 'Could not delete request.'); cbtn.disabled = false; cbtn.textContent = 'Yes, take it down'; return; }
+            close();
+            const row = btnEl.closest('.rm-row');
+            if (row){
+              row.style.transition = 'all .35s ease';
+              row.style.opacity = '0';
+              row.style.transform = 'translateX(24px)';
+              row.style.maxHeight = row.offsetHeight + 'px';
+              requestAnimationFrame(() => { row.style.maxHeight = '0'; row.style.marginTop = '0'; row.style.marginBottom = '0'; row.style.paddingTop = '0'; row.style.paddingBottom = '0'; });
+              setTimeout(() => { row.remove(); if (typeof refresh === 'function') refresh(); }, 380);
+            } else if (typeof refresh === 'function') { refresh(); }
+            window.toast.success('Your roommate request was taken down.');
+          });
+        }
+
 
       }
 

@@ -38,6 +38,16 @@
     ' /month': ' /mwezi',
     '/ month': '/ mwezi',
 
+    // ── Roommate request take-down ─────────────────────────────────────
+    '🗑️ Delete / Take Down Request': '🗑️ Ondoa / Futa Ombi Hili',
+    'Delete / Take Down Request': 'Ondoa / Futa Ombi Hili',
+    'Take down request?': 'Ondoa ombi lako?',
+    'Are you sure you want to take down your roommate request?': 'Una uhakika unataka kuondoa ombi lako la mwenzi wa chumba?',
+    'Yes, take it down': 'Ndio, liondoe',
+    'Cancel': 'Ghairi',
+    'Your roommate request was taken down.': 'Ombi lako la mwenzi wa chumba limeondolewa.',
+    'Could not delete request.': 'Haikuwezekana kuondoa ombi.',
+
     // ── Toasts / alerts / dynamic messages ──────────────────────────────
     'Please sign in first.': 'Tafadhali ingia kwanza.',
     'Please sign in to request a roommate.': 'Tafadhali ingia ili kuomba mwenzi.',
