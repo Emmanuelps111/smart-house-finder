@@ -323,6 +323,12 @@
     document.querySelectorAll('.role-toggle button').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     role = b.dataset.role;
+    // Flush any pending-verification banner + form state when switching profile tabs
+    try { hidePendingBanner(); } catch (_) {}
+    const _emailEl = document.getElementById('email');
+    const _passEl = document.getElementById('password');
+    if (_emailEl) _emailEl.value = '';
+    if (_passEl) _passEl.value = '';
     refresh();
   }));
   document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
@@ -937,7 +943,7 @@
         const code = (error.code || '').toLowerCase();
         const unconfirmed = code === 'email_not_confirmed' || msg.includes('not confirmed') || msg.includes('confirm');
         const isUdsm = /@(student\.udsm\.ac\.tz|udsm\.ac\.tz)$/i.test(signinEmail);
-        if (unconfirmed && isUdsm) {
+        if (unconfirmed && isUdsm && role === 'student') {
           showPendingBanner(signinEmail);
           btn.disabled = false;
           btn.innerHTML = original;
