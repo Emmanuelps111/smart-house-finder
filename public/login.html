@@ -63,6 +63,17 @@
     </div>
     <h3 id="modeTitle" style="text-align:center; margin:.75rem 0 1rem; font-size:1.15rem;">Sign In</h3>
 
+    <div id="pendingBanner" role="alert" style="display:none; margin:0 0 1rem; padding:.9rem 1rem; border-radius:14px;
+         background:rgba(59,130,246,.10); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+         border:1px solid rgba(59,130,246,.35); color:#1e3a5f; font-size:.9rem; line-height:1.45;
+         box-shadow:0 4px 14px rgba(30,64,175,.08);">
+      <div style="font-weight:600; margin-bottom:.2rem;">🔒 <span data-i18n="login.pending.title">Account Pending.</span></div>
+      <div><span data-i18n="login.pending.body">We sent a link to your UDSM inbox. Didn't receive it?</span>
+        <a href="#" id="resendLinkBtn" style="color:#1E5FA8; font-weight:700; text-decoration:underline; cursor:pointer;"
+           data-i18n="login.pending.resend">Click here to resend the confirmation link.</a>
+      </div>
+    </div>
+
     <form id="authForm" class="form" novalidate>
       <!-- Common -->
       <div class="form-row" id="nameRow" style="display:none;">
