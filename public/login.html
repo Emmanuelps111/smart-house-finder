@@ -996,6 +996,42 @@
 
 
 
+  // ============ Unverified student: pending banner + resend ============
+  const pendingBanner = document.getElementById('pendingBanner');
+  const resendBtn = document.getElementById('resendLinkBtn');
+  let pendingEmail = '';
+  function showPendingBanner(email) {
+    pendingEmail = email;
+    if (pendingBanner) pendingBanner.style.display = 'block';
+  }
+  function hidePendingBanner() {
+    pendingEmail = '';
+    if (pendingBanner) pendingBanner.style.display = 'none';
+  }
+  if (resendBtn) {
+    resendBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!pendingEmail) return;
+      const original = resendBtn.textContent;
+      resendBtn.textContent = 'Sending…';
+      resendBtn.style.pointerEvents = 'none';
+      try {
+        const sb = await window.SHFCloud.ready;
+        const { error } = await sb.auth.resend({
+          type: 'signup',
+          email: pendingEmail,
+          options: { emailRedirectTo: location.origin + '/auth-callback.html' },
+        });
+        if (error) throw error;
+        window.toast.success('✓ A fresh confirmation link has been routed to your UDSM webmail inbox.');
+      } catch (err) {
+        window.toast.error(err.message || 'Could not resend the link. Please try again shortly.');
+      } finally {
+        resendBtn.textContent = original;
+        resendBtn.style.pointerEvents = '';
+      }
+    });
+  }
 
   refresh();
 </script>
