@@ -506,17 +506,9 @@ function AdminPage() {
               <CardHeader>
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <CardTitle className="text-blue-900">Roommate requests</CardTitle>
-                  <div className="flex gap-2 items-center text-sm">
-                    <span className="text-blue-700/80">Selected: <strong>{matchSelection.length}/2</strong></span>
-                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={matchSelection.length !== 2} onClick={matchSelected}>
-                      🤝 Match selected & notify
-                    </Button>
-                    {matchSelection.length > 0 && (
-                      <Button size="sm" variant="outline" onClick={() => setMatchSelection([])}>Clear</Button>
-                    )}
-                  </div>
                 </div>
               </CardHeader>
+
               <CardContent>
                 {roommates.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No roommate requests yet.</p>
