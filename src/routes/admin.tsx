@@ -573,7 +573,24 @@ function AdminPage() {
                 )}
               </CardContent>
             </Card>
+
+            <Dialog open={!!roommateToDelete} onOpenChange={(o) => { if (!o) setRoommateToDelete(null); }}>
+              <DialogContent className="sm:max-w-md bg-white/85 backdrop-blur-xl border border-blue-100 rounded-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-blue-900">🗑️ Delete roommate request?</DialogTitle>
+                </DialogHeader>
+                <p className="text-sm text-slate-700">
+                  This permanently removes <strong>{roommateToDelete?.details?.name || "this student"}</strong>&apos;s roommate
+                  request from the moderation queue and the public marketplace. This cannot be undone.
+                </p>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" className="rounded-full" onClick={() => setRoommateToDelete(null)}>Cancel</Button>
+                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white" onClick={confirmDeleteRoommate}>Delete request</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
+
 
           <TabsContent value="announce" className="mt-6">
             <Card className="border-blue-200 max-w-2xl">
