@@ -125,7 +125,9 @@ function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [roommates, setRoommates] = useState<RoommateRequest[]>([]);
-  const [matchSelection, setMatchSelection] = useState<string[]>([]);
+  const [roommateToDelete, setRoommateToDelete] = useState<RoommateRequest | null>(null);
+  const [deletingRoommateId, setDeletingRoommateId] = useState<string | null>(null);
+
   const [announceTitle, setAnnounceTitle] = useState("");
   const [announceBody, setAnnounceBody] = useState("");
   const [announceLink, setAnnounceLink] = useState("");
@@ -211,19 +213,20 @@ function AdminPage() {
     setSelectedUser((u) => (u && u.id === userId ? { ...u, ...patch } as Profile : u));
   };
 
-  const toggleMatchSelect = (id: string) => {
-    setMatchSelection((sel) => sel.includes(id) ? sel.filter(x => x !== id) : sel.length < 2 ? [...sel, id] : [sel[1], id]);
+  const confirmDeleteRoommate = async () => {
+    const r = roommateToDelete;
+    if (!r) return;
+    const { error } = await supabase.from("roommate_requests").delete().eq("id", r.id);
+    if (error) { toast.error(error.message); return; }
+    setRoommateToDelete(null);
+    setDeletingRoommateId(r.id);
+    toast.success("Roommate request deleted");
+    setTimeout(() => {
+      setRoommates((arr) => arr.filter((x) => x.id !== r.id));
+      setDeletingRoommateId(null);
+    }, 300);
   };
 
-  const matchSelected = async () => {
-    if (matchSelection.length !== 2) { toast.error("Select exactly two requests to match."); return; }
-    const [a, b] = matchSelection;
-    const { error } = await supabase.rpc("match_roommate_requests", { _a: a, _b: b });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Matched! Both students have been notified.");
-    setMatchSelection([]);
-    await loadData();
-  };
 
   const sendAnnouncement = async () => {
     if (!announceTitle.trim() || !announceBody.trim()) { toast.error("Title and message are required."); return; }
@@ -506,17 +509,9 @@ function AdminPage() {
               <CardHeader>
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <CardTitle className="text-blue-900">Roommate requests</CardTitle>
-                  <div className="flex gap-2 items-center text-sm">
-                    <span className="text-blue-700/80">Selected: <strong>{matchSelection.length}/2</strong></span>
-                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={matchSelection.length !== 2} onClick={matchSelected}>
-                      🤝 Match selected & notify
-                    </Button>
-                    {matchSelection.length > 0 && (
-                      <Button size="sm" variant="outline" onClick={() => setMatchSelection([])}>Clear</Button>
-                    )}
-                  </div>
                 </div>
               </CardHeader>
+
               <CardContent>
                 {roommates.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No roommate requests yet.</p>
@@ -545,19 +540,18 @@ function AdminPage() {
                               {items.map(r => {
                                 const prof = profiles.find(p => p.id === r.student_id);
                                 const d = r.details || {};
-                                const selected = matchSelection.includes(r.id);
+                                const removing = deletingRoommateId === r.id;
                                 return (
-                                  <div key={r.id} className={`p-3 flex items-start gap-3 ${selected ? 'bg-emerald-50' : ''}`}>
-                                    {r.status === 'searching' && (
-                                      <input type="checkbox" checked={selected} onChange={() => toggleMatchSelect(r.id)} className="mt-1 h-4 w-4 accent-emerald-600" />
-                                    )}
+                                  <div key={r.id} className={`p-3 flex items-start gap-3 transition-all duration-300 ${removing ? 'opacity-0 translate-x-8' : 'opacity-100'}`}>
                                     {prof?.selfie_url
                                       ? <img src={prof.selfie_url} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-blue-200" />
                                       : <div className="w-12 h-12 rounded-full bg-blue-100 grid place-items-center text-blue-400">👤</div>}
                                     <div className="flex-1 text-sm min-w-0">
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <strong className="text-blue-900">{d.name || prof?.full_name || '—'}</strong>
-                                        <Badge className={r.status === 'matched' ? 'bg-emerald-600' : 'bg-amber-500'}>{r.status}</Badge>
+                                        <Badge className={r.status === 'matched'
+                                          ? 'bg-blue-600 text-white hover:bg-blue-600 font-medium tracking-tight'
+                                          : 'bg-blue-100 text-blue-800 hover:bg-blue-100 font-medium tracking-tight'}>{r.status}</Badge>
                                         {d.cleanliness && <Badge variant="outline" className="text-xs">🧹 {d.cleanliness}</Badge>}
                                         {d.sleep && <Badge variant="outline" className="text-xs">😴 {d.sleep}</Badge>}
                                       </div>
@@ -565,12 +559,8 @@ function AdminPage() {
                                       {d.bio && <div className="text-xs mt-1 italic text-slate-700">"{d.bio}"</div>}
                                       {d.notes && <div className="text-xs mt-1 text-slate-800"><strong>Notes:</strong> {d.notes}</div>}
                                     </div>
-                                    <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50" onClick={async () => {
-                                      if (!window.confirm('Delete this request?')) return;
-                                      const { error } = await supabase.from('roommate_requests').delete().eq('id', r.id);
-                                      if (error) { toast.error(error.message); return; }
-                                      setRoommates(arr => arr.filter(x => x.id !== r.id));
-                                    }}>Delete</Button>
+                                    <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 rounded-full"
+                                      onClick={() => setRoommateToDelete(r)}>Delete</Button>
                                   </div>
                                 );
                               })}
@@ -583,7 +573,24 @@ function AdminPage() {
                 )}
               </CardContent>
             </Card>
+
+            <Dialog open={!!roommateToDelete} onOpenChange={(o) => { if (!o) setRoommateToDelete(null); }}>
+              <DialogContent className="sm:max-w-md bg-white/85 backdrop-blur-xl border border-blue-100 rounded-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-blue-900">🗑️ Delete roommate request?</DialogTitle>
+                </DialogHeader>
+                <p className="text-sm text-slate-700">
+                  This permanently removes <strong>{roommateToDelete?.details?.name || "this student"}</strong>&apos;s roommate
+                  request from the moderation queue and the public marketplace. This cannot be undone.
+                </p>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" className="rounded-full" onClick={() => setRoommateToDelete(null)}>Cancel</Button>
+                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white" onClick={confirmDeleteRoommate}>Delete request</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
+
 
           <TabsContent value="announce" className="mt-6">
             <Card className="border-blue-200 max-w-2xl">
