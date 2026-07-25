@@ -265,19 +265,146 @@
 
   const BULK_HEADERS = ['title','city','neighbourhood','price_per_month','bedrooms','bathrooms','size_sqm','property_type','furnishing','available_from','occupancy_status','amenities','latitude','longitude','deposit_months','image_urls'];
   const KNOWN_AMENITIES = ['Wi-Fi','Parking','Security','Water tank','Generator','Air conditioning','Kitchen','Laundry','Pet friendly','Garden','Balcony','Furnished'];
+  const ENUM_PROPERTY_TYPE = ['Hostel','Apartment','Single-Room','House'];
+  const ENUM_FURNISHING = ['furnished','semi-furnished','unfurnished'];
+  const ENUM_OCCUPANCY = ['vacant','occupied'];
+
   function normalizeAmenityToken(tok){
     const t = String(tok||'').replace(/_/g,' ').trim().toLowerCase();
     if (!t) return null;
     return KNOWN_AMENITIES.find(a => a.toLowerCase() === t) || null;
   }
 
+  // ---- Strict validation gates -------------------------------------------
+  function isSw(){ try { return window.SHFi18n && window.SHFi18n.lang === 'sw'; } catch(e){ return false; } }
+  function bulkAbortMessage(rowNum, field){
+    return isSw()
+      ? `❌ Upakiaji wa Wingi Umesitishwa. Hitilafu ya uthibitisho kwenye Safu Namba ${rowNum}, Safuwima [${field}]: Muundo wa thamani si sahihi. Tafadhali rekebisha faili yako ya lahajedwali na ujaribu tena.`
+      : `❌ Bulk Upload Aborted. Validation error on Row Line ${rowNum}, Column [${field}]: Invalid value format detected. Please correct your spreadsheet file and retry.`;
+  }
+  class BulkValidationError extends Error {
+    constructor(rowNum, field){ super(bulkAbortMessage(rowNum, field)); this.rowNum = rowNum; this.field = field; }
+  }
+  const isBlank = v => String(v == null ? '' : v).trim() === '';
+  const hasLetters = v => /[A-Za-z\u00C0-\u024F]/.test(String(v));
+  const isPureNumeric = v => /^[\d\s.,\-+]+$/.test(String(v).trim());
+
+  function assertText(row, i, field){
+    const v = String(row[field] == null ? '' : row[field]).trim();
+    if (isBlank(v) || isPureNumeric(v) || !hasLetters(v)) throw new BulkValidationError(i, field);
+    return v;
+  }
+  function assertPositiveInt(row, i, field, { required = true } = {}){
+    const raw = String(row[field] == null ? '' : row[field]).trim();
+    if (isBlank(raw)) {
+      if (required) throw new BulkValidationError(i, field);
+      return null;
+    }
+    if (!/^\d+$/.test(raw.replace(/,/g,''))) throw new BulkValidationError(i, field);
+    const n = parseInt(raw.replace(/,/g,''), 10);
+    if (!Number.isInteger(n) || n <= 0) throw new BulkValidationError(i, field);
+    return n;
+  }
+  function assertFloatOrBlank(row, i, field){
+    const raw = String(row[field] == null ? '' : row[field]).trim();
+    if (isBlank(raw)) return null; // triggers regional center-point fallback
+    if (!/^[-+]?\d+(\.\d+)?$/.test(raw)) throw new BulkValidationError(i, field);
+    const n = parseFloat(raw);
+    if (!isFinite(n)) throw new BulkValidationError(i, field);
+    return n;
+  }
+  function assertEnum(row, i, field, list, { required = true, fallback = null } = {}){
+    const raw = String(row[field] == null ? '' : row[field]).trim();
+    if (isBlank(raw)) {
+      if (required) throw new BulkValidationError(i, field);
+      return fallback;
+    }
+    if (isPureNumeric(raw)) throw new BulkValidationError(i, field);
+    const hit = list.find(x => x.toLowerCase() === raw.toLowerCase());
+    if (!hit) throw new BulkValidationError(i, field);
+    return hit;
+  }
+  function assertAmenities(row, i){
+    const raw = String(row.amenities == null ? '' : row.amenities).trim();
+    if (isBlank(raw)) return [];
+    if (isPureNumeric(raw)) throw new BulkValidationError(i, 'amenities');
+    const tokens = raw.split(' ').map(s => s.trim()).filter(Boolean);
+    const out = [];
+    tokens.forEach(tok => {
+      if (isPureNumeric(tok) || !hasLetters(tok)) throw new BulkValidationError(i, 'amenities');
+      const norm = normalizeAmenityToken(tok);
+      if (norm && !out.includes(norm)) out.push(norm);
+    });
+    return out;
+  }
+
+  // Builds the insert payload. Throws BulkValidationError on the first bad cell.
+  function buildBulkPayload(rows){
+    return rows.map((r, idx) => {
+      const rowNum = idx + 2; // +1 header line, +1 for 1-based counting
+      const title = assertText(r, rowNum, 'title');
+      const city = assertText(r, rowNum, 'city');
+      const area = assertText(r, rowNum, 'neighbourhood');
+      const price = assertPositiveInt(r, rowNum, 'price_per_month');
+      const beds = assertPositiveInt(r, rowNum, 'bedrooms');
+      const baths = assertPositiveInt(r, rowNum, 'bathrooms');
+      const size = assertPositiveInt(r, rowNum, 'size_sqm', { required: false });
+      const deposit = assertPositiveInt(r, rowNum, 'deposit_months', { required: false });
+      const propertyType = assertEnum(r, rowNum, 'property_type', ENUM_PROPERTY_TYPE);
+      const furnishing = assertEnum(r, rowNum, 'furnishing', ENUM_FURNISHING, { required: false });
+      const occupancy = assertEnum(r, rowNum, 'occupancy_status', ENUM_OCCUPANCY, { required: false, fallback: 'vacant' });
+      const amenities = assertAmenities(r, rowNum);
+      let lat = assertFloatOrBlank(r, rowNum, 'latitude');
+      let lng = assertFloatOrBlank(r, rowNum, 'longitude');
+      if (lat == null || lng == null) {
+        const c = coordsForNeighbourhood(area);
+        if (c) { lat = c[0]; lng = c[1]; }
+      }
+      const imgs = String(r.image_urls || '').split(' ').map(s => s.trim()).filter(Boolean);
+      return {
+        landlord_id: user.id,
+        status: 'pending',
+        title,
+        price,
+        city,
+        neighbourhood: area,
+        address: `${area}, ${city}`,
+        beds,
+        baths,
+        size_sqm: size,
+        property_type: propertyType,
+        furnishing,
+        available_from: isBlank(r.available_from) ? null : String(r.available_from).trim(),
+        occupancy,
+        amenities,
+        deposit_months: deposit,
+        lat: lat == null ? null : lat,
+        lng: lng == null ? null : lng,
+        image_urls: imgs,
+      };
+    });
+  }
+
+  function showBulkError(msg){
+    const el = document.getElementById('bulkError');
+    if (!el) { window.toast.error(msg); return; }
+    el.style.display = 'block';
+    el.innerHTML = `<div role="alert" style="background:rgba(239,68,68,.10); border:1px solid rgba(239,68,68,.45); border-radius:16px; padding:.9rem 1.1rem; color:#B91C1C; font-weight:600; font-size:.9rem; line-height:1.45; display:flex; gap:.6rem; align-items:flex-start;">
+      <i class="fas fa-circle-exclamation" style="margin-top:.15rem;"></i><span>${escapeHtml(msg)}</span></div>`;
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function clearBulkError(){
+    const el = document.getElementById('bulkError');
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  }
+
   function downloadTemplate() {
     const headers = BULK_HEADERS;
-    const example = ['Cozy 2BR near UDSM','Dar es Salaam','Mikocheni','450000','2','1','75','Apartment','Furnished','2026-08-01','vacant','Wi-Fi Water_tank Kitchen Parking','-6.7654','39.2422','2','https://example.com/a.jpg https://example.com/b.jpg'];
+    const example = ['Cozy 2BR near UDSM','Dar es Salaam','Mikocheni','450000','2','1','75','Apartment','furnished','2026-08-01','vacant','Wi-Fi Water_tank Kitchen Parking','-6.7654','39.2422','2','https://example.com/a.jpg https://example.com/b.jpg'];
     const csv = headers.join(',') + '\n' + example.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',') + '\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'shf-listings-template.csv'; a.click();
+    a.href = URL.createObjectURL(blob); a.download = 'makazilink-listings-template.csv'; a.click();
     URL.revokeObjectURL(a.href);
   }
 
@@ -305,14 +432,23 @@
   function parseCSVFile(file) {
     const reader = new FileReader();
     reader.onload = () => {
+      clearBulkError();
+      const btn = document.getElementById('processUpload');
       const rows = parseCSV(String(reader.result));
-      if (!rows.length) { window.toast.error('CSV is empty.'); return; }
+      if (!rows.length) { bulkRows = []; if (btn) btn.disabled = true; window.toast.error('CSV is empty.'); return; }
       const headers = rows[0].map(h => h.trim().toLowerCase());
       bulkRows = rows.slice(1).map(r => {
         const o = {}; headers.forEach((h,i) => o[h] = (r[i]||'').trim()); return o;
       });
       renderPreview(headers);
-      document.getElementById('processUpload').disabled = bulkRows.length === 0;
+      // Fail-fast pre-flight: block the button until the sheet is clean.
+      try {
+        buildBulkPayload(bulkRows);
+        if (btn) btn.disabled = bulkRows.length === 0;
+      } catch (err) {
+        if (btn) btn.disabled = true;
+        showBulkError(err.message);
+      }
     };
     reader.readAsText(file);
   }
@@ -332,48 +468,22 @@
   async function processBulkUpload() {
     const btn = document.getElementById('processUpload');
     if (!bulkRows.length) return;
+    clearBulkError();
     btn.disabled = true;
     const original = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing…';
+    let payload;
     try {
-      const payload = bulkRows.map(r => {
-        let lat = parseFloat(r.latitude), lng = parseFloat(r.longitude);
-        const hasLat = r.latitude && String(r.latitude).trim() !== '' && !isNaN(lat);
-        const hasLng = r.longitude && String(r.longitude).trim() !== '' && !isNaN(lng);
-        if (!hasLat || !hasLng) {
-          const c = coordsForNeighbourhood(r.neighbourhood);
-          if (c) { lat = c[0]; lng = c[1]; }
-        }
-        const imgs = (r.image_urls || '').split(' ').map(s => s.trim()).filter(Boolean);
-        const amenities = (r.amenities || '').split(' ')
-          .map(normalizeAmenityToken)
-          .filter(Boolean);
-        const city = r.city || null;
-        const area = r.neighbourhood || null;
-        const occ = String(r.occupancy_status || 'vacant').toLowerCase() === 'occupied' ? 'occupied' : 'vacant';
-        return {
-          landlord_id: user.id,
-          status: 'pending',
-          title: r.title || 'Untitled listing',
-          price: parseInt(r.price_per_month, 10) || 0,
-          city,
-          neighbourhood: area,
-          address: area ? `${area}, ${city||''}`.replace(/,\s*$/,'') : (city || ''),
-          beds: parseInt(r.bedrooms, 10) || 0,
-          baths: parseInt(r.bathrooms, 10) || 0,
-          size_sqm: r.size_sqm ? (parseInt(r.size_sqm, 10) || null) : null,
-          property_type: r.property_type || null,
-          furnishing: r.furnishing || null,
-          available_from: r.available_from || null,
-          occupancy: occ,
-          amenities,
-          deposit_months: r.deposit_months ? (parseInt(r.deposit_months, 10) || null) : null,
-          lat: isNaN(lat) ? null : lat,
-          lng: isNaN(lng) ? null : lng,
-          image_urls: imgs,
-        };
-      }).filter(p => p.title && p.price > 0);
-      if (!payload.length) throw new Error('No valid rows to import. Check required columns (title, price_per_month).');
+      // Validate the whole sheet BEFORE any write — nothing is transmitted on failure.
+      payload = buildBulkPayload(bulkRows);
+      if (!payload.length) throw new BulkValidationError(2, 'title');
+    } catch (err) {
+      showBulkError(err.message);
+      window.toast.error(isSw() ? 'Upakiaji umesitishwa: data si sahihi.' : 'Upload aborted: invalid data.');
+      btn.disabled = false; btn.innerHTML = original;
+      return;
+    }
+    try {
       const { error } = await sb.from('properties').insert(payload);
       if (error) throw error;
       window.toast.success('Successfully imported listings into the database moderation queue.');
@@ -381,10 +491,11 @@
       await loadMine();
       renderDashboard();
     } catch (err) {
-      window.toast.error(err.message || 'Bulk import failed.');
+      showBulkError((isSw() ? 'Upakiaji umesitishwa: ' : 'Bulk import failed: ') + (err.message || ''));
       btn.disabled = false; btn.innerHTML = original;
     }
   }
+
 
   async function loadAvgRating() {
     try {
