@@ -537,19 +537,18 @@ function AdminPage() {
                               {items.map(r => {
                                 const prof = profiles.find(p => p.id === r.student_id);
                                 const d = r.details || {};
-                                const selected = matchSelection.includes(r.id);
+                                const removing = deletingRoommateId === r.id;
                                 return (
-                                  <div key={r.id} className={`p-3 flex items-start gap-3 ${selected ? 'bg-emerald-50' : ''}`}>
-                                    {r.status === 'searching' && (
-                                      <input type="checkbox" checked={selected} onChange={() => toggleMatchSelect(r.id)} className="mt-1 h-4 w-4 accent-emerald-600" />
-                                    )}
+                                  <div key={r.id} className={`p-3 flex items-start gap-3 transition-all duration-300 ${removing ? 'opacity-0 translate-x-8' : 'opacity-100'}`}>
                                     {prof?.selfie_url
                                       ? <img src={prof.selfie_url} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-blue-200" />
                                       : <div className="w-12 h-12 rounded-full bg-blue-100 grid place-items-center text-blue-400">👤</div>}
                                     <div className="flex-1 text-sm min-w-0">
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <strong className="text-blue-900">{d.name || prof?.full_name || '—'}</strong>
-                                        <Badge className={r.status === 'matched' ? 'bg-emerald-600' : 'bg-amber-500'}>{r.status}</Badge>
+                                        <Badge className={r.status === 'matched'
+                                          ? 'bg-blue-600 text-white hover:bg-blue-600 font-medium tracking-tight'
+                                          : 'bg-blue-100 text-blue-800 hover:bg-blue-100 font-medium tracking-tight'}>{r.status}</Badge>
                                         {d.cleanliness && <Badge variant="outline" className="text-xs">🧹 {d.cleanliness}</Badge>}
                                         {d.sleep && <Badge variant="outline" className="text-xs">😴 {d.sleep}</Badge>}
                                       </div>
@@ -557,14 +556,12 @@ function AdminPage() {
                                       {d.bio && <div className="text-xs mt-1 italic text-slate-700">"{d.bio}"</div>}
                                       {d.notes && <div className="text-xs mt-1 text-slate-800"><strong>Notes:</strong> {d.notes}</div>}
                                     </div>
-                                    <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50" onClick={async () => {
-                                      if (!window.confirm('Delete this request?')) return;
-                                      const { error } = await supabase.from('roommate_requests').delete().eq('id', r.id);
-                                      if (error) { toast.error(error.message); return; }
-                                      setRoommates(arr => arr.filter(x => x.id !== r.id));
-                                    }}>Delete</Button>
+                                    <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 rounded-full"
+                                      onClick={() => setRoommateToDelete(r)}>Delete</Button>
                                   </div>
                                 );
+                              })}
+
                               })}
                             </div>
                           </div>
