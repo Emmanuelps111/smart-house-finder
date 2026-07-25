@@ -125,7 +125,9 @@ function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [roommates, setRoommates] = useState<RoommateRequest[]>([]);
-  const [matchSelection, setMatchSelection] = useState<string[]>([]);
+  const [roommateToDelete, setRoommateToDelete] = useState<RoommateRequest | null>(null);
+  const [deletingRoommateId, setDeletingRoommateId] = useState<string | null>(null);
+
   const [announceTitle, setAnnounceTitle] = useState("");
   const [announceBody, setAnnounceBody] = useState("");
   const [announceLink, setAnnounceLink] = useState("");
