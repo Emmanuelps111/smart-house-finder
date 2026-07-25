@@ -213,19 +213,20 @@ function AdminPage() {
     setSelectedUser((u) => (u && u.id === userId ? { ...u, ...patch } as Profile : u));
   };
 
-  const toggleMatchSelect = (id: string) => {
-    setMatchSelection((sel) => sel.includes(id) ? sel.filter(x => x !== id) : sel.length < 2 ? [...sel, id] : [sel[1], id]);
+  const confirmDeleteRoommate = async () => {
+    const r = roommateToDelete;
+    if (!r) return;
+    const { error } = await supabase.from("roommate_requests").delete().eq("id", r.id);
+    if (error) { toast.error(error.message); return; }
+    setRoommateToDelete(null);
+    setDeletingRoommateId(r.id);
+    toast.success("Roommate request deleted");
+    setTimeout(() => {
+      setRoommates((arr) => arr.filter((x) => x.id !== r.id));
+      setDeletingRoommateId(null);
+    }, 300);
   };
 
-  const matchSelected = async () => {
-    if (matchSelection.length !== 2) { toast.error("Select exactly two requests to match."); return; }
-    const [a, b] = matchSelection;
-    const { error } = await supabase.rpc("match_roommate_requests", { _a: a, _b: b });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Matched! Both students have been notified.");
-    setMatchSelection([]);
-    await loadData();
-  };
 
   const sendAnnouncement = async () => {
     if (!announceTitle.trim() || !announceBody.trim()) { toast.error("Title and message are required."); return; }
