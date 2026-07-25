@@ -243,14 +243,16 @@
       <label class="bulk-drop" id="bulkDrop" for="bulkFile">
         <i class="fas fa-cloud-arrow-up up"></i>
         <div style="font-weight:600;">Drop your .csv here or click to browse</div>
-        <div style="font-size:.85rem; color:var(--text-muted); margin-top:.3rem;">Headers: title, price_per_month, description, region, neighbourhood, latitude, longitude, bedrooms, bathrooms, contact_phone, image_urls</div>
+        <div style="font-size:.85rem; color:var(--text-muted); margin-top:.3rem;">Headers: ${BULK_HEADERS.join(', ')}</div>
         <input type="file" id="bulkFile" accept=".csv,text/csv" />
       </label>
+      <div id="bulkError" style="display:none; margin-top:1rem;"></div>
       <div id="bulkPreview" class="bulk-preview" style="display:none;"></div>
       <div style="margin-top:1rem; display:flex; gap:.5rem; justify-content:flex-end;">
         <button type="button" id="processUpload" class="btn btn-primary" disabled><i class="fas fa-cloud-arrow-up"></i> Process Upload</button>
       </div>
     `;
+
     document.getElementById('dlTemplate').addEventListener('click', downloadTemplate);
     const drop = document.getElementById('bulkDrop');
     const input = document.getElementById('bulkFile');
