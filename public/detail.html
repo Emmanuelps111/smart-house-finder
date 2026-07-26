@@ -39,7 +39,14 @@
   .feature-list { list-style:none; padding:0; margin:1rem 0; display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
   .feature-list li { font-size:.9rem; color:var(--text-muted); }
   .feature-list i { color: var(--primary); margin-right:.4rem; }
-  #detailMap { height: 300px; border-radius:12px; margin-top:1rem; }
+  #detailMap { height: 300px; border-radius:12px; margin-top:1rem; position:relative; z-index:0; isolation:isolate; }
+  /* Keep Leaflet panes, controls and popups below the fixed site header */
+  #detailMap .leaflet-pane,
+  #detailMap .leaflet-top,
+  #detailMap .leaflet-bottom,
+  #detailMap .leaflet-control,
+  #detailMap .leaflet-popup { z-index: 1 !important; }
+  #detailMap .leaflet-marker-pane, #detailMap .leaflet-popup-pane { z-index: 2 !important; }
   .back-link { display:inline-flex; align-items:center; gap:.4rem; margin-bottom:1rem; color:var(--primary); text-decoration:none; font-weight:500; }
   .back-link:hover { text-decoration:underline; }
   .not-found { text-align:center; padding:4rem 1rem; }
