@@ -54,7 +54,7 @@
     transition:transform .6s cubic-bezier(.25,.8,.3,1), opacity .6s ease, box-shadow .4s ease;
     will-change:transform,opacity; user-select:none;
   }
-  @media (max-width:640px){ .cf-card { margin-left:-41vw; width:82vw; } .cf { padding:0 .5rem 3rem; } }
+  @media (max-width:640px){ .cf-card { margin-left:-34vw; width:68vw; } .cf { padding:0 .5rem 3rem; } }
   .cf-card i { font-size:1.6rem; color:#3B82F6; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:color-mix(in oklab,#3B82F6 14%,transparent); }
   .cf-card h3 { margin:0; font-size:1.2rem; color:var(--text); }
   .cf-card p { margin:0; font-size:.92rem; line-height:1.55; color:var(--text-muted); }
@@ -301,7 +301,7 @@
 
     function render() {
       const narrow = window.innerWidth < 700;
-      const gap = narrow ? 120 : 230;
+      const gap = narrow ? 95 : 230;
       cards.forEach((card, i) => {
         let off = i - index;
         if (off > total / 2) off -= total;
