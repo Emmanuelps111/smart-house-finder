@@ -283,5 +283,85 @@
   })();
 </script>
 
+<script>
+  // 3D Coverflow feature carousel
+  (function () {
+    const root = document.getElementById('featureCoverflow');
+    const stage = document.getElementById('cfStage');
+    const dotsWrap = document.getElementById('cfDots');
+    if (!root || !stage) return;
+    const cards = Array.from(stage.querySelectorAll('.cf-card'));
+    const total = cards.length;
+    if (!total) return;
+
+    let index = 0, timer = null, paused = false;
+
+    dotsWrap.innerHTML = cards.map((_, i) => `<button type="button" aria-label="Feature ${i + 1}"></button>`).join('');
+    const dots = Array.from(dotsWrap.querySelectorAll('button'));
+
+    function render() {
+      const narrow = window.innerWidth < 700;
+      const gap = narrow ? 120 : 230;
+      cards.forEach((card, i) => {
+        let off = i - index;
+        if (off > total / 2) off -= total;
+        if (off < -total / 2) off += total;
+        const abs = Math.abs(off);
+        const visible = abs <= 2;
+        const scale = off === 0 ? 1 : abs === 1 ? 0.84 : 0.7;
+        const rot = off === 0 ? 0 : (off > 0 ? -32 : 32);
+        card.style.transform = `translateX(${off * gap}px) translateZ(${off === 0 ? 60 : -abs * 140}px) rotateY(${rot}deg) scale(${scale})`;
+        card.style.opacity = off === 0 ? '1' : abs === 1 ? '0.6' : visible ? '0.28' : '0';
+        card.style.zIndex = String(50 - abs);
+        card.style.pointerEvents = visible ? 'auto' : 'none';
+        card.classList.toggle('is-active', off === 0);
+      });
+      dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    }
+
+    function go(n) { index = ((n % total) + total) % total; render(); }
+    function next() { go(index + 1); }
+    function prev() { go(index - 1); }
+
+    function start() { stop(); if (!paused) timer = setInterval(next, 4000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function pause() { paused = true; stop(); }
+    function resume() { paused = false; start(); }
+
+    root.querySelector('.cf-arrow.prev').addEventListener('click', () => { prev(); start(); });
+    root.querySelector('.cf-arrow.next').addEventListener('click', () => { next(); start(); });
+    dots.forEach((d, i) => d.addEventListener('click', () => { go(i); start(); }));
+    cards.forEach((c, i) => c.addEventListener('click', () => { if (i !== index) { go(i); start(); } }));
+
+    root.addEventListener('mouseenter', pause);
+    root.addEventListener('mouseleave', resume);
+
+    // Touch swipe
+    let sx = 0, sy = 0, swiping = false;
+    stage.addEventListener('touchstart', (e) => {
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true; pause();
+    }, { passive: true });
+    stage.addEventListener('touchmove', (e) => {
+      if (!swiping) return;
+      const dx = e.touches[0].clientX - sx;
+      const dy = e.touches[0].clientY - sy;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+        swiping = false;
+        dx < 0 ? next() : prev();
+      }
+    }, { passive: true });
+    const endTouch = () => { swiping = false; setTimeout(resume, 1200); };
+    stage.addEventListener('touchend', endTouch);
+    stage.addEventListener('touchcancel', endTouch);
+
+    document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+    window.addEventListener('resize', render);
+
+    render();
+    start();
+  })();
+</script>
+
+
 </body>
 </html>
