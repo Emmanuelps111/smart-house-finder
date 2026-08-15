@@ -52,7 +52,10 @@
     background:var(--bg); border:1px solid var(--border); border-radius:24px;
     box-shadow:var(--shadow-sm);
     transition:transform .6s cubic-bezier(.25,.8,.3,1), opacity .6s ease, box-shadow .4s ease;
-    will-change:transform,opacity; user-select:none;
+    user-select:none; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  /* Active card renders unscaled/unrotated so its text is rasterized at native resolution */
+  .cf-card.is-active { transform-style:flat; backface-visibility:hidden;
   }
   @media (max-width:640px){ .cf-card { margin-left:-34vw; width:68vw; } .cf { padding:0 .5rem 3rem; } }
   .cf-card i { font-size:1.6rem; color:#3B82F6; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:color-mix(in oklab,#3B82F6 14%,transparent); }
@@ -310,7 +313,9 @@
         const visible = abs <= 2;
         const scale = off === 0 ? 1 : abs === 1 ? 0.84 : 0.7;
         const rot = off === 0 ? 0 : (off > 0 ? -32 : 32);
-        card.style.transform = `translateX(${off * gap}px) translateZ(${off === 0 ? 60 : -abs * 140}px) rotateY(${rot}deg) scale(${scale})`;
+        card.style.transform = off === 0
+          ? `translateX(0px)`
+          : `translateX(${off * gap}px) translateZ(${-abs * 140}px) rotateY(${rot}deg) scale(${scale})`;
         card.style.opacity = off === 0 ? '1' : abs === 1 ? '0.6' : visible ? '0.28' : '0';
         card.style.zIndex = String(50 - abs);
         card.style.pointerEvents = visible ? 'auto' : 'none';
