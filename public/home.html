@@ -313,7 +313,9 @@
         const visible = abs <= 2;
         const scale = off === 0 ? 1 : abs === 1 ? 0.84 : 0.7;
         const rot = off === 0 ? 0 : (off > 0 ? -32 : 32);
-        card.style.transform = `translateX(${off * gap}px) translateZ(${off === 0 ? 60 : -abs * 140}px) rotateY(${rot}deg) scale(${scale})`;
+        card.style.transform = off === 0
+          ? `translateX(0px)`
+          : `translateX(${off * gap}px) translateZ(${-abs * 140}px) rotateY(${rot}deg) scale(${scale})`;
         card.style.opacity = off === 0 ? '1' : abs === 1 ? '0.6' : visible ? '0.28' : '0';
         card.style.zIndex = String(50 - abs);
         card.style.pointerEvents = visible ? 'auto' : 'none';
