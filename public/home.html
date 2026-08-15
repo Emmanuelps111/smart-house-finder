@@ -40,7 +40,40 @@
   .lc-foot { display:flex; align-items:center; justify-content:space-between; margin-top:.5rem; padding-top:.6rem; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-muted); }
   .lc-view { color:#3B82F6; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem; font-size:.85rem; }
   .lc-view:hover { text-decoration:underline; }
+
+  /* ---- 3D Coverflow feature carousel ---- */
+  .cf { position:relative; margin-top:2rem; padding:0 3.2rem 3rem; }
+  .cf-stage { position:relative; height:300px; perspective:1400px; transform-style:preserve-3d; touch-action:pan-y; }
+  .cf-card {
+    position:absolute; top:0; left:50%; width:330px; max-width:82vw; height:275px;
+    margin-left:-165px; box-sizing:border-box;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    gap:.7rem; padding:2rem 1.6rem;
+    background:var(--bg); border:1px solid var(--border); border-radius:24px;
+    box-shadow:var(--shadow-sm);
+    transition:transform .6s cubic-bezier(.25,.8,.3,1), opacity .6s ease, box-shadow .4s ease;
+    will-change:transform,opacity; user-select:none;
+  }
+  @media (max-width:640px){ .cf-card { margin-left:-41vw; width:82vw; } .cf { padding:0 .5rem 3rem; } }
+  .cf-card i { font-size:1.6rem; color:#3B82F6; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:color-mix(in oklab,#3B82F6 14%,transparent); }
+  .cf-card h3 { margin:0; font-size:1.2rem; color:var(--text); }
+  .cf-card p { margin:0; font-size:.92rem; line-height:1.55; color:var(--text-muted); }
+  .cf-card.is-active { box-shadow:var(--shadow-lg,0 24px 48px -20px rgba(0,0,0,.35)); }
+  .cf-arrow {
+    position:absolute; top:50%; transform:translateY(-50%); z-index:20;
+    width:44px; height:44px; border-radius:50%; cursor:pointer;
+    border:1px solid var(--border); background:var(--bg); color:var(--text);
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm);
+    transition:background .2s ease,color .2s ease,transform .2s ease;
+  }
+  .cf-arrow:hover { background:#3B82F6; color:#fff; }
+  .cf-arrow.prev { left:0; } .cf-arrow.next { right:0; }
+  @media (max-width:640px){ .cf-arrow { display:none; } }
+  .cf-dots { display:flex; justify-content:center; gap:.5rem; margin-top:1.4rem; }
+  .cf-dots button { width:9px; height:9px; padding:0; border-radius:999px; border:none; cursor:pointer; background:color-mix(in oklab,var(--text) 25%,transparent); transition:all .3s ease; }
+  .cf-dots button.active { width:26px; background:#3B82F6; }
 </style>
+
 </head>
 <body>
 <div id="header-mount"></div>
@@ -67,14 +100,20 @@
       <h2>Everything renters and landlords need</h2>
       <p style="color:white;">A trusted platform that connects students with verified landlords and quality housing.</p>
     </div>
-    <div class="grid-3">
-      <div class="feature reveal"><i class="fas fa-shield-halved"></i><h3>Verified Listings</h3><p>Every property is reviewed for accuracy so you avoid scams and surprises.</p></div>
-      <div class="feature reveal"><i class="fas fa-map-location-dot"></i><h3>Interactive Map</h3><p>Find homes by neighborhood, transport links and proximity to your campus.</p></div>
-      <div class="feature reveal"><i class="fas fa-user-graduate"></i><h3>Built for Students</h3><p>Filters tailored to budget, room type, and shared housing preferences.</p></div>
-      <div class="feature reveal"><i class="fas fa-comments"></i><h3>Direct Connection</h3><p>Talk to landlords without middlemen. No hidden fees, just clarity.</p></div>
-      <div class="feature reveal"><i class="fas fa-bolt"></i><h3>Fast Listings</h3><p>Landlords can post a new property in under three minutes.</p></div>
-      <div class="feature reveal"><i class="fas fa-lock"></i><h3>Secure Accounts</h3><p>Separate logins for students and landlords with role-based protection.</p></div>
+    <div class="cf" id="featureCoverflow">
+      <button class="cf-arrow prev" type="button" aria-label="Previous feature"><i class="fas fa-chevron-left"></i></button>
+      <div class="cf-stage" id="cfStage">
+        <div class="cf-card"><i class="fas fa-shield-halved"></i><h3>Verified Listings</h3><p>Every property is reviewed for accuracy so you avoid scams and surprises.</p></div>
+        <div class="cf-card"><i class="fas fa-map-location-dot"></i><h3>Interactive Map</h3><p>Find homes by neighborhood, transport links and proximity to your campus.</p></div>
+        <div class="cf-card"><i class="fas fa-user-graduate"></i><h3>Built for Students</h3><p>Filters tailored to budget, room type, and shared housing preferences.</p></div>
+        <div class="cf-card"><i class="fas fa-comments"></i><h3>Direct Connection</h3><p>Talk to landlords without middlemen. No hidden fees, just clarity.</p></div>
+        <div class="cf-card"><i class="fas fa-bolt"></i><h3>Fast Listings</h3><p>Landlords can post a new property in under three minutes.</p></div>
+        <div class="cf-card"><i class="fas fa-lock"></i><h3>Secure Accounts</h3><p>Separate logins for students and landlords with role-based protection.</p></div>
+      </div>
+      <button class="cf-arrow next" type="button" aria-label="Next feature"><i class="fas fa-chevron-right"></i></button>
+      <div class="cf-dots" id="cfDots"></div>
     </div>
+
   </div>
 </section>
 
