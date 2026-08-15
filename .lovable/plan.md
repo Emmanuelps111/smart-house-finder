@@ -1,17 +1,33 @@
+# Plan: Shrink coverflow cards on mobile so side cards are visible
+
 ## Problem
+On mobile (`max-width:640px`) each coverflow card is `82vw` wide with a `120px` gap between cards. Only the center card is really visible; the side cards are almost entirely pushed off-screen. The user wants the cards smaller so the adjacent cards also peek into view.
 
-On `public/detail.html`, the two-column `.detail-grid` (`1.4fr 1fr`) collapses/stretches when a roommate request contains a very long unbroken string (e.g. "sshhshshshshshs…"). CSS grid tracks with `fr` still expand to their content's min-size, and neither the grid columns nor `.rm-quote` currently allow that text to break, so the left column pushes wider than its track, shoving the gallery, "About this property", and reviews out of the side-by-side frame.
+## Change
+Edit `public/home.html` — two spots, mobile only (desktop untouched):
 
-## Fix (CSS-only, `public/detail.html`)
+### 1. CSS — reduce mobile card width (line 57)
+Current:
+```css
+@media (max-width:640px){ .cf-card { margin-left:-41vw; width:82vw; } .cf { padding:0 .5rem 3rem; } }
+```
+New:
+```css
+@media (max-width:640px){ .cf-card { margin-left:-34vw; width:68vw; } .cf { padding:0 .5rem 3rem; } }
+```
+- Width `82vw → 68vw` (smaller cards)
+- `margin-left` keeps the card centered: `-41vw → -34vw` (half of 68vw)
 
-1. Add `min-width: 0;` to `.detail-grid > *` so each column respects its `fr` track instead of growing to fit unbreakable content.
-2. Add `overflow-wrap: anywhere; word-break: break-word;` to `.rm-quote` (the long bio quote) and to `.rm-summary` / `.rm-name` for safety, so pathological strings wrap inside the card.
-3. Add the same wrap rules to the property description block ("About this property") and reviews text to prevent identical overflow from those sources.
-4. Ensure the embedded map wrapper has `min-width: 0; overflow: hidden;` and its `#map` container keeps `width:100%` so it stays framed inside the right column on all viewports.
+### 2. JS — reduce mobile gap (line 304)
+Current:
+```js
+const gap = narrow ? 120 : 230;
+```
+New:
+```js
+const gap = narrow ? 95 : 230;
+```
+A smaller gap (`120 → 95px`) pulls side cards closer to center so they sit visibly inside the viewport instead of being pushed off the edges.
 
-No JS or data changes. No visual restyle beyond wrapping behavior. Mobile stacked layout (`@media max-width:900px`) remains untouched.
-
-## Verification
-
-- Reload a detail page, expand a roommate card with the long test string from the screenshot; the left column stays inside its track and the gallery/about/reviews stay aligned with the right column.
-- Map still renders full-width inside the right column with rounded corners intact.
+## Result
+On phones the center card shrinks from 82vw to 68vw and the spacing tightens, so the immediate left/right cards now visibly peek on either side — matching the coverflow look the user asked for. Desktop and the autoplay/pause/swipe logic are untouched.
