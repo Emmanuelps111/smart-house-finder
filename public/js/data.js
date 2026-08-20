@@ -144,12 +144,18 @@ window.SHF.fetchDbListings = async function () {
   if (!window.SHFCloud || !window.SHFCloud.ready) return;
   try {
     const sb = await window.SHFCloud.ready;
+    // contact_phone is readable by signed-in users only; omit it for guests.
+    let signedIn = false;
+    try { const { data: s } = await sb.auth.getSession(); signedIn = !!(s && s.session); } catch (e) {}
+    const cols = 'id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, available_from, created_at, video_url'
+      + (signedIn ? ', contact_phone' : '');
     const { data, error } = await sb
       .from('properties')
-      .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from, created_at, video_url')
+      .select(cols)
       .eq('status', 'approved')
       .order('created_at', { ascending: false });
     if (error) { console.warn('[SHF] properties fetch failed:', error.message); return; }
+
     if (!data || !data.length) return;
 
     const mapped = data.map(p => {

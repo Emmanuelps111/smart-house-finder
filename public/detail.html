@@ -896,11 +896,17 @@
     try {
       const sb = await window.SHFCloud.ready;
       const dbId = id.slice(3);
+      // contact_phone is readable by signed-in users only; omit it for guests.
+      let signedIn = false;
+      try { const { data: s } = await sb.auth.getSession(); signedIn = !!(s && s.session); } catch (e) {}
+      const cols = 'id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, available_from, video_url'
+        + (signedIn ? ', contact_phone' : '');
       const { data: p, error } = await sb
         .from('properties')
-        .select('id, landlord_id, title, description, address, price, beds, baths, size_sqm, city, neighbourhood, property_type, furnishing, image_urls, amenities, lat, lng, status, occupancy, deposit_months, contact_phone, available_from, video_url')
+        .select(cols)
         .eq('id', dbId)
         .maybeSingle();
+
       if (error || !p) return false;
       let videoUrl = null;
       if (p.video_url) {
