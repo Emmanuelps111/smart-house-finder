@@ -72,25 +72,14 @@
     padding: .85rem 1.25rem;
     font-weight: 600;
   }
-  @media (prefers-color-scheme: dark) {
-    .ssm-card {
-      background: rgba(9,17,36,0.85); /* dark navy */
-      border-color: rgba(30,41,59,0.8); /* slate-800/80 */
-      color: #f1f5f9; /* slate-100 */
-      box-shadow: 0 10px 30px -12px rgba(0,0,0,0.5);
-    }
-    .ssm-card h2 { color: #f8fafc; }
-    .ssm-card .info-line { color: #f1f5f9; }
-    .ssm-form label { color: #f1f5f9; }
-    .ssm-form input,
-    .ssm-form textarea {
-      background: rgba(15,23,42,0.9); /* slate-900/90 */
-      border-color: rgba(30,41,59,0.9);
-      color: #f8fafc;
-    }
-    .ssm-form input:focus,
-    .ssm-form textarea:focus { background: rgba(15,23,42,1); }
+  /* Input field icons */
+  .ssm-field { position: relative; }
+  .ssm-field-icon {
+    position: absolute; left: .9rem; top: 50%; transform: translateY(-50%);
+    color: var(--primary); opacity: .85; font-size: .95rem; pointer-events: none;
   }
+  .ssm-field input, .ssm-field textarea { padding-left: 2.5rem; }
+  .ssm-field:has(textarea) .ssm-field-icon { top: .9rem; transform: none; }
   @media (max-width: 800px) {
     .contact-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
   }
@@ -117,9 +106,9 @@
         src="https://www.openstreetmap.org/export/embed.html?bbox=39.20%2C-6.78%2C39.30%2C-6.74&layer=mapnik&marker=-6.7665%2C39.2418"></iframe>
     </div>
     <form id="contactForm" class="ssm-card ssm-form reveal" novalidate>
-      <div class="form-row"><label for="cf-name">Name</label><input id="cf-name" type="text" placeholder="" /><span class="error"></span></div>
-      <div class="form-row"><label for="cf-email">Email</label><input id="cf-email" type="email" placeholder="" /><span class="error"></span></div>
-      <div class="form-row"><label for="cf-msg">Message</label><textarea id="cf-msg" placeholder="Hi, I'm interested in viewing a property..."></textarea><span class="error"></span></div>
+      <div class="form-row"><label for="cf-name">Name</label><div class="ssm-field"><i class="fas fa-user ssm-field-icon"></i><input id="cf-name" type="text" placeholder="" /></div><span class="error"></span></div>
+      <div class="form-row"><label for="cf-email">Email</label><div class="ssm-field"><i class="fas fa-envelope ssm-field-icon"></i><input id="cf-email" type="email" placeholder="" /></div><span class="error"></span></div>
+      <div class="form-row"><label for="cf-msg">Message</label><div class="ssm-field"><i class="fas fa-comment ssm-field-icon"></i><textarea id="cf-msg" placeholder="Hi, I'm interested in viewing a property..."></textarea></div><span class="error"></span></div>
       <button type="submit" class="btn btn-primary ssm-send">Send message <i class="fas fa-paper-plane"></i></button>
     </form>
   </div>
