@@ -80,6 +80,24 @@
   }
   .ssm-field input, .ssm-field textarea { padding-left: 2.5rem; }
   .ssm-field:has(textarea) .ssm-field-icon { top: .9rem; transform: none; }
+  /* Adapt to site dark-mode toggle (data-theme="dark" on <html>) */
+  [data-theme="dark"] .ssm-card {
+    background: rgba(9,17,36,0.85);
+    border-color: rgba(30,41,59,0.8);
+    color: #f1f5f9;
+    box-shadow: 0 10px 30px -12px rgba(0,0,0,0.5);
+  }
+  [data-theme="dark"] .ssm-card h2 { color: #f8fafc; }
+  [data-theme="dark"] .ssm-card .info-line { color: #f1f5f9; }
+  [data-theme="dark"] .ssm-form label { color: #f1f5f9; }
+  [data-theme="dark"] .ssm-form input,
+  [data-theme="dark"] .ssm-form textarea {
+    background: rgba(15,23,42,0.9);
+    border-color: rgba(30,41,59,0.9);
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .ssm-form input:focus,
+  [data-theme="dark"] .ssm-form textarea:focus { background: rgba(15,23,42,1); }
   @media (max-width: 800px) {
     .contact-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
   }
