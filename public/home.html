@@ -179,7 +179,7 @@
 <script src="/js/app.js"></script>
 <script>
   // Render featured listings
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   const f = document.getElementById('featured');
   function renderFeatured() {
     if (!f) return;
@@ -225,7 +225,7 @@
   (async function initTestimonials(){
     const track = document.getElementById('testimonialTrack');
     const dots = document.getElementById('testimonialDots');
-    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function render(items){
       const testimonials = Array.isArray(items) ? items : [];
       if (!testimonials.length){
