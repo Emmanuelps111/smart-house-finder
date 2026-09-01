@@ -35,23 +35,25 @@
   }).addTo(map);
 
   let markers = {};
+  function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
   function renderMap() {
     Object.values(markers).forEach(m => map.removeLayer(m));
     markers = {};
     SHF_LISTINGS.forEach(l => {
       if (l.lat == null || l.lng == null) return;
       const m = L.marker([l.lat, l.lng]).addTo(map)
-        .bindPopup(`<strong>${l.title}</strong><br/>${SHF.formatPrice(l.price)}/month<br/>${l.city}<br/><a href="/detail.html?id=${l.id}">View details →</a>`);
+        .bindPopup(`<strong>${escapeHtml(l.title)}</strong><br/>${SHF.formatPrice(l.price)}/month<br/>${escapeHtml(l.city)}<br/><a href="/detail.html?id=${escapeHtml(l.id)}">View details →</a>`);
       markers[l.id] = m;
     });
 
     document.getElementById('mapList').innerHTML = SHF_LISTINGS.map(l => `
-      <div class="map-listing" data-id="${l.id}">
-        <strong>${l.title}</strong>
+      <div class="map-listing" data-id="${escapeHtml(l.id)}">
+        <strong>${escapeHtml(l.title)}</strong>
         <div style="color:var(--primary); font-weight:700;">${SHF.formatPrice(l.price)}/mo</div>
-        <div style="color:var(--text-muted); font-size:.85rem;"><i class="fas fa-location-dot"></i> ${l.city} • ${l.beds} bed</div>
-        <a href="/detail.html?id=${l.id}" style="font-size:.85rem; color:var(--primary);">View details →</a>
+        <div style="color:var(--text-muted); font-size:.85rem;"><i class="fas fa-location-dot"></i> ${escapeHtml(l.city)} • ${l.beds} bed</div>
+        <a href="/detail.html?id=${escapeHtml(l.id)}" style="font-size:.85rem; color:var(--primary);">View details →</a>
       </div>`).join('');
+
 
     document.querySelectorAll('.map-listing').forEach(el => {
       el.addEventListener('click', (e) => {
