@@ -35,7 +35,7 @@
   }).addTo(map);
 
   let markers = {};
-  function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+  function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
   function renderMap() {
     Object.values(markers).forEach(m => map.removeLayer(m));
     markers = {};

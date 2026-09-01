@@ -238,7 +238,7 @@
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
-  function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+  function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
   const grid = document.getElementById('grid');
   const empty = document.getElementById('empty');
   const search = document.getElementById('searchInput');
