@@ -18,6 +18,13 @@ export const Route = createFileRoute("/admin")({
       { name: "description", content: "Moderate properties and manage users." },
       { name: "robots", content: "noindex" },
     ],
+    scripts: [
+      {
+        async: true,
+        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3661788889705570",
+        crossOrigin: "anonymous",
+      },
+    ],
   }),
   component: AdminPage,
 });
