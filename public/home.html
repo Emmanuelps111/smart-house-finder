@@ -85,16 +85,24 @@
 
 <section class="hero">
   <div class="container hero-content reveal">
-    <h1>Find your next home, the smart way</h1>
+    <span class="hero-badge"><i class="fas fa-house"></i> Tanzania's student housing guide</span>
+    <h1>Find your next home, <span class="hero-accent">the smart way</span></h1>
     <p>Browse verified listings, message landlords, and explore neighborhoods on an interactive map — built for students and renters.</p>
+    <form class="search-bar" onsubmit="event.preventDefault(); location.href='/listings.html?q='+encodeURIComponent(this.q.value)">
+      <i class="fas fa-magnifying-glass search-ico"></i>
+      <input name="q" type="text" placeholder="Search by city, neighborhood or campus…" aria-label="Search" />
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+    <div class="hero-chips">
+      <a href="/listings.html?q=Ubungo"><i class="fas fa-graduation-cap"></i> Near UDSM</a>
+      <a href="/listings.html?q=Kijitonyama"><i class="fas fa-map-pin"></i> Kijitonyama</a>
+      <a href="/listings.html?q=Sinza"><i class="fas fa-map-pin"></i> Sinza</a>
+      <a href="/map.html"><i class="fas fa-map-location-dot"></i> Map view</a>
+    </div>
     <div class="hero-cta">
       <a href="/listings.html" class="btn btn-primary"><i class="fas fa-search"></i> Browse Listings</a>
       <a href="/login.html" class="btn btn-outline">List Your Property</a>
     </div>
-    <form class="search-bar" onsubmit="event.preventDefault(); location.href='/listings.html?q='+encodeURIComponent(this.q.value)">
-      <input name="q" type="text" placeholder="Search by city, neighborhood or postcode…" aria-label="Search" />
-      <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
-    </form>
   </div>
 </section>
 
