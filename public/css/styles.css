@@ -399,3 +399,15 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 .why-section .eyebrow { color: #1E5FA8; }
 [data-theme="dark"] .why-section .section-head p { color: #94a3b8; }
 [data-theme="dark"] .why-section .eyebrow { color: #93c5fd; }
+
+/* Phase 2: modern cards + role toggle */
+.role-toggle { grid-template-columns: repeat(3, 1fr); border-radius: 9999px; padding: .3rem; border: 1px solid var(--border); }
+.role-toggle button { border-radius: 9999px; padding: .6rem .4rem; font-size: .88rem; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: .35rem; }
+.role-toggle button:not(.active):hover { color: var(--primary); }
+.card { border-radius: 20px; border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  box-shadow: 0 4px 20px -4px rgba(15,23,42,.08), 0 1px 3px rgba(15,23,42,.05); }
+.card:hover { box-shadow: 0 18px 40px -12px rgba(30,95,168,.25), 0 2px 6px rgba(15,23,42,.06); border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); }
+.listings-grid .card img, .masonry .card img { aspect-ratio: 16/10; object-fit: cover; height: auto; }
+.badge { border-radius: 9999px; }
+.skeleton-card { height: 320px; border-radius: 20px; background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.3s infinite linear; }
+@keyframes shimmer { to { background-position: -200% 0; } }
