@@ -145,7 +145,7 @@
     const unseen = notifications.filter(n => !n.seen).length;
     const bulkLocked = !(user.role === 'admin' || user.agency_status === 'approved');
     root.innerHTML = `
-      <div class="dash-hero"><div class="container">
+      <div class="dash-hero"><div class="container"><span class="page-head-badge"><i class="fas fa-house-user"></i> Landlord Dashboard</span>
         <h1>Welcome back, ${escapeHtml(user.name || 'Landlord')} <i class="fas fa-circle-check" style="font-size:1.1rem; color:#10b981;" title="Verified"></i></h1>
         <p>Manage your properties, view requests and update availability.</p>
       </div></div>
