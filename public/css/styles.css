@@ -372,3 +372,30 @@ body { background-color: var(--bg); }
 section { background: transparent; }
 
 
+
+/* ===== Phase 1 modernization: calm surfaces & light page headers ===== */
+.bg-slideshow .bg-slide { filter: saturate(.85); }
+.bg-slideshow::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+main > section:not(.hero), body > section:not(.hero) { position: relative; }
+.page-head {
+  margin-top: var(--header-h); padding: 3.5rem 0 2rem;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+.page-head h1 { color: var(--text, #0f172a); font-size: clamp(2rem, 4vw, 2.75rem); letter-spacing: -.02em; margin: .6rem 0 .4rem; }
+.page-head p { color: #64748b; margin: 0; font-size: 1.05rem; }
+.page-head-badge {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .35rem .85rem; border-radius: 9999px;
+  background: var(--primary-light); color: #1E5FA8; font-size: .8rem; font-weight: 600;
+}
+[data-theme="dark"] .page-head-badge { color: #93c5fd; }
+[data-theme="dark"] .page-head p { color: #94a3b8; }
+.why-section { background: var(--surface) !important; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.why-section .section-head h2 { color: var(--text, #0f172a); }
+.why-section .section-head p { color: #64748b; }
+.why-section .eyebrow { color: #1E5FA8; }
+[data-theme="dark"] .why-section .section-head p { color: #94a3b8; }
+[data-theme="dark"] .why-section .eyebrow { color: #93c5fd; }
