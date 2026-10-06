@@ -432,3 +432,30 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 #testimonialForm input, #testimonialForm textarea { border-radius: 14px !important; }
 #testimonialForm input { border-radius: 9999px !important; }
 #testimonialForm button { border-radius: 9999px; }
+
+/* ===== Modern info/dashboard headers (replaces legacy gradient banners) ===== */
+.info-hero, .dash-hero {
+  background: radial-gradient(ellipse at 15% 0%, rgba(30,95,168,.10), transparent 60%), var(--bg) !important;
+  color: var(--text) !important; border-bottom: 1px solid var(--border); padding: 2.75rem 0 2.25rem !important;
+}
+.info-hero h1, .dash-hero h1 { color: var(--text) !important; font-size: clamp(1.9rem,4vw,2.6rem); letter-spacing: -.02em; margin: .6rem 0 .4rem; }
+.info-hero p, .dash-hero p { color: #64748b !important; font-size: 1.05rem; max-width: 720px; }
+[data-theme="dark"] .info-hero p, [data-theme="dark"] .dash-hero p { color: #94a3b8 !important; }
+.back-row { margin-top: var(--header-h); padding: 1rem 0 0; background: none; }
+.back-row + .info-hero { margin-top: 0 !important; }
+.pillar, .stat-card, .step, .tip, .doc section, .alert-box, .info-tabs {
+  border-radius: 20px !important; box-shadow: 0 4px 20px -4px rgba(15,23,42,.08);
+}
+.info-tabs, .info-tab { border-radius: 999px !important; }
+[data-theme="dark"] .pillar, [data-theme="dark"] .step, [data-theme="dark"] .tip, [data-theme="dark"] .doc section { box-shadow: 0 4px 20px -4px rgba(0,0,0,.4); }
+.alert-box { background: rgba(245,158,11,.08) !important; border: 1px solid rgba(245,158,11,.45) !important; }
+.alert-box i, .alert-box h2 { color: #d97706 !important; }
+.notif-hero {
+  background: radial-gradient(ellipse at 10% 0%, rgba(30,95,168,.10), transparent 60%), var(--surface) !important;
+  border: 1px solid var(--border); box-shadow: 0 4px 20px -4px rgba(15,23,42,.08) !important; border-radius: 20px !important;
+}
+.notif-hero h1 { color: var(--text) !important; text-shadow: none !important; }
+.notif-hero h1 i { color: #1E5FA8; }
+.notif-hero p { color: #64748b !important; }
+.notif-hero .btn { background: #1E5FA8 !important; color: #fff !important; border-radius: 999px !important; }
+.notif-card { border-radius: 20px !important; }
