@@ -441,7 +441,7 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 .info-hero h1, .dash-hero h1 { color: var(--text) !important; font-size: clamp(1.9rem,4vw,2.6rem); letter-spacing: -.02em; margin: .6rem 0 .4rem; }
 .info-hero p, .dash-hero p { color: #64748b !important; font-size: 1.05rem; max-width: 720px; }
 [data-theme="dark"] .info-hero p, [data-theme="dark"] .dash-hero p { color: #94a3b8 !important; }
-.back-row { margin-top: var(--header-h); padding: 1rem 0 0; background: var(--bg); }
+.back-row { margin-top: var(--header-h); padding: 1rem 0 0; background: none; }
 .back-row + .info-hero { margin-top: 0 !important; }
 .pillar, .stat-card, .step, .tip, .doc section, .alert-box, .info-tabs {
   border-radius: 20px !important; box-shadow: 0 4px 20px -4px rgba(15,23,42,.08);
