@@ -15,14 +15,60 @@
 <body>
 <div id="header-mount"></div>
 
-<div class="map-layout">
+<style>
+  .map-layout { grid-template-columns: 400px 1fr; }
+  .map-sidebar { padding: 1.5rem 1.25rem; background: var(--surface); }
+  .ms-head h2 { font-size: 1.5rem; letter-spacing: -.02em; margin: .6rem 0 .2rem; color: var(--text); }
+  .ms-count { font-size: .88rem; color: #64748b; margin: 0 0 1rem; }
+  [data-theme="dark"] .ms-count { color: #94a3b8; }
+  .ms-search { position: relative; margin-bottom: 1rem; }
+  .ms-search i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--primary); }
+  .ms-search input { width: 100%; padding: .7rem 1rem .7rem 2.5rem; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; }
+  .ms-search input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent); }
+  .map-listing { display: grid; grid-template-columns: 88px 1fr; gap: .85rem; padding: .7rem; border-radius: 18px; background: var(--bg); box-shadow: 0 4px 20px -4px rgba(15,23,42,.08); }
+  .map-listing:hover { transform: translateY(-2px); border-color: var(--primary); }
+  .map-listing.active { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent); }
+  .ml-thumb { width: 88px; height: 88px; border-radius: 14px; object-fit: cover; background: color-mix(in oklab, var(--primary) 10%, var(--surface)); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem; }
+  .ml-body { min-width: 0; display: flex; flex-direction: column; gap: .25rem; }
+  .ml-body strong { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ml-price { color: var(--primary); font-weight: 700; }
+  .ml-meta { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .ml-meta span { font-size: .75rem; padding: .2rem .6rem; border-radius: 999px; border: 1px solid var(--border); color: var(--text); background: var(--surface); }
+  .ms-empty { text-align: center; color: var(--text-muted); padding: 2rem 0; }
+  .price-pin { background: #1E5FA8; color: #fff; font-weight: 700; font-size: .78rem; padding: .3rem .65rem; border-radius: 999px; box-shadow: 0 4px 12px -2px rgba(15,23,42,.35); border: 2px solid #fff; white-space: nowrap; transform: translate(-50%, -50%); display: inline-block; transition: transform .15s; }
+  .price-pin.active { background: #0f172a; transform: translate(-50%, -50%) scale(1.15); }
+  .leaflet-div-icon.pin-wrap { background: none; border: none; }
+  .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; }
+  .leaflet-popup-content { margin: 0; width: 220px !important; }
+  .pp-img { width: 100%; height: 120px; object-fit: cover; display: block; }
+  .pp-body { padding: .75rem .9rem .9rem; }
+  .pp-body strong { display: block; font-size: .95rem; }
+  .pp-btn { display: inline-block; margin-top: .5rem; padding: .4rem .9rem; border-radius: 999px; background: #1E5FA8; color: #fff !important; font-weight: 600; font-size: .8rem; text-decoration: none; }
+  [data-theme="dark"] .leaflet-popup-content-wrapper, [data-theme="dark"] .leaflet-popup-tip { background: var(--surface); color: var(--text); }
+  .map-toggle { display: none; }
+  @media (max-width: 880px) {
+    .map-layout { display: block; height: calc(100vh - var(--header-h)); position: relative; }
+    .map-sidebar, #map { height: 100%; }
+    .map-layout.show-map .map-sidebar, .map-layout:not(.show-map) #map { display: none; }
+    .map-toggle { display: inline-flex; gap: .5rem; align-items: center; position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%); z-index: 500; padding: .75rem 1.3rem; border-radius: 999px; border: none; background: #0f172a; color: #fff; font-weight: 600; box-shadow: 0 10px 25px -5px rgba(15,23,42,.45); cursor: pointer; }
+  }
+</style>
+<div class="map-layout show-map" id="mapLayout">
   <aside class="map-sidebar">
-    <h2 style="font-size:1.25rem; margin-bottom:.25rem;">Listings on map</h2>
-    <p style="font-size:.85rem;">Click a card or marker to focus the location.</p>
+    <div class="ms-head">
+      <span class="page-head-badge"><i class="fas fa-map-location-dot"></i> Interactive Map</span>
+      <h2>Listings on map</h2>
+      <p class="ms-count" id="msCount">Loading properties…</p>
+    </div>
+    <div class="ms-search">
+      <i class="fas fa-magnifying-glass"></i>
+      <input id="msSearch" type="search" placeholder="Search area or title (e.g. Sinza)" aria-label="Search listings" />
+    </div>
     <div id="mapList"></div>
   </aside>
   <div id="map" role="application" aria-label="Property map"></div>
 </div>
+<button class="map-toggle" id="mapToggle" type="button"><i class="fas fa-list"></i> <span>List</span></button>
 
 <div id="footer-mount"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -31,43 +77,83 @@
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
-  const map = L.map('map').setView([-6.5, 35.5], 6);
+  const map = L.map('map', { zoomControl: true }).setView([-6.78, 39.22], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
   }).addTo(map);
 
   let markers = {};
+  let activeId = null;
+  let fitted = false;
+  const layout = document.getElementById('mapLayout');
+  const isMobile = () => window.matchMedia('(max-width: 880px)').matches;
   function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+  function shortPrice(p){ p = Number(p)||0; return p >= 1e6 ? (p/1e6).toFixed(p%1e6?1:0)+'M' : p >= 1000 ? Math.round(p/1000)+'k' : String(p); }
+  function pinIcon(l, active){
+    return L.divIcon({ className: 'pin-wrap', iconSize: [0,0], html: `<span class="price-pin${active?' active':''}">${escapeHtml(shortPrice(l.price))}</span>` });
+  }
+  function setActive(id, scroll){
+    if (activeId && markers[activeId]) markers[activeId].setIcon(pinIcon(markers[activeId]._l, false));
+    activeId = id;
+    if (markers[id]) { markers[id].setIcon(pinIcon(markers[id]._l, true)); markers[id].setZIndexOffset(1000); }
+    document.querySelectorAll('.map-listing').forEach(el => el.classList.toggle('active', el.dataset.id === String(id)));
+    if (scroll) { const el = document.querySelector(`.map-listing[data-id="${CSS.escape(String(id))}"]`); el && el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  }
+  function filtered(){
+    const q = (document.getElementById('msSearch').value || '').trim().toLowerCase();
+    return SHF_LISTINGS.filter(l => !q || [l.title, l.city, l.neighborhood, l.address].join(' ').toLowerCase().includes(q));
+  }
   function renderMap() {
     Object.values(markers).forEach(m => map.removeLayer(m));
     markers = {};
-    SHF_LISTINGS.forEach(l => {
+    const list = filtered();
+    const pts = [];
+    list.forEach(l => {
       if (l.lat == null || l.lng == null) return;
-      const m = L.marker([l.lat, l.lng]).addTo(map)
-        .bindPopup(`<strong>${escapeHtml(l.title)}</strong><br/>${SHF.formatPrice(l.price)}/month<br/>${escapeHtml(l.city)}<br/><a href="/detail.html?id=${escapeHtml(l.id)}">View details →</a>`);
+      const img = l.img ? `<img class="pp-img" src="${escapeHtml(l.img)}" alt="" loading="lazy" />` : '';
+      const m = L.marker([l.lat, l.lng], { icon: pinIcon(l, String(l.id) === String(activeId)) }).addTo(map)
+        .bindPopup(`${img}<div class="pp-body"><strong>${escapeHtml(l.title)}</strong>${SHF.formatPrice(l.price)}/month<br/><span style="color:#64748b">${escapeHtml(l.neighborhood || l.city)}</span><br/><a class="pp-btn" href="/detail.html?id=${escapeHtml(l.id)}">View details →</a></div>`);
+      m._l = l;
+      m.on('click', () => setActive(String(l.id), true));
       markers[l.id] = m;
+      pts.push([l.lat, l.lng]);
     });
+    if (!fitted && pts.length) { map.fitBounds(pts, { padding: [40, 40], maxZoom: 14 }); fitted = true; }
 
-    document.getElementById('mapList').innerHTML = SHF_LISTINGS.map(l => `
-      <div class="map-listing" data-id="${escapeHtml(l.id)}">
-        <strong>${escapeHtml(l.title)}</strong>
-        <div style="color:var(--primary); font-weight:700;">${SHF.formatPrice(l.price)}/mo</div>
-        <div style="color:var(--text-muted); font-size:.85rem;"><i class="fas fa-location-dot"></i> ${escapeHtml(l.city)} • ${l.beds} bed</div>
-        <a href="/detail.html?id=${escapeHtml(l.id)}" style="font-size:.85rem; color:var(--primary);">View details →</a>
-      </div>`).join('');
-
+    document.getElementById('msCount').textContent = `${list.length} ${list.length === 1 ? 'property' : 'properties'} available`;
+    document.getElementById('mapList').innerHTML = list.length ? list.map(l => `
+      <div class="map-listing${String(l.id) === String(activeId) ? ' active' : ''}" data-id="${escapeHtml(l.id)}">
+        ${l.img ? `<img class="ml-thumb" src="${escapeHtml(l.img)}" alt="" loading="lazy" />` : `<div class="ml-thumb"><i class="fas fa-house"></i></div>`}
+        <div class="ml-body">
+          <strong>${escapeHtml(l.title)}</strong>
+          <div class="ml-price">${SHF.formatPrice(l.price)}/mo</div>
+          <div class="ml-meta">
+            <span><i class="fas fa-location-dot"></i> ${escapeHtml(l.neighborhood || l.city)}</span>
+            <span><i class="fas fa-bed"></i> ${escapeHtml(l.beds)} bed</span>
+          </div>
+        </div>
+      </div>`).join('') : '<div class="ms-empty"><i class="fas fa-magnifying-glass"></i><br/>No properties match your search.</div>';
 
     document.querySelectorAll('.map-listing').forEach(el => {
-      el.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A') return;
+      el.addEventListener('click', () => {
         const id = el.dataset.id;
         const l = SHF_LISTINGS.find(x => String(x.id) === String(id));
-        if (!l || l.lat == null) return;
-        map.flyTo([l.lat, l.lng], 13);
+        if (!l || l.lat == null) { location.href = '/detail.html?id=' + encodeURIComponent(id); return; }
+        if (isMobile()) { layout.classList.add('show-map'); updateToggle(); setTimeout(() => map.invalidateSize(), 50); }
+        setActive(id, false);
+        map.flyTo([l.lat, l.lng], 15);
         markers[id] && markers[id].openPopup();
       });
     });
   }
+  function updateToggle(){
+    const showing = layout.classList.contains('show-map');
+    document.getElementById('mapToggle').innerHTML = showing ? '<i class="fas fa-list"></i> <span>List</span>' : '<i class="fas fa-map"></i> <span>Map</span>';
+  }
+  document.getElementById('mapToggle').addEventListener('click', () => {
+    layout.classList.toggle('show-map'); updateToggle(); setTimeout(() => map.invalidateSize(), 50);
+  });
+  document.getElementById('msSearch').addEventListener('input', renderMap);
   renderMap();
   window.addEventListener('shf:listings-updated', renderMap);
 </script>
