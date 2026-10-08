@@ -942,8 +942,9 @@
       let videoUrl = null;
       if (p.video_url) {
         try {
-          const { data: signed } = await sb.storage.from('property-videos').createSignedUrl(p.video_url, 60 * 60 * 6);
-          videoUrl = signed?.signedUrl || null;
+          videoUrl = /^https?:\/\//.test(p.video_url)
+            ? p.video_url
+            : sb.storage.from('property-videos').getPublicUrl(p.video_url).data.publicUrl;
         } catch (_) {}
       }
       const l = {
