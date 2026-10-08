@@ -459,3 +459,27 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 .notif-hero p { color: #64748b !important; }
 .notif-hero .btn { background: #1E5FA8 !important; color: #fff !important; border-radius: 999px !important; }
 .notif-card { border-radius: 20px !important; }
+
+/* === Renovation: Landlord Dashboard & Notifications interior === */
+.panel { border-radius: 20px !important; box-shadow: 0 4px 20px -4px rgba(15,23,42,.08); padding: 1.75rem; }
+.panel h2 { letter-spacing: -.01em; }
+.stat { border-radius: 20px !important; box-shadow: 0 4px 20px -4px rgba(15,23,42,.06); padding: 1.35rem 1rem; transition: transform .2s, box-shadow .2s; }
+.stat:hover { transform: translateY(-2px); box-shadow: 0 10px 28px -10px rgba(15,23,42,.14); }
+.stat .num { font-size: 2rem; letter-spacing: -.02em; }
+.mode-tabs { border-radius: 999px !important; padding: .35rem; }
+.mode-tab { border-radius: 999px !important; }
+.my-listing { border-radius: 16px !important; padding: .9rem; transition: box-shadow .2s, transform .2s; }
+.my-listing:hover { box-shadow: 0 6px 20px -8px rgba(15,23,42,.14); transform: translateY(-1px); }
+.my-listing img { border-radius: 12px !important; }
+.my-listing button { border-radius: 999px !important; padding: .4rem .8rem; }
+.notif { border-radius: 14px !important; }
+.file-input-wrap, .bulk-drop { border-radius: 16px !important; }
+.preview-grid .ph { border-radius: 12px !important; }
+.bulk-preview { border-radius: 14px !important; }
+.amenity-chips label { border-radius: 999px !important; transition: all .15s; }
+.notif-card { border-radius: 20px !important; }
+.notif-card.unread { border-left: 4px solid var(--primary); }
+.notif-icon { border-radius: 14px !important; }
+.notif-actions button { border-radius: 999px !important; }
+.empty { border-radius: 20px !important; }
+[data-theme="dark"] .panel, [data-theme="dark"] .stat { box-shadow: 0 4px 20px -4px rgba(0,0,0,.4); }
