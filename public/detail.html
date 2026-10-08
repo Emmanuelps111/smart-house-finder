@@ -289,11 +289,13 @@
       });
     });
     // Thumbnails update primary viewport (photo mode)
+    document.querySelector('[data-thumb]')?.classList.add('active');
     document.querySelectorAll('[data-thumb]').forEach(t => t.addEventListener('click', () => {
       const btnPhotos = document.querySelector('[data-media-tab="photos"]');
       if (btnPhotos && !btnPhotos.classList.contains('active')) btnPhotos.click();
       const img = document.getElementById('heroImg');
       if (img) img.src = t.src;
+      document.querySelectorAll('[data-thumb]').forEach(x => x.classList.toggle('active', x === t));
     }));
     // Click the poster to jump straight to video (video-only listings)
     if (hasVideo && !l.image_urls?.length) {
