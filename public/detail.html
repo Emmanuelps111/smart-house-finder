@@ -64,6 +64,32 @@
   .ms-btn:hover { border-color:#3B82F6; color:#3B82F6; }
   .ms-btn.active { background:#3B82F6; color:#fff; border-color:#3B82F6; box-shadow:0 6px 18px -6px rgba(59,130,246,.55); }
   #mediaStage video.hero-img { width:100%; max-height:520px; background:#000; }
+
+  /* ===== Modern renovation ===== */
+  .back-link { padding:.5rem 1rem; border-radius:999px; border:1px solid var(--border); background:color-mix(in oklab, var(--surface) 80%, transparent); backdrop-filter:blur(10px); font-size:.9rem; transition:all .2s; }
+  .back-link:hover { text-decoration:none; border-color:var(--primary); transform:translateX(-2px); }
+  .hero-img { border-radius:20px; box-shadow:0 12px 36px -14px rgba(15,23,42,.3); }
+  .thumb-row img { border-radius:12px; border:2px solid transparent; opacity:.75; }
+  .thumb-row img.active { border-color:var(--primary); opacity:1; box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent); }
+  .info-card { border-radius:20px; padding:1.75rem; box-shadow:0 4px 20px -4px rgba(15,23,42,.08); }
+  .detail-grid > aside > .info-card { position:sticky; top:calc(var(--header-h) + 1rem); border-radius:24px; }
+  @media (max-width:900px){ .detail-grid > aside > .info-card { position:static; } }
+  .meta-row { gap:.5rem; }
+  .meta-row > span { display:inline-flex; align-items:center; padding:.4rem .8rem; border-radius:999px; background:color-mix(in oklab, var(--primary) 8%, transparent); border:1px solid var(--border); color:var(--text); font-size:.85rem; font-weight:500; }
+  .feature-list { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .feature-list li { display:inline-flex; align-items:center; padding:.45rem .9rem; border-radius:999px; background:var(--bg); border:1px solid var(--border); color:var(--text); font-weight:500; }
+  #detailMap { border-radius:16px; border:1px solid var(--border); }
+  .map-open-link { display:inline-flex; align-items:center; gap:.4rem; margin-top:.75rem; padding:.45rem 1rem; border-radius:999px; border:1px solid var(--border); color:var(--primary); font-weight:600; font-size:.85rem; text-decoration:none; }
+  .map-open-link:hover { border-color:var(--primary); }
+  .media-switch { padding:.3rem; border-radius:999px; background:var(--surface); border:1px solid var(--border); display:inline-flex; }
+  .ms-btn { border:none; background:transparent; backdrop-filter:none; }
+  [data-theme="dark"] .ms-btn { background:transparent; }
+  .no-media { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.6rem; min-height:320px; background:radial-gradient(600px 300px at 30% 0%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 70%), var(--surface); color:var(--text-muted); border:1px dashed var(--border); }
+  .no-media i { font-size:3rem; color:var(--primary); }
+  [data-theme="dark"] .rm-row { background:var(--surface); }
+  [data-theme="dark"] .rm-habit, [data-theme="dark"] .rm-quote, [data-theme="dark"] .rm-own { background:var(--bg); color:var(--text); }
+  #reviewForm, #roommateAccordion { border-radius:16px !important; }
+  #reviewComment { border-radius:14px !important; background:var(--bg); color:var(--text); }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3661788889705570"
      crossorigin="anonymous"></script>
@@ -133,7 +159,7 @@
 
     const heroHtml = heroSrc
       ? `<div id="mediaStage" data-video-url="${escapeHtml(l.video_url||'')}"><img id="heroImg" class="hero-img" src="${escapeHtml(heroSrc)}" alt="${escapeHtml(l.title)}" /></div>`
-      : `<div id="mediaStage" class="hero-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#1E3A8A,#3B82F6); color:#fff; gap:.6rem; min-height:320px; border-radius:var(--radius);"><i class="fas fa-house" style="font-size:3rem;"></i><span style="font-weight:600;">No media uploaded</span></div>`;
+      : `<div id="mediaStage" class="hero-img no-media"><i class="fas fa-house"></i><span style="font-weight:600;">No media uploaded</span></div>`;
 
 
     root.innerHTML = `
@@ -149,6 +175,7 @@
             <h4 style="margin:1.25rem 0 .5rem;">Amenities</h4>
             ${amenitiesHtml}
             <div id="detailMap"></div>
+            <a href="/map.html" class="map-open-link"><i class="fas fa-map-location-dot"></i> Open in Map Explorer</a>
           </div>
 
           <div class="info-card" id="roommateSection" style="margin-top:1.5rem;">
