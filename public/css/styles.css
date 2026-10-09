@@ -483,3 +483,56 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 .notif-actions button { border-radius: 999px !important; }
 .empty { border-radius: 20px !important; }
 [data-theme="dark"] .panel, [data-theme="dark"] .stat { box-shadow: 0 4px 20px -4px rgba(0,0,0,.4); }
+
+/* ===== Renovation: Auth page ===== */
+.auth-wrap { background: radial-gradient(ellipse at 20% 0%, rgba(30,95,168,.10), transparent 60%); }
+.auth-card {
+  border-radius: 24px !important; padding: 2.25rem !important;
+  background: color-mix(in oklab, var(--surface) 88%, transparent) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 20px -4px rgba(15,23,42,.08), 0 24px 48px -24px rgba(15,23,42,.18) !important;
+}
+[data-theme="dark"] .auth-card { box-shadow: 0 24px 48px -20px rgba(0,0,0,.5) !important; }
+.auth-card .role-toggle button { transition: background .2s, color .2s, box-shadow .2s, transform .15s; }
+.auth-card .role-toggle button:active { transform: scale(.97); }
+.auth-card .role-toggle button.active { box-shadow: 0 6px 16px -8px rgba(30,95,168,.6); }
+.auth-card input, .auth-card select, .auth-card textarea {
+  border-radius: 999px; background: var(--bg); border: 1px solid var(--border);
+  transition: border-color .2s, box-shadow .2s;
+}
+.auth-card textarea { border-radius: 16px; }
+.auth-card input:focus, .auth-card select:focus, .auth-card textarea:focus {
+  outline: none; border-color: #1E5FA8; box-shadow: 0 0 0 4px rgba(30,95,168,.15);
+}
+.auth-ico-wrap { position: relative; }
+.auth-ico-wrap > .auth-ico { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #1E5FA8; font-size: .9rem; pointer-events: none; z-index: 1; }
+.auth-ico-wrap > input, .auth-ico-wrap > select { padding-left: 2.6rem !important; }
+#pendingBanner { border-radius: 16px !important; }
+[data-theme="dark"] #pendingBanner { color: #dbeafe !important; }
+.file-input-wrap { border-radius: 16px !important; }
+
+/* ===== Renovation: Header & menus ===== */
+.site-header {
+  background: color-mix(in oklab, var(--bg) 78%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+}
+.nav-links a { transition: color .2s; }
+.nav-links a:hover, .nav-links a.active { color: #1E5FA8; }
+.icon-btn { border-radius: 999px !important; transition: background .2s, color .2s, transform .15s, box-shadow .2s; }
+.icon-btn:hover { box-shadow: 0 6px 16px -8px rgba(30,95,168,.6); }
+.icon-btn:active { transform: scale(.94); }
+.user-dropdown {
+  border-radius: 20px !important; padding: .4rem; overflow: hidden;
+  background: color-mix(in oklab, var(--surface) 92%, transparent) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 20px -4px rgba(15,23,42,.1), 0 20px 40px -20px rgba(15,23,42,.25) !important;
+}
+.user-dropdown a, .user-dropdown button { border-radius: 12px; transition: background .15s; }
+.user-dropdown a:hover, .user-dropdown button:hover { background: color-mix(in oklab, #1E5FA8 10%, transparent); }
+.shf-modal-backdrop { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.shf-modal-card { border-radius: 20px !important; box-shadow: 0 30px 60px -20px rgba(15,23,42,.35) !important; }
+.shf-modal-card input, .shf-modal-card select, .shf-modal-card textarea { border-radius: 999px; }
+.shf-modal-card textarea { border-radius: 16px; }
+.shf-modal-card .btn { border-radius: 999px !important; }
+.shf-modal-x { border-radius: 999px; }
