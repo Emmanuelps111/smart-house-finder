@@ -1027,5 +1027,11 @@
 
   refresh();
 </script>
+<script>
+(function(){var m={'au-name':'fa-user','au-email':'fa-envelope','au-pass':'fa-lock','au-secq':'fa-shield-halved','au-secq-custom':'fa-circle-question','au-seca':'fa-key','rn-phone':'fa-phone','st-phone':'fa-phone','ll-phone':'fa-phone','ll-nid':'fa-id-card','ll-address':'fa-location-dot','ll-bank':'fa-building-columns'};
+Object.keys(m).forEach(function(id){var el=document.getElementById(id);if(!el||el.tagName==='TEXTAREA')return;var host=el.parentElement;
+if(!host.classList.contains('pw-wrap')){var w=document.createElement('div');w.className='auth-ico-wrap';el.parentNode.insertBefore(w,el);w.appendChild(el);host=w;}else{host.classList.add('auth-ico-wrap');}
+var i=document.createElement('i');i.className='fas '+m[id]+' auth-ico';host.insertBefore(i,host.firstChild);});})();
+</script>
 </body>
 </html>
