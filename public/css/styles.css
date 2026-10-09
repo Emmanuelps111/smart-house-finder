@@ -504,6 +504,22 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 .auth-card input:focus, .auth-card select:focus, .auth-card textarea:focus {
   outline: none; border-color: #1E5FA8; box-shadow: 0 0 0 4px rgba(30,95,168,.15);
 }
+/* Modern select: strip native chrome, custom chevron, theme-aware popup */
+.auth-card select {
+  -webkit-appearance: none; appearance: none; -moz-appearance: none;
+  padding-right: 2.8rem; cursor: pointer; font-weight: 500;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.1rem center;
+  background-size: 12px 8px;
+  color-scheme: light;
+}
+.auth-card select:hover { border-color: color-mix(in oklab, #1E5FA8 45%, var(--border)); }
+[data-theme="dark"] .auth-card select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+.auth-card select option { background: var(--surface); color: var(--text); }
 .auth-ico-wrap { position: relative; }
 .auth-ico-wrap > .auth-ico { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #1E5FA8; font-size: .9rem; pointer-events: none; z-index: 1; }
 .auth-ico-wrap > input, .auth-ico-wrap > select { padding-left: 2.6rem !important; }
