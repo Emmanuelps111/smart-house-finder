@@ -1033,5 +1033,49 @@ Object.keys(m).forEach(function(id){var el=document.getElementById(id);if(!el||e
 if(!host.classList.contains('pw-wrap')){var w=document.createElement('div');w.className='auth-ico-wrap';el.parentNode.insertBefore(w,el);w.appendChild(el);host=w;}else{host.classList.add('auth-ico-wrap');}
 var i=document.createElement('i');i.className='fas '+m[id]+' auth-ico';host.insertBefore(i,host.firstChild);});})();
 </script>
+<style>
+.cs-wrap{position:relative}
+.cs-wrap select{position:absolute!important;opacity:0;pointer-events:none;width:1px;height:1px}
+.cs-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:.5rem;text-align:left;padding:.75rem 1.1rem .75rem 2.6rem;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text);font:inherit;font-weight:500;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.cs-btn:hover{border-color:color-mix(in oklab,#1E5FA8 45%,var(--border))}
+.cs-wrap.open .cs-btn,.cs-btn:focus-visible{outline:none;border-color:#1E5FA8;box-shadow:0 0 0 4px rgba(30,95,168,.15)}
+.cs-btn .fa-chevron-down{color:#64748b;font-size:.8rem;transition:transform .25s}
+.cs-wrap.open .cs-btn .fa-chevron-down{transform:rotate(180deg)}
+.cs-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-list{position:absolute;left:0;right:0;top:calc(100% + .5rem);z-index:50;list-style:none;margin:0;padding:.4rem;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 18px 40px -12px rgba(15,23,42,.25);opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity .18s,transform .18s;max-height:280px;overflow:auto}
+.cs-wrap.open .cs-list{opacity:1;transform:none;pointer-events:auto}
+.cs-list li{padding:.65rem .9rem;border-radius:12px;cursor:pointer;color:var(--text);font-size:.92rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+.cs-list li:hover,.cs-list li.hl{background:color-mix(in oklab,#1E5FA8 10%,transparent)}
+.cs-list li.sel{color:#1E5FA8;font-weight:600}
+.cs-list li.sel::after{content:"\f00c";font-family:"Font Awesome 6 Free","Font Awesome 5 Free";font-weight:900}
+[data-theme="dark"] .cs-list li.sel{color:#60a5fa}
+</style>
+<script>
+(function(){
+  var sel=document.getElementById('au-secq'); if(!sel) return;
+  var wrap=document.createElement('div'); wrap.className='cs-wrap';
+  sel.parentNode.insertBefore(wrap,sel); wrap.appendChild(sel);
+  var btn=document.createElement('button'); btn.type='button'; btn.className='cs-btn'; btn.setAttribute('aria-haspopup','listbox');
+  btn.innerHTML='<span></span><i class="fas fa-chevron-down"></i>';
+  var list=document.createElement('ul'); list.className='cs-list'; list.setAttribute('role','listbox');
+  wrap.appendChild(btn); wrap.appendChild(list);
+  function render(){
+    btn.querySelector('span').textContent=sel.options[sel.selectedIndex].text;
+    list.innerHTML='';
+    Array.prototype.forEach.call(sel.options,function(o,i){
+      var li=document.createElement('li'); li.setAttribute('role','option'); li.textContent=o.text;
+      if(i===sel.selectedIndex) li.className='sel';
+      li.onclick=function(){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}));render();close();btn.focus();};
+      list.appendChild(li);
+    });
+  }
+  function close(){wrap.classList.remove('open');btn.setAttribute('aria-expanded','false');}
+  btn.onclick=function(){wrap.classList.toggle('open');btn.setAttribute('aria-expanded',wrap.classList.contains('open'));};
+  document.addEventListener('click',function(e){if(!wrap.contains(e.target))close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  sel.addEventListener('change',render);
+  render();
+})();
+</script>
 </body>
 </html>
