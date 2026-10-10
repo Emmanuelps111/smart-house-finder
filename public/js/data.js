@@ -286,7 +286,7 @@ window.SHF.capturePoster = function (videoUrl) {
       });
       v.addEventListener('seeked', grab, { once: false });
       v.addEventListener('error', () => done(new Error('video load error')), { once: true });
-      setTimeout(() => done(new Error('timeout')), 8000);
+      setTimeout(() => done(new Error('timeout')), 20000);
     } catch (e) { reject(e); }
   });
   return cache[videoUrl];
