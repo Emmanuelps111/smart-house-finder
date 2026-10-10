@@ -194,8 +194,10 @@ function AdminPage() {
     const { data } = await supabase.from("profiles").select("*").eq("id", p.landlord_id).maybeSingle();
     setSelectedLandlord((data as unknown as Profile) || null);
     if (p.video_url) {
-      const { data: signed } = await supabase.storage.from("property-videos").createSignedUrl(p.video_url, 60 * 60 * 6);
-      if (signed?.signedUrl) setSelectedVideoUrl(signed.signedUrl);
+      const videoUrl = /^https?:\/\//.test(p.video_url)
+        ? p.video_url
+        : supabase.storage.from("property-videos").getPublicUrl(p.video_url).data.publicUrl;
+      setSelectedVideoUrl(videoUrl);
     }
   };
 

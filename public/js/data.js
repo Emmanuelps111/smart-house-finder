@@ -160,6 +160,11 @@ window.SHF.fetchDbListings = async function () {
 
     const mapped = data.map(p => {
       const photos = Array.isArray(p.image_urls) ? p.image_urls.filter(Boolean) : [];
+      // Resolve bare storage paths (e.g. "uid/file.mp4") to full public URLs
+      let videoUrl = p.video_url || '';
+      if (videoUrl && !/^https?:\/\//i.test(videoUrl)) {
+        try { videoUrl = sb.storage.from('property-videos').getPublicUrl(videoUrl).data.publicUrl || videoUrl; } catch (e) {}
+      }
       return ({
       id: 'db-' + p.id,
       dbId: p.id,
@@ -179,8 +184,8 @@ window.SHF.fetchDbListings = async function () {
       amenities: Array.isArray(p.amenities) ? p.amenities : [],
       image_urls: photos,
       img: photos[0] || '',
-      video_url: p.video_url || '',
-      has_video: !!p.video_url,
+      video_url: videoUrl,
+      has_video: !!videoUrl,
       lat: p.lat != null ? Number(p.lat) : null,
       lng: p.lng != null ? Number(p.lng) : null,
       desc: p.description || '',
@@ -231,32 +236,57 @@ window.SHF.capturePoster = function (videoUrl) {
   if (!videoUrl) return Promise.reject(new Error('no url'));
   const cache = window.SHF.__posterCache;
   if (cache[videoUrl]) return cache[videoUrl];
-  cache[videoUrl] = new Promise((resolve, reject) => {
+  cache[videoUrl] = new Promise(async (resolve, reject) => {
     try {
+      // Fetch as a blob so the canvas stays untainted (cross-origin video
+      // elements refuse frame reads even with CORS headers present).
+      let src = videoUrl;
+      const objUrls = [];
+      if (!videoUrl.startsWith('blob:') && !videoUrl.startsWith('data:')) {
+        const resp = await fetch(videoUrl);
+        if (!resp.ok) throw new Error('video fetch ' + resp.status);
+        const objUrl = URL.createObjectURL(await resp.blob());
+        objUrls.push(objUrl);
+        src = objUrl;
+      }
       const v = document.createElement('video');
       v.preload = 'metadata';
-      v.crossOrigin = 'anonymous';
       v.muted = true;
       v.playsInline = true;
-      v.src = videoUrl;
+      v.src = src;
       const done = (err, url) => {
         v.remove();
+        objUrls.forEach(u => URL.revokeObjectURL(u));
         if (err) { delete cache[videoUrl]; reject(err); } else { resolve(url); }
       };
-      v.addEventListener('loadeddata', () => {
-        try { v.currentTime = 0.05; } catch(e){}
-      });
-      v.addEventListener('seeked', () => {
+      let attempts = 0;
+      const grab = () => {
+        const c = document.createElement('canvas');
+        c.width = v.videoWidth || 640;
+        c.height = v.videoHeight || 480;
         try {
-          const c = document.createElement('canvas');
-          c.width = v.videoWidth || 640;
-          c.height = v.videoHeight || 480;
-          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          const ctx = c.getContext('2d');
+          ctx.drawImage(v, 0, 0, c.width, c.height);
+          // Detect a fully-black frame (video intro / fade-in) and retry deeper
+          if (attempts < 3) {
+            const px = ctx.getImageData(0, 0, Math.min(c.width, 64), Math.min(c.height, 64)).data;
+            let lum = 0;
+            for (let i = 0; i < px.length; i += 4) lum += 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+            if (lum / (px.length / 4) < 12) {
+              attempts++;
+              v.currentTime = (v.duration || 4) * (attempts === 1 ? 0.3 : attempts === 2 ? 0.55 : 0.8);
+              return;
+            }
+          }
           done(null, c.toDataURL('image/jpeg', 0.82));
         } catch (e) { done(e); }
-      }, { once: true });
+      };
+      v.addEventListener('loadedmetadata', () => {
+        try { v.currentTime = Math.min(1, (v.duration || 2) * 0.25); } catch(e){}
+      });
+      v.addEventListener('seeked', grab, { once: false });
       v.addEventListener('error', () => done(new Error('video load error')), { once: true });
-      setTimeout(() => done(new Error('timeout')), 8000);
+      setTimeout(() => done(new Error('timeout')), 20000);
     } catch (e) { reject(e); }
   });
   return cache[videoUrl];
