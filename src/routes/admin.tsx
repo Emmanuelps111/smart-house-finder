@@ -288,9 +288,9 @@ function AdminPage() {
 
 
 
-  if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-white"><p className="text-blue-600">Loading…</p></div>;
+  if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground">Loading…</p></div>;
   if (authState === "unauthenticated") return (
-    <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-br from-blue-50 to-white">
+    <div className="flex min-h-screen items-center justify-center px-4 bg-background">
       <Card className="max-w-md border-blue-200"><CardHeader><CardTitle>Sign in required</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground mb-4">You need to sign in to access the admin dashboard.</p>
           <Button asChild className="bg-blue-600 hover:bg-blue-700"><a href="/login.html">Go to login</a></Button>
@@ -299,7 +299,7 @@ function AdminPage() {
     </div>
   );
   if (authState === "forbidden") return (
-    <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-br from-blue-50 to-white">
+    <div className="flex min-h-screen items-center justify-center px-4 bg-background">
       <Card className="max-w-md border-blue-200"><CardHeader><CardTitle>Access denied</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground">Your account does not have admin privileges.</p></CardContent>
       </Card>
