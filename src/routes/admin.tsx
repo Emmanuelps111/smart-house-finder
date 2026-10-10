@@ -316,23 +316,24 @@ function AdminPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50">
-      <header className="border-b border-blue-200 bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-lg">
-        <div className="mx-auto max-w-6xl px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2"><span>🛡️</span> Admin Dashboard</h1>
-            <p className="text-sm text-blue-50/90">Moderate listings and manage users.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button asChild variant="secondary" className="bg-white text-blue-700 hover:bg-blue-50">
-              <a href="/home.html">← Back to Home</a>
-            </Button>
-            <Button asChild variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border border-white/30">
-              <a href="/listings.html">View Listings</a>
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background text-foreground" style={{ backgroundImage: "var(--admin-glow)", backgroundRepeat: "no-repeat" }}>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/75 backdrop-blur-xl backdrop-saturate-150">
+        <div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between gap-3">
+          <a href="/home.html" className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition active:scale-95">
+            ← Home
+          </a>
+          <a href="/listings.html" className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium shadow-sm hover:-translate-y-0.5 hover:shadow-md transition active:scale-95">
+            View Listings →
+          </a>
         </div>
       </header>
+      <section className="mx-auto max-w-6xl px-6 pt-10 pb-2">
+        <span className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">
+          <span className="h-1.5 w-1.5 rounded-full bg-brand" /> Admin Console
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="mt-1.5 text-muted-foreground">Moderate listings, verify users and keep MakaziLink running smoothly.</p>
+      </section>
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Tabs defaultValue="overview">
           <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1 h-auto w-full bg-blue-100/60 border border-blue-200 p-1">
