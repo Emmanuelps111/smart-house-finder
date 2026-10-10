@@ -552,3 +552,36 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 .shf-modal-card textarea { border-radius: 16px; }
 .shf-modal-card .btn { border-radius: 999px !important; }
 .shf-modal-x { border-radius: 999px; }
+
+/* ===== Renovation: Global micro-interactions ===== */
+.btn, .icon-btn, .hero-chips a, .amenity-chips label, .notif-actions button,
+.my-listing button, .page-head-badge, .social a {
+  transition: background .2s, color .2s, border-color .2s, box-shadow .2s, transform .15s;
+}
+.btn:active, .icon-btn:active, .hero-chips a:active, .amenity-chips label:active,
+.notif-actions button:active, .my-listing button:active, .social a:active {
+  transform: scale(.97);
+}
+.card, .panel, .stat, .my-listing, .notif-card, .map-listing {
+  transition: box-shadow .25s, transform .2s, border-color .2s;
+}
+.card:active { transform: scale(.995); }
+
+/* Silky focus rings on all interactive inputs, site-wide */
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #1E5FA8;
+  box-shadow: 0 0 0 3px rgba(30,95,168,.15);
+}
+button:focus-visible, a:focus-visible, .btn:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid rgba(30,95,168,.55);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.btn:focus-visible { outline-offset: 3px; }
+
+/* Smoother presses on mobile */
+@media (hover: none) {
+  .btn:active { transform: scale(.96); }
+}
