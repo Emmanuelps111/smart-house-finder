@@ -160,6 +160,11 @@ window.SHF.fetchDbListings = async function () {
 
     const mapped = data.map(p => {
       const photos = Array.isArray(p.image_urls) ? p.image_urls.filter(Boolean) : [];
+      // Resolve bare storage paths (e.g. "uid/file.mp4") to full public URLs
+      let videoUrl = p.video_url || '';
+      if (videoUrl && !/^https?:\/\//i.test(videoUrl)) {
+        try { videoUrl = sb.storage.from('property-videos').getPublicUrl(videoUrl).data.publicUrl || videoUrl; } catch (e) {}
+      }
       return ({
       id: 'db-' + p.id,
       dbId: p.id,
