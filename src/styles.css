@@ -33,6 +33,8 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -62,6 +64,9 @@
 }
 
 :root {
+  --brand: oklch(0.48 0.13 255);
+  --brand-foreground: oklch(1 0 0);
+  --admin-glow: radial-gradient(60% 50% at 15% 0%, color-mix(in oklab, var(--brand) 12%, transparent), transparent 70%), radial-gradient(40% 40% at 90% 10%, color-mix(in oklab, var(--brand) 8%, transparent), transparent 70%);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
@@ -98,6 +103,8 @@
 }
 
 .dark {
+  --brand: oklch(0.68 0.13 255);
+  --brand-foreground: oklch(0.15 0.04 265);
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
