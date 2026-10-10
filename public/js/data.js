@@ -236,16 +236,27 @@ window.SHF.capturePoster = function (videoUrl) {
   if (!videoUrl) return Promise.reject(new Error('no url'));
   const cache = window.SHF.__posterCache;
   if (cache[videoUrl]) return cache[videoUrl];
-  cache[videoUrl] = new Promise((resolve, reject) => {
+  cache[videoUrl] = new Promise(async (resolve, reject) => {
     try {
+      // Fetch as a blob so the canvas stays untainted (cross-origin video
+      // elements refuse frame reads even with CORS headers present).
+      let src = videoUrl;
+      const objUrls = [];
+      if (!videoUrl.startsWith('blob:') && !videoUrl.startsWith('data:')) {
+        const resp = await fetch(videoUrl);
+        if (!resp.ok) throw new Error('video fetch ' + resp.status);
+        const objUrl = URL.createObjectURL(await resp.blob());
+        objUrls.push(objUrl);
+        src = objUrl;
+      }
       const v = document.createElement('video');
       v.preload = 'metadata';
-      v.crossOrigin = 'anonymous';
       v.muted = true;
       v.playsInline = true;
-      v.src = videoUrl;
+      v.src = src;
       const done = (err, url) => {
         v.remove();
+        objUrls.forEach(u => URL.revokeObjectURL(u));
         if (err) { delete cache[videoUrl]; reject(err); } else { resolve(url); }
       };
       let attempts = 0;
