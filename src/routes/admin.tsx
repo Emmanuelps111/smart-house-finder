@@ -450,9 +450,9 @@ function AdminPage() {
                             <TableCell>
                               <Badge className={
                                 roleLabel === "admin" ? "bg-purple-600 hover:bg-purple-700" :
-                                isCombo ? "bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-700 hover:to-emerald-600 text-white" :
+                                isCombo ? "rounded-full bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/15" :
                                 roleLabel === "landlord" ? "bg-emerald-600 hover:bg-emerald-700" :
-                                "bg-blue-600 hover:bg-blue-700"
+                                "rounded-full bg-brand/10 text-brand hover:bg-brand/10"
                               }>{roleLabel}</Badge>
                             </TableCell>
                             <TableCell className="text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
@@ -560,8 +560,8 @@ function AdminPage() {
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <strong className="text-foreground">{d.name || prof?.full_name || '—'}</strong>
                                         <Badge className={r.status === 'matched'
-                                          ? 'bg-blue-600 text-white hover:bg-blue-600 font-medium tracking-tight'
-                                          : 'bg-muted text-blue-800 hover:bg-muted font-medium tracking-tight'}>{r.status}</Badge>
+                                          ? 'rounded-full bg-brand text-white hover:bg-brand font-medium tracking-tight'
+                                          : 'rounded-full bg-muted text-foreground hover:bg-muted font-medium tracking-tight'}>{r.status}</Badge>
                                         {d.cleanliness && <Badge variant="outline" className="text-xs">🧹 {d.cleanliness}</Badge>}
                                         {d.sleep && <Badge variant="outline" className="text-xs">😴 {d.sleep}</Badge>}
                                       </div>
@@ -695,7 +695,7 @@ function AdminPage() {
                     <h4 className="font-semibold text-foreground mb-3">Approved ({testimonials.filter(t => t.is_approved).length})</h4>
                     <div className="space-y-2">
                       {testimonials.filter(t => t.is_approved).map(t => (
-                        <div key={t.id} className="p-3 border border-slate-200 rounded-lg bg-white flex items-start justify-between gap-3">
+                        <div key={t.id} className="p-3 border border-border rounded-2xl bg-card flex items-start justify-between gap-3">
                           <div className="flex-1 text-sm">
                             <span className="font-medium">{t.user_name}</span> <span className="text-muted-foreground text-xs">— {t.user_location}</span>
                             <div className="text-muted-foreground italic mt-1">"{t.quote}"</div>
@@ -876,7 +876,7 @@ function PropertyTable({ items, onOpen, showActions, onModerate }: {
               <TableCell className="font-medium">{p.title}</TableCell>
               <TableCell className="text-muted-foreground">{p.city ?? p.address}</TableCell>
               <TableCell>TSh {Number(p.price).toLocaleString()}</TableCell>
-              <TableCell><Badge variant={p.status === "approved" ? "default" : p.status === "rejected" ? "destructive" : "secondary"} className={p.status === "approved" ? "bg-blue-600 hover:bg-blue-700" : ""}>{p.status}</Badge></TableCell>
+              <TableCell><Badge variant={p.status === "approved" ? "default" : p.status === "rejected" ? "destructive" : "secondary"} className={p.status === "approved" ? "rounded-full bg-brand/10 text-brand hover:bg-brand/10" : ""}>{p.status}</Badge></TableCell>
               <TableCell><Badge variant={p.occupancy === "occupied" ? "destructive" : "secondary"}>{p.occupancy}</Badge></TableCell>
               <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
                 <Button size="sm" variant="outline" className="rounded-full active:scale-95" onClick={() => onOpen(p)}>View</Button>
