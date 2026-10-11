@@ -291,16 +291,16 @@ function AdminPage() {
   if (authState === "loading") return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground">Loading…</p></div>;
   if (authState === "unauthenticated") return (
     <div className="flex min-h-screen items-center justify-center px-4 bg-background">
-      <Card className="max-w-md border-blue-200"><CardHeader><CardTitle>Sign in required</CardTitle></CardHeader>
+      <Card className="max-w-md rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)]"><CardHeader><CardTitle>Sign in required</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground mb-4">You need to sign in to access the admin dashboard.</p>
-          <Button asChild className="bg-blue-600 hover:bg-blue-700"><a href="/login.html">Go to login</a></Button>
+          <Button asChild className="rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95"><a href="/login.html">Go to login</a></Button>
         </CardContent>
       </Card>
     </div>
   );
   if (authState === "forbidden") return (
     <div className="flex min-h-screen items-center justify-center px-4 bg-background">
-      <Card className="max-w-md border-blue-200"><CardHeader><CardTitle>Access denied</CardTitle></CardHeader>
+      <Card className="max-w-md rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)]"><CardHeader><CardTitle>Access denied</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground">Your account does not have admin privileges.</p></CardContent>
       </Card>
     </div>
@@ -336,27 +336,27 @@ function AdminPage() {
       </section>
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Tabs defaultValue="overview">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1 h-auto w-full bg-blue-100/60 border border-blue-200 p-1">
-            <TabsTrigger value="overview" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
-            <TabsTrigger value="moderation" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingCount}</Badge>}</TabsTrigger>
-            <TabsTrigger value="all" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">All properties</TabsTrigger>
-            <TabsTrigger value="verifications" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Verifications{pendingVerifications.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingVerifications.length}</Badge>}
+          <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-full border border-border bg-muted/60 p-1 backdrop-blur [scrollbar-width:none]">
+            <TabsTrigger value="overview" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Overview</TabsTrigger>
+            <TabsTrigger value="moderation" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Moderation{pendingCount > 0 && <Badge variant="secondary" className="ml-2 h-5 min-w-5 justify-center rounded-full bg-amber-500/15 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">{pendingCount}</Badge>}</TabsTrigger>
+            <TabsTrigger value="all" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">All properties</TabsTrigger>
+            <TabsTrigger value="verifications" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+              Verifications{pendingVerifications.length > 0 && <Badge variant="secondary" className="ml-2 h-5 min-w-5 justify-center rounded-full bg-amber-500/15 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">{pendingVerifications.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="users" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
-            <TabsTrigger value="messages" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Messages{messages.filter(m => m.status === 'new').length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{messages.filter(m => m.status === 'new').length}</Badge>}
+            <TabsTrigger value="users" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Users</TabsTrigger>
+            <TabsTrigger value="messages" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+              Messages{messages.filter(m => m.status === 'new').length > 0 && <Badge variant="secondary" className="ml-2 h-5 min-w-5 justify-center rounded-full bg-amber-500/15 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">{messages.filter(m => m.status === 'new').length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="roommates" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Roommates{roommates.filter(r => r.status === 'searching').length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{roommates.filter(r => r.status === 'searching').length}</Badge>}
+            <TabsTrigger value="roommates" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+              Roommates{roommates.filter(r => r.status === 'searching').length > 0 && <Badge variant="secondary" className="ml-2 h-5 min-w-5 justify-center rounded-full bg-amber-500/15 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">{roommates.filter(r => r.status === 'searching').length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="agencies" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Agencies{pendingAgencies.length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{pendingAgencies.length}</Badge>}
+            <TabsTrigger value="agencies" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+              Agencies{pendingAgencies.length > 0 && <Badge variant="secondary" className="ml-2 h-5 min-w-5 justify-center rounded-full bg-amber-500/15 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">{pendingAgencies.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="testimonials" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Testimonials{testimonials.filter(t => !t.is_approved).length > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500 text-white">{testimonials.filter(t => !t.is_approved).length}</Badge>}
+            <TabsTrigger value="testimonials" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+              Testimonials{testimonials.filter(t => !t.is_approved).length > 0 && <Badge variant="secondary" className="ml-2 h-5 min-w-5 justify-center rounded-full bg-amber-500/15 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">{testimonials.filter(t => !t.is_approved).length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="announce" className="w-full justify-center data-[state=active]:bg-blue-600 data-[state=active]:text-white">📣 Announce</TabsTrigger>
+            <TabsTrigger value="announce" className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition active:scale-95 hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">📣 Announce</TabsTrigger>
           </TabsList>
 
 
@@ -365,12 +365,12 @@ function AdminPage() {
           <TabsContent value="overview" className="mt-6">
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard label="Total properties" value={allProperties.length} />
-              <StatCard label="Pending" value={pendingCount} />
-              <StatCard label="Approved" value={approvedCount} />
-              <StatCard label="Rejected" value={rejectedCount} />
-              <StatCard label="Users" value={profiles.length} />
-              <StatCard label="Bookings" value={bookingsCount} />
+              <StatCard label="Total properties" value={allProperties.length} icon="🏠" />
+              <StatCard label="Pending" value={pendingCount} icon="⏳" tone="amber" />
+              <StatCard label="Approved" value={approvedCount} icon="✓" tone="emerald" />
+              <StatCard label="Rejected" value={rejectedCount} icon="✕" tone="red" />
+              <StatCard label="Users" value={profiles.length} icon="👥" />
+              <StatCard label="Bookings" value={bookingsCount} icon="📅" />
             </div>
           </TabsContent>
 
@@ -383,8 +383,8 @@ function AdminPage() {
           </TabsContent>
 
           <TabsContent value="verifications" className="mt-6">
-            <Card className="border-blue-200">
-              <CardHeader><CardTitle className="text-blue-900">Pending identity verifications</CardTitle></CardHeader>
+            <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden">
+              <CardHeader><CardTitle className="text-foreground">Pending identity verifications</CardTitle></CardHeader>
               <CardContent>
                 {pendingVerifications.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No pending verifications.</p>
@@ -394,24 +394,24 @@ function AdminPage() {
                       const roles = displayRoles(rolesByUser[u.id], u.role);
                       const ocr = u.ocr_data as { confidence?: number; detected_name?: string; detected_nid?: string; reasoning?: string } | null;
                       return (
-                        <div key={u.id} className="flex items-start gap-4 p-3 border border-blue-100 rounded-lg bg-blue-50/30">
-                          {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-blue-200" /> : <div className="w-16 h-16 rounded-full bg-blue-100" />}
+                        <div key={u.id} className="flex items-start gap-4 p-3 border border-border rounded-2xl bg-muted/30">
+                          {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-border" /> : <div className="w-16 h-16 rounded-full bg-muted" />}
                           <div className="flex-1 text-sm">
-                            <div className="font-semibold text-blue-900">{u.full_name ?? "—"} <Badge className="ml-2 bg-amber-500 hover:bg-amber-600">{roles}</Badge></div>
+                            <div className="font-semibold text-foreground">{u.full_name ?? "—"} <Badge className="ml-2 bg-amber-500 hover:bg-amber-600">{roles}</Badge></div>
                             <div className="text-xs text-muted-foreground mt-1">
                               {u.phone && <>📞 {u.phone} · </>}{u.national_id && <>NID: <span className="font-mono">{u.national_id}</span></>}
                             </div>
                             {u.university && <div className="text-xs mt-1">🎓 {u.university} · Reg #: {u.student_reg_no}</div>}
                             {ocr && (
-                              <div className="text-xs mt-1 text-slate-700">
+                              <div className="text-xs mt-1 text-muted-foreground">
                                 OCR ({u.ocr_attempts ?? 0} attempts) confidence: <strong>{ocr.confidence ?? "?"}%</strong>. Detected: {ocr.detected_name ?? "?"} / {ocr.detected_nid ?? "?"}
                               </div>
                             )}
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={() => setSelectedUser(u)}>Review</Button>
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setVerification(u.id, "approved")}>Approve</Button>
-                            <Button size="sm" variant="destructive" onClick={() => {
+                            <Button size="sm" variant="outline" className="rounded-full active:scale-95" onClick={() => setSelectedUser(u)}>Review</Button>
+                            <Button size="sm" className="rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95" onClick={() => setVerification(u.id, "approved")}>Approve</Button>
+                            <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={() => {
                               const reason = window.prompt("Reason for rejection (optional):") ?? "";
                               setVerification(u.id, "rejected", reason);
                             }}>Reject</Button>
@@ -427,21 +427,21 @@ function AdminPage() {
 
 
           <TabsContent value="users" className="mt-6">
-            <Card className="border-blue-200"><CardHeader><CardTitle className="text-blue-900">All users</CardTitle></CardHeader>
+            <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden"><CardHeader><CardTitle className="text-foreground">All users</CardTitle></CardHeader>
               <CardContent>
                 {profiles.length === 0 ? <p className="text-sm text-muted-foreground">No users yet.</p> : (
                   <Table>
-                    <TableHeader><TableRow className="bg-blue-50"><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>National ID</TableHead><TableHead>Role</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow className="bg-muted/50 hover:bg-muted/50"><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>National ID</TableHead><TableHead>Role</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {profiles.map((u) => {
                         const roles = rolesByUser[u.id];
                         const roleLabel = displayRoles(roles, u.role);
                         const isCombo = roleLabel.includes("/");
                         return (
-                          <TableRow key={u.id} className="hover:bg-blue-50/50">
+                          <TableRow key={u.id} className="hover:bg-muted/40 transition-colors">
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-2">
-                                {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-blue-200" /> : <div className="w-8 h-8 rounded-full bg-blue-100" />}
+                                {u.selfie_url ? <img src={u.selfie_url} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" /> : <div className="w-8 h-8 rounded-full bg-muted" />}
                                 {u.full_name ?? "—"}
                               </div>
                             </TableCell>
@@ -450,14 +450,14 @@ function AdminPage() {
                             <TableCell>
                               <Badge className={
                                 roleLabel === "admin" ? "bg-purple-600 hover:bg-purple-700" :
-                                isCombo ? "bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-700 hover:to-emerald-600 text-white" :
+                                isCombo ? "rounded-full bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/15" :
                                 roleLabel === "landlord" ? "bg-emerald-600 hover:bg-emerald-700" :
-                                "bg-blue-600 hover:bg-blue-700"
+                                "rounded-full bg-brand/10 text-brand hover:bg-brand/10"
                               }>{roleLabel}</Badge>
                             </TableCell>
                             <TableCell className="text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
                             <TableCell className="text-right">
-                              <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={() => setSelectedUser(u)}>
+                              <Button size="sm" variant="outline" className="rounded-full active:scale-95" onClick={() => setSelectedUser(u)}>
                                 View more
                               </Button>
                             </TableCell>
@@ -471,33 +471,33 @@ function AdminPage() {
             </Card>
           </TabsContent>
           <TabsContent value="messages" className="mt-6">
-            <Card className="border-blue-200">
-              <CardHeader><CardTitle className="text-blue-900">Contact form messages</CardTitle></CardHeader>
+            <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden">
+              <CardHeader><CardTitle className="text-foreground">Contact form messages</CardTitle></CardHeader>
               <CardContent>
                 {messages.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No messages yet.</p>
                 ) : (
                   <div className="space-y-3">
                     {messages.map((m) => (
-                      <div key={m.id} className={`p-4 border rounded-lg ${m.status === 'new' ? 'border-blue-300 bg-blue-50/40' : 'border-slate-200 bg-white'}`}>
+                      <div key={m.id} className={`p-4 border rounded-2xl transition ${m.status === 'new' ? 'border-brand/30 border-l-4 border-l-brand bg-brand/5' : 'border-border bg-card'}`}>
                         <div className="flex items-start justify-between gap-3 flex-wrap">
                           <div className="text-sm">
-                            <div className="font-semibold text-blue-900">{m.name} {m.status === 'new' && <Badge className="ml-2 bg-amber-500">new</Badge>}</div>
+                            <div className="font-semibold text-foreground">{m.name} {m.status === 'new' && <Badge className="ml-2 bg-amber-500">new</Badge>}</div>
                             <div className="text-xs text-muted-foreground mt-0.5">
-                              From: <a href={`mailto:${m.email}`} className="text-blue-700 underline">{m.email}</a>
-                              {' · '}Reply to: <a href={`mailto:${m.callback_email}`} className="text-blue-700 underline font-medium">{m.callback_email}</a>
+                              From: <a href={`mailto:${m.email}`} className="text-brand underline">{m.email}</a>
+                              {' · '}Reply to: <a href={`mailto:${m.callback_email}`} className="text-brand underline font-medium">{m.callback_email}</a>
                             </div>
                             <div className="text-xs text-muted-foreground mt-0.5">{new Date(m.created_at).toLocaleString()}</div>
                           </div>
                           <div className="flex gap-2">
                             {m.status === 'new' && (
-                              <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={async () => {
+                              <Button size="sm" variant="outline" className="rounded-full active:scale-95" onClick={async () => {
                                 const { error } = await supabase.from('contact_messages').update({ status: 'read' }).eq('id', m.id);
                                 if (error) { toast.error(error.message); return; }
                                 setMessages((arr) => arr.map((x) => x.id === m.id ? { ...x, status: 'read' } : x));
                               }}>Mark read</Button>
                             )}
-                            <Button size="sm" variant="destructive" onClick={async () => {
+                            <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={async () => {
                               if (!window.confirm('Delete this message?')) return;
                               const { error } = await supabase.from('contact_messages').delete().eq('id', m.id);
                               if (error) { toast.error(error.message); return; }
@@ -505,7 +505,7 @@ function AdminPage() {
                             }}>Delete</Button>
                           </div>
                         </div>
-                        <p className="text-sm mt-3 whitespace-pre-wrap text-slate-800">{m.message}</p>
+                        <p className="text-sm mt-3 whitespace-pre-wrap text-foreground">{m.message}</p>
                       </div>
                     ))}
                   </div>
@@ -515,10 +515,10 @@ function AdminPage() {
           </TabsContent>
 
           <TabsContent value="roommates" className="mt-6">
-            <Card className="border-blue-200">
+            <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden">
               <CardHeader>
                 <div className="flex items-center justify-between flex-wrap gap-3">
-                  <CardTitle className="text-blue-900">Roommate requests</CardTitle>
+                  <CardTitle className="text-foreground">Roommate requests</CardTitle>
                 </div>
               </CardHeader>
 
@@ -541,12 +541,12 @@ function AdminPage() {
                         const searching = items.filter(i => i.status === 'searching');
                         const matched = items.filter(i => i.status === 'matched');
                         return (
-                          <div key={key} className="border border-blue-200 rounded-lg overflow-hidden">
-                            <div className="bg-gradient-to-r from-blue-600 to-sky-500 text-white px-4 py-2 flex items-center justify-between flex-wrap gap-2">
+                          <div key={key} className="border border-border rounded-2xl overflow-hidden bg-card">
+                            <div className="bg-muted/50 border-b border-border px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
                               <div className="font-semibold">🏠 {title}</div>
-                              <div className="text-xs opacity-90">{searching.length} searching · {matched.length} matched</div>
+                              <div className="text-xs rounded-full bg-card border border-border px-2.5 py-0.5 text-muted-foreground">{searching.length} searching · {matched.length} matched</div>
                             </div>
-                            <div className="divide-y divide-blue-100">
+                            <div className="divide-y divide-border">
                               {items.map(r => {
                                 const prof = profiles.find(p => p.id === r.student_id);
                                 const d = r.details || {};
@@ -554,20 +554,20 @@ function AdminPage() {
                                 return (
                                   <div key={r.id} className={`p-3 flex items-start gap-3 transition-all duration-300 ${removing ? 'opacity-0 translate-x-8' : 'opacity-100'}`}>
                                     {prof?.selfie_url
-                                      ? <img src={prof.selfie_url} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-blue-200" />
-                                      : <div className="w-12 h-12 rounded-full bg-blue-100 grid place-items-center text-blue-400">👤</div>}
+                                      ? <img src={prof.selfie_url} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-border" />
+                                      : <div className="w-12 h-12 rounded-full bg-muted grid place-items-center text-muted-foreground">👤</div>}
                                     <div className="flex-1 text-sm min-w-0">
                                       <div className="flex items-center gap-2 flex-wrap">
-                                        <strong className="text-blue-900">{d.name || prof?.full_name || '—'}</strong>
+                                        <strong className="text-foreground">{d.name || prof?.full_name || '—'}</strong>
                                         <Badge className={r.status === 'matched'
-                                          ? 'bg-blue-600 text-white hover:bg-blue-600 font-medium tracking-tight'
-                                          : 'bg-blue-100 text-blue-800 hover:bg-blue-100 font-medium tracking-tight'}>{r.status}</Badge>
+                                          ? 'rounded-full bg-brand text-white hover:bg-brand font-medium tracking-tight'
+                                          : 'rounded-full bg-muted text-foreground hover:bg-muted font-medium tracking-tight'}>{r.status}</Badge>
                                         {d.cleanliness && <Badge variant="outline" className="text-xs">🧹 {d.cleanliness}</Badge>}
                                         {d.sleep && <Badge variant="outline" className="text-xs">😴 {d.sleep}</Badge>}
                                       </div>
                                       <div className="text-xs text-muted-foreground mt-0.5">📞 {d.phone || prof?.phone || '—'} · {new Date(r.created_at).toLocaleString()}</div>
-                                      {d.bio && <div className="text-xs mt-1 italic text-slate-700">"{d.bio}"</div>}
-                                      {d.notes && <div className="text-xs mt-1 text-slate-800"><strong>Notes:</strong> {d.notes}</div>}
+                                      {d.bio && <div className="text-xs mt-1 italic text-muted-foreground">"{d.bio}"</div>}
+                                      {d.notes && <div className="text-xs mt-1 text-foreground"><strong>Notes:</strong> {d.notes}</div>}
                                     </div>
                                     <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 rounded-full"
                                       onClick={() => setRoommateToDelete(r)}>Delete</Button>
@@ -585,11 +585,11 @@ function AdminPage() {
             </Card>
 
             <Dialog open={!!roommateToDelete} onOpenChange={(o) => { if (!o) setRoommateToDelete(null); }}>
-              <DialogContent className="sm:max-w-md bg-white/85 backdrop-blur-xl border border-blue-100 rounded-2xl">
+              <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border border-border rounded-3xl">
                 <DialogHeader>
-                  <DialogTitle className="text-blue-900">🗑️ Delete roommate request?</DialogTitle>
+                  <DialogTitle className="text-foreground">🗑️ Delete roommate request?</DialogTitle>
                 </DialogHeader>
-                <p className="text-sm text-slate-700">
+                <p className="text-sm text-muted-foreground">
                   This permanently removes <strong>{roommateToDelete?.details?.name || "this student"}</strong>&apos;s roommate
                   request from the moderation queue and the public marketplace. This cannot be undone.
                 </p>
@@ -603,30 +603,30 @@ function AdminPage() {
 
 
           <TabsContent value="announce" className="mt-6">
-            <Card className="border-blue-200 max-w-2xl">
+            <Card className="max-w-2xl rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)]">
               <CardHeader>
-                <CardTitle className="text-blue-900 flex items-center gap-2">📣 Send an announcement to all users</CardTitle>
+                <CardTitle className="text-foreground flex items-center gap-2">📣 Send an announcement to all users</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold uppercase text-blue-700/70">Title</label>
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Title</label>
                   <input value={announceTitle} onChange={e => setAnnounceTitle(e.target.value)} maxLength={120}
-                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full mt-1 px-3 py-2 border border-border bg-background rounded-xl transition focus:outline-none focus:border-brand focus:ring-4 focus:ring-brand/15"
                     placeholder="e.g. New listings added this week" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold uppercase text-blue-700/70">Message</label>
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Message</label>
                   <textarea value={announceBody} onChange={e => setAnnounceBody(e.target.value)} rows={4} maxLength={600}
-                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 font-sans"
+                    className="w-full mt-1 px-3 py-2 border border-border bg-background rounded-xl transition focus:outline-none focus:border-brand focus:ring-4 focus:ring-brand/15 font-sans"
                     placeholder="Share important updates, maintenance windows, new features…" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold uppercase text-blue-700/70">Link (optional)</label>
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Link (optional)</label>
                   <input value={announceLink} onChange={e => setAnnounceLink(e.target.value)} maxLength={200}
-                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full mt-1 px-3 py-2 border border-border bg-background rounded-xl transition focus:outline-none focus:border-brand focus:ring-4 focus:ring-brand/15"
                     placeholder="/listings.html or /home.html#features" />
                 </div>
-                <Button onClick={sendAnnouncement} disabled={sendingAnnounce} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={sendAnnouncement} disabled={sendingAnnounce} className="rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95">
                   {sendingAnnounce ? "Sending…" : `📣 Send to ${profiles.length} users`}
                 </Button>
                 <p className="text-xs text-muted-foreground">Each user will get a notification in their bell + notifications page.</p>
@@ -635,26 +635,26 @@ function AdminPage() {
           </TabsContent>
 
           <TabsContent value="agencies" className="mt-6">
-            <Card className="border-blue-200">
-              <CardHeader><CardTitle className="text-blue-900">Agency Verification Requests</CardTitle></CardHeader>
+            <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden">
+              <CardHeader><CardTitle className="text-foreground">Agency Verification Requests</CardTitle></CardHeader>
               <CardContent>
                 {pendingAgencies.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No pending agency requests.</p>
                 ) : (
                   <Table>
-                    <TableHeader><TableRow className="bg-blue-50">
+                    <TableHeader><TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Email</TableHead><TableHead>Requested</TableHead><TableHead className="text-right">Actions</TableHead>
                     </TableRow></TableHeader>
                     <TableBody>
                       {pendingAgencies.map((a) => (
-                        <TableRow key={a.id} className="hover:bg-blue-50/50">
+                        <TableRow key={a.id} className="hover:bg-muted/40 transition-colors">
                           <TableCell className="font-medium">{a.full_name ?? "—"}</TableCell>
                           <TableCell className="text-muted-foreground">{a.phone ?? "—"}</TableCell>
                           <TableCell className="text-muted-foreground">{a.email ?? "—"}</TableCell>
                           <TableCell className="text-muted-foreground text-xs">{new Date(a.created_at).toLocaleDateString()}</TableCell>
                           <TableCell className="text-right space-x-2">
                             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => approveAgency(a.id)}>Approve Agency</Button>
-                            <Button size="sm" variant="destructive" onClick={() => declineAgency(a.id)}>Decline</Button>
+                            <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={() => declineAgency(a.id)}>Decline</Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -666,24 +666,24 @@ function AdminPage() {
           </TabsContent>
 
           <TabsContent value="testimonials" className="mt-6">
-            <Card className="border-blue-200">
-              <CardHeader><CardTitle className="text-blue-900">Pending Testimonials</CardTitle></CardHeader>
+            <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden">
+              <CardHeader><CardTitle className="text-foreground">Pending Testimonials</CardTitle></CardHeader>
               <CardContent>
                 {testimonials.filter(t => !t.is_approved).length === 0 ? (
                   <p className="text-sm text-muted-foreground">No pending testimonials.</p>
                 ) : (
                   <div className="space-y-3">
                     {testimonials.filter(t => !t.is_approved).map(t => (
-                      <div key={t.id} className="p-4 border border-blue-100 rounded-lg bg-blue-50/30">
+                      <div key={t.id} className="p-4 border border-border rounded-2xl bg-muted/30">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="font-semibold text-blue-900">{t.user_name} <span className="text-xs font-normal text-muted-foreground">— {t.user_location}</span></div>
-                            <blockquote className="mt-2 text-sm italic text-slate-700">"{t.quote}"</blockquote>
+                            <div className="font-semibold text-foreground">{t.user_name} <span className="text-xs font-normal text-muted-foreground">— {t.user_location}</span></div>
+                            <blockquote className="mt-2 text-sm italic text-muted-foreground">"{t.quote}"</blockquote>
                             <div className="text-xs text-muted-foreground mt-2">Submitted {new Date(t.created_at).toLocaleString()}</div>
                           </div>
                           <div className="flex flex-col gap-2 shrink-0">
                             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => approveTestimonial(t.id)}>Approve</Button>
-                            <Button size="sm" variant="destructive" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
+                            <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
                           </div>
                         </div>
                       </div>
@@ -692,15 +692,15 @@ function AdminPage() {
                 )}
                 {testimonials.filter(t => t.is_approved).length > 0 && (
                   <div className="mt-8">
-                    <h4 className="font-semibold text-blue-900 mb-3">Approved ({testimonials.filter(t => t.is_approved).length})</h4>
+                    <h4 className="font-semibold text-foreground mb-3">Approved ({testimonials.filter(t => t.is_approved).length})</h4>
                     <div className="space-y-2">
                       {testimonials.filter(t => t.is_approved).map(t => (
-                        <div key={t.id} className="p-3 border border-slate-200 rounded-lg bg-white flex items-start justify-between gap-3">
+                        <div key={t.id} className="p-3 border border-border rounded-2xl bg-card flex items-start justify-between gap-3">
                           <div className="flex-1 text-sm">
                             <span className="font-medium">{t.user_name}</span> <span className="text-muted-foreground text-xs">— {t.user_location}</span>
-                            <div className="text-slate-600 italic mt-1">"{t.quote}"</div>
+                            <div className="text-muted-foreground italic mt-1">"{t.quote}"</div>
                           </div>
-                          <Button size="sm" variant="destructive" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
+                          <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={() => deleteTestimonial(t.id)}>Delete</Button>
                         </div>
                       ))}
                     </div>
@@ -715,14 +715,14 @@ function AdminPage() {
       </main>
 
       <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setSelectedLandlord(null); setSelectedVideoUrl(null); } }}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto rounded-3xl bg-card/95 backdrop-blur-xl">
           <DialogHeader><DialogTitle>{selected?.title}</DialogTitle></DialogHeader>
           {selected && (
             <div className="space-y-4 text-sm">
               {selected.image_urls && selected.image_urls.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
                   {selected.image_urls.map((u, i) => (
-                    <a key={i} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" className="w-full aspect-square object-cover rounded" /></a>
+                    <a key={i} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" className="w-full aspect-square object-cover rounded-xl transition hover:opacity-90" /></a>
                   ))}
                 </div>
               )}
@@ -730,7 +730,7 @@ function AdminPage() {
                 <div>
                   <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Video tour</div>
                   {selectedVideoUrl ? (
-                    <video src={selectedVideoUrl} controls preload="metadata" className="w-full max-h-[480px] rounded bg-black" />
+                    <video src={selectedVideoUrl} controls preload="metadata" className="w-full max-h-[480px] rounded-2xl bg-black" />
                   ) : (
                     <div className="text-xs text-muted-foreground">Loading video…</div>
                   )}
@@ -775,8 +775,8 @@ function AdminPage() {
 
               <div className="flex gap-2 pt-2">
                 {selected.status === "pending" && <>
-                  <Button onClick={() => moderate(selected.id, "approved")} className="bg-blue-600 hover:bg-blue-700">Approve</Button>
-                  <Button variant="destructive" onClick={() => moderate(selected.id, "rejected")}>Reject</Button>
+                  <Button onClick={() => moderate(selected.id, "approved")} className="rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95">Approve</Button>
+                  <Button variant="destructive" className="rounded-full" onClick={() => moderate(selected.id, "rejected")}>Reject</Button>
                 </>}
               </div>
             </div>
@@ -785,17 +785,17 @@ function AdminPage() {
       </Dialog>
 
       <Dialog open={!!selectedUser} onOpenChange={(o) => { if (!o) setSelectedUser(null); }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl bg-card/95 backdrop-blur-xl">
           <DialogHeader><DialogTitle>User profile — {selectedUser?.full_name ?? "—"}</DialogTitle></DialogHeader>
           {selectedUser && (
             <div className="space-y-5 text-sm">
               <div className="flex items-start gap-4">
                 {selectedUser.selfie_url ? (
                   <a href={selectedUser.selfie_url} target="_blank" rel="noreferrer">
-                    <img src={selectedUser.selfie_url} alt="Profile selfie" className="w-32 h-32 rounded-xl object-cover ring-2 ring-blue-300" />
+                    <img src={selectedUser.selfie_url} alt="Profile selfie" className="w-32 h-32 rounded-xl object-cover ring-2 ring-border" />
                   </a>
                 ) : (
-                  <div className="w-32 h-32 rounded-xl bg-blue-100 flex items-center justify-center text-blue-400 text-xs">No selfie</div>
+                  <div className="w-32 h-32 rounded-xl bg-muted flex items-center justify-center text-muted-foreground text-xs">No selfie</div>
                 )}
                 <div className="flex-1 grid grid-cols-2 gap-3">
                   <Field label="Full name">{selectedUser.full_name ?? "—"}</Field>
@@ -812,7 +812,7 @@ function AdminPage() {
               <Field label="User ID" wide><span className="font-mono text-xs">{selectedUser.id}</span></Field>
 
               <div className="border-t pt-4 space-y-3">
-                <h4 className="font-semibold text-blue-900">Identity verification</h4>
+                <h4 className="font-semibold text-foreground">Identity verification</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Status">
                     <Badge className={
@@ -826,17 +826,17 @@ function AdminPage() {
                   {selectedUser.student_reg_no && <Field label="Reg #">{selectedUser.student_reg_no}</Field>}
                 </div>
                 {selectedUser.ocr_data && (
-                  <pre className="text-xs bg-slate-50 border border-slate-200 rounded p-2 overflow-auto max-h-40">{JSON.stringify(selectedUser.ocr_data, null, 2)}</pre>
+                  <pre className="text-xs bg-muted/50 border border-border rounded-xl p-3 overflow-auto max-h-40">{JSON.stringify(selectedUser.ocr_data, null, 2)}</pre>
                 )}
                 <div className="grid grid-cols-3 gap-2">
-                  {selectedUser.nid_front_url && <a href={selectedUser.nid_front_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_front_url} alt="NID front" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">NID front</div></a>}
-                  {selectedUser.nid_back_url && <a href={selectedUser.nid_back_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_back_url} alt="NID back" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">NID back</div></a>}
-                  {selectedUser.student_id_url && <a href={selectedUser.student_id_url} target="_blank" rel="noreferrer"><img src={selectedUser.student_id_url} alt="Student ID" className="w-full aspect-video object-cover rounded border" /><div className="text-xs text-center mt-1">Student ID</div></a>}
+                  {selectedUser.nid_front_url && <a href={selectedUser.nid_front_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_front_url} alt="NID front" className="w-full aspect-video object-cover rounded-xl border border-border" /><div className="text-xs text-center mt-1">NID front</div></a>}
+                  {selectedUser.nid_back_url && <a href={selectedUser.nid_back_url} target="_blank" rel="noreferrer"><img src={selectedUser.nid_back_url} alt="NID back" className="w-full aspect-video object-cover rounded-xl border border-border" /><div className="text-xs text-center mt-1">NID back</div></a>}
+                  {selectedUser.student_id_url && <a href={selectedUser.student_id_url} target="_blank" rel="noreferrer"><img src={selectedUser.student_id_url} alt="Student ID" className="w-full aspect-video object-cover rounded-xl border border-border" /><div className="text-xs text-center mt-1">Student ID</div></a>}
                 </div>
                 {selectedUser.verification_status !== "approved" && (
                   <div className="flex gap-2">
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setVerification(selectedUser.id, "approved")}>Approve</Button>
-                    <Button size="sm" variant="destructive" onClick={() => {
+                    <Button size="sm" className="rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95" onClick={() => setVerification(selectedUser.id, "approved")}>Approve</Button>
+                    <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={() => {
                       const reason = window.prompt("Reason for rejection (optional):") ?? "";
                       setVerification(selectedUser.id, "rejected", reason);
                     }}>Reject</Button>
@@ -855,8 +855,8 @@ function AdminPage() {
 function Field({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className={wide ? "col-span-2" : ""}>
-      <div className="text-xs uppercase tracking-wide text-blue-700/70 font-semibold">{label}</div>
-      <div className="font-medium break-words text-slate-800">{children}</div>
+      <div className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">{label}</div>
+      <div className="font-medium break-words text-foreground">{children}</div>
     </div>
   );
 }
@@ -865,24 +865,24 @@ function PropertyTable({ items, onOpen, showActions, onModerate }: {
   items: Property[]; onOpen: (p: Property) => void;
   showActions?: boolean; onModerate?: (id: string, s: "approved" | "rejected") => void;
 }) {
-  if (!items.length) return <Card className="border-blue-200"><CardContent className="py-8"><p className="text-sm text-muted-foreground text-center">No properties.</p></CardContent></Card>;
+  if (!items.length) return <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden"><CardContent className="py-8"><p className="text-sm text-muted-foreground text-center">No properties.</p></CardContent></Card>;
   return (
-    <Card className="border-blue-200"><CardContent className="p-0">
+    <Card className="rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] overflow-hidden"><CardContent className="p-0">
       <Table>
-        <TableHeader><TableRow className="bg-blue-50"><TableHead>Title</TableHead><TableHead>City</TableHead><TableHead>Price</TableHead><TableHead>Status</TableHead><TableHead>Occupancy</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow className="bg-muted/50 hover:bg-muted/50"><TableHead>Title</TableHead><TableHead>City</TableHead><TableHead>Price</TableHead><TableHead>Status</TableHead><TableHead>Occupancy</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
         <TableBody>
           {items.map((p) => (
-            <TableRow key={p.id} className="cursor-pointer hover:bg-blue-50/50" onClick={() => onOpen(p)}>
+            <TableRow key={p.id} className="cursor-pointer hover:bg-muted/40 transition-colors" onClick={() => onOpen(p)}>
               <TableCell className="font-medium">{p.title}</TableCell>
               <TableCell className="text-muted-foreground">{p.city ?? p.address}</TableCell>
               <TableCell>TSh {Number(p.price).toLocaleString()}</TableCell>
-              <TableCell><Badge variant={p.status === "approved" ? "default" : p.status === "rejected" ? "destructive" : "secondary"} className={p.status === "approved" ? "bg-blue-600 hover:bg-blue-700" : ""}>{p.status}</Badge></TableCell>
+              <TableCell><Badge variant={p.status === "approved" ? "default" : p.status === "rejected" ? "destructive" : "secondary"} className={p.status === "approved" ? "rounded-full bg-brand/10 text-brand hover:bg-brand/10" : ""}>{p.status}</Badge></TableCell>
               <TableCell><Badge variant={p.occupancy === "occupied" ? "destructive" : "secondary"}>{p.occupancy}</Badge></TableCell>
               <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50" onClick={() => onOpen(p)}>View</Button>
+                <Button size="sm" variant="outline" className="rounded-full active:scale-95" onClick={() => onOpen(p)}>View</Button>
                 {showActions && onModerate && p.status === "pending" && <>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => onModerate(p.id, "approved")}>Approve</Button>
-                  <Button size="sm" variant="destructive" onClick={() => onModerate(p.id, "rejected")}>Reject</Button>
+                  <Button size="sm" className="rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95" onClick={() => onModerate(p.id, "approved")}>Approve</Button>
+                  <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={() => onModerate(p.id, "rejected")}>Reject</Button>
                 </>}
               </TableCell>
             </TableRow>
@@ -893,11 +893,15 @@ function PropertyTable({ items, onOpen, showActions, onModerate }: {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value, icon, tone = "brand" }: { label: string; value: number; icon: string; tone?: "brand" | "amber" | "emerald" | "red" }) {
+  const tones = { brand: "bg-brand/10 text-brand", amber: "bg-amber-500/15 text-amber-600", emerald: "bg-emerald-500/15 text-emerald-600", red: "bg-red-500/15 text-red-600" };
   return (
-    <Card className="border-blue-200 bg-gradient-to-br from-white to-blue-50 hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-blue-700/80">{label}</CardTitle></CardHeader>
-      <CardContent><p className="text-3xl font-bold text-blue-900">{value}</p></CardContent>
-    </Card>
+    <div className="group rounded-[20px] border border-border bg-card p-5 shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-8px_rgba(15,23,42,.15)]">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">{label}</span>
+        <span className={`grid h-9 w-9 place-items-center rounded-full text-base ${tones[tone]}`}>{icon}</span>
+      </div>
+      <p className="mt-3 text-3xl font-bold tracking-tight text-foreground">{value.toLocaleString()}</p>
+    </div>
   );
 }
