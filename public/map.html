@@ -123,7 +123,7 @@
     document.getElementById('msCount').textContent = `${list.length} ${list.length === 1 ? 'property' : 'properties'} available`;
     document.getElementById('mapList').innerHTML = list.length ? list.map(l => `
       <div class="map-listing${String(l.id) === String(activeId) ? ' active' : ''}" data-id="${escapeHtml(l.id)}">
-        ${l.img ? `<img class="ml-thumb" src="${escapeHtml(l.img)}" alt="" loading="lazy" />` : `<div class="ml-thumb"><i class="fas fa-house"></i></div>`}
+        ${l.img ? `<img class="ml-thumb" src="${escapeHtml(l.img)}" alt="" loading="lazy" />` : (l.video_url ? `<img class="ml-thumb" data-poster-src="${escapeHtml(l.video_url)}" alt="" style="background:#0f172a;" />` : `<div class="ml-thumb"><i class="fas fa-house"></i></div>`)}
         <div class="ml-body">
           <strong>${escapeHtml(l.title)}</strong>
           <div class="ml-price">${SHF.formatPrice(l.price)}/mo</div>
@@ -134,6 +134,10 @@
         </div>
       </div>`).join('') : '<div class="ms-empty"><i class="fas fa-magnifying-glass"></i><br/>No properties match your search.</div>';
 
+    document.querySelectorAll('#mapList img[data-poster-src]').forEach(el => {
+      const u = el.getAttribute('data-poster-src'); el.removeAttribute('data-poster-src');
+      SHF.capturePoster(u).then(d => { el.src = d; }).catch(() => {});
+    });
     document.querySelectorAll('.map-listing').forEach(el => {
       el.addEventListener('click', () => {
         const id = el.dataset.id;
