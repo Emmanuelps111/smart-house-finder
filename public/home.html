@@ -201,8 +201,10 @@
       const img = escapeHtml(l.img);
       const media = l.img
         ? `<img data-lightbox src="${img}" alt="${title}" loading="lazy" />`
-        : `<div class="lc-empty"><i class="fas ${l.has_video ? 'fa-circle-play' : 'fa-house'}"></i><span>${l.has_video ? 'VIDEO TOUR' : 'NO PHOTOS'}</span></div>`;
-      const playOverlay = (l.has_video && l.img) ? `<div class="lc-play"><i class="fas fa-play"></i></div>` : '';
+        : (l.video_url
+            ? `<img class="lc-poster" data-poster-src="${escapeHtml(l.video_url)}" alt="${title}" style="background:#0f172a;" />`
+            : `<div class="lc-empty"><i class="fas fa-house"></i><span>NO PHOTOS</span></div>`);
+      const playOverlay = l.has_video ? `<div class="lc-play"><i class="fas fa-play"></i></div>` : '';
       const prox = SHF.proximityBadges(l.lat, l.lng);
       return `
       <article class="list-card" tabindex="0" role="link"
@@ -227,6 +229,10 @@
         </div>
       </article>`;
     }).join('');
+    f.querySelectorAll('img[data-poster-src]').forEach(el => {
+      const u = el.getAttribute('data-poster-src'); el.removeAttribute('data-poster-src');
+      SHF.capturePoster(u).then(d => { el.src = d; }).catch(() => {});
+    });
   }
   renderFeatured();
   window.addEventListener('shf:listings-updated', renderFeatured);

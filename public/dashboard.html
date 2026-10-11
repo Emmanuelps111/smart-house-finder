@@ -65,6 +65,34 @@
   .bulk-preview table { width:100%; border-collapse:collapse; }
   .bulk-preview th, .bulk-preview td { padding:.4rem .6rem; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
   .bulk-preview th { background: var(--bg); position:sticky; top:0; font-weight:600; }
+
+  /* ===== Modern property form ===== */
+  #propForm .form-row { margin-bottom: 1.1rem; }
+  #propForm label:not(.file-input-wrap):not(.amenity-chips label) { display:block; font-weight:600; font-size:.85rem; color:var(--text); margin:0 0 .45rem .35rem; }
+  #propForm input:not([type=checkbox]):not([type=file]), #propForm select, #propForm textarea {
+    width:100%; box-sizing:border-box; font:inherit; font-size:.95rem; color:var(--text);
+    background: var(--bg); border:1px solid var(--border); border-radius:999px;
+    padding:.8rem 1.15rem; box-shadow: 0 1px 2px rgba(15,23,42,.04);
+    transition: border-color .2s, box-shadow .2s, background .2s;
+  }
+  #propForm textarea { border-radius:18px; min-height:120px; resize:vertical; }
+  #propForm input:hover, #propForm select:hover, #propForm textarea:hover { border-color: color-mix(in oklab, #1E5FA8 40%, var(--border)); }
+  #propForm input:focus, #propForm select:focus, #propForm textarea:focus { outline:none; border-color:#1E5FA8; box-shadow:0 0 0 3px rgba(30,95,168,.15); }
+  #propForm select {
+    appearance:none; -webkit-appearance:none; padding-right:2.6rem; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 1.1rem center;
+  }
+  [data-theme="dark"] #propForm select { color-scheme: dark; }
+  #propForm select option { background: var(--surface); color: var(--text); }
+  #propForm .error { color:#ef4444; font-size:.8rem; margin:.3rem 0 0 .5rem; display:block; min-height:0; }
+  #propForm > p { background: color-mix(in oklab, #1E5FA8 7%, transparent); border-radius:14px; padding:.7rem 1rem; }
+  #propForm .file-input-wrap { border-radius:20px !important; border-width:1.5px; background: color-mix(in oklab, #1E5FA8 4%, var(--bg)); }
+  #propForm .file-input-wrap:hover { transform: translateY(-1px); box-shadow:0 8px 22px -12px rgba(30,95,168,.35); }
+  #propForm .amenity-chips label { padding:.5rem .95rem; background: var(--bg); }
+  #propForm #publishBtn { border-radius:999px; padding:.95rem 1.25rem; font-weight:700; box-shadow:0 8px 22px -10px rgba(30,95,168,.55); }
+  #propForm #cancelEdit { border-radius:999px; }
+  #singlePane h2 { font-size:1.25rem; letter-spacing:-.01em; }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3661788889705570"
      crossorigin="anonymous"></script>
@@ -837,7 +865,7 @@
     };
     list.innerHTML = myListings.map(l => `
       <div class="my-listing">
-        ${(l.image_urls && l.image_urls[0]) ? `<img src="${l.image_urls[0]}" alt="${escapeHtml(l.title)}">` : `<div style="width:96px; height:96px; flex-shrink:0; border-radius:8px; background:linear-gradient(135deg,#1E3A8A,#3B82F6); display:flex; align-items:center; justify-content:center; color:#fff;"><i class="fas ${l.video_url ? 'fa-circle-play' : 'fa-house'}" style="font-size:1.6rem;"></i></div>`}
+        ${(l.image_urls && l.image_urls[0]) ? `<img src="${escapeHtml(l.image_urls[0])}" alt="${escapeHtml(l.title)}">` : (l.video_url ? `<img data-poster-src="${escapeHtml(/^https?:/.test(l.video_url) ? l.video_url : sb.storage.from('property-videos').getPublicUrl(l.video_url).data.publicUrl)}" alt="${escapeHtml(l.title)}" style="background:#0f172a;">` : `<div style="width:80px; height:80px; flex-shrink:0; border-radius:12px; background:linear-gradient(135deg,#1E3A8A,#3B82F6); display:flex; align-items:center; justify-content:center; color:#fff;"><i class="fas fa-house" style="font-size:1.6rem;"></i></div>`)}
         <div class="info">
           <h4>${escapeHtml(l.title)} ${statusBadge(l.status)} ${occBadge(l.occupancy)}</h4>
           <div class="meta">${fmt(l.price)} / month · ${l.beds || '-'} bd · ${escapeHtml(l.city || l.address || '')}</div>
@@ -852,6 +880,11 @@
           <button class="del" data-del="${l.id}" title="Delete"><i class="fas fa-trash"></i></button>
         </div>
       </div>`).join('');
+    list.querySelectorAll('img[data-poster-src]').forEach(el => {
+      const u = el.getAttribute('data-poster-src'); el.removeAttribute('data-poster-src');
+      SHF.capturePoster(u).then(d => { el.src = d; }).catch(() => {});
+    });
+
 
     list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Delete this listing?')) return;
