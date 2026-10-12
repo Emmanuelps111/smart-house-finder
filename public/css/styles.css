@@ -424,7 +424,19 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
 .hero .search-bar { border-radius: 9999px; align-items: center; padding: .4rem .4rem .4rem 1.2rem; border: 1px solid var(--border); margin-top: 0; box-shadow: 0 20px 45px -20px rgba(30,95,168,.35); }
 .hero .search-bar:focus-within { border-color: var(--primary); }
 .search-ico { color: var(--text-muted); }
-.hero .search-bar .btn { border-radius: 9999px; }
+.hero .search-bar .btn { border-radius: 9999px; flex-shrink: 0; white-space: nowrap; }
+.hero .search-bar { width: 100%; box-sizing: border-box; overflow: hidden; gap: .5rem; }
+.hero .search-bar input { min-width: 0; width: 100%; }
+.search-ico { flex-shrink: 0; }
+@media (max-width: 480px) {
+  .hero .search-bar { padding: .3rem .3rem .3rem .95rem; }
+  .hero .search-bar input { font-size: .92rem; padding: .6rem .25rem; }
+  .hero .search-bar .btn { padding: .55rem 1rem; font-size: .88rem; }
+}
+.nav-actions a.btn, header a.btn[href="/login.html"] { white-space: nowrap; flex-shrink: 0; }
+@media (max-width: 480px) {
+  header a.btn[href="/login.html"] { padding: .4rem .85rem !important; font-size: .82rem; }
+}
 .hero-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin: 1.25rem 0 2rem; }
 .hero-chips a { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .95rem; border-radius: 9999px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: .85rem; transition: all var(--transition); }
 .hero-chips a i { color: var(--primary); }
