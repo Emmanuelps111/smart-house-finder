@@ -239,12 +239,37 @@
       <h3><i class="fas fa-cog"></i> Account Settings</h3>
       <button class="shf-modal-x" data-modal-close aria-label="Close"><i class="fas fa-times"></i></button>
     </div>
-    <div class="shf-modal-body">
-      <label class="shf-field"><span>Display Name</span><input type="text" id="shf-acc-name" placeholder="Your name" /></label>
-      <label class="shf-field"><span>Contact Phone Number</span><input type="tel" id="shf-acc-phone" placeholder="+255..." /></label>
-      <button type="button" class="shf-link-btn" id="shf-acc-change-pw"><i class="fas fa-key"></i> Change Password</button>
+    <div class="acc-id" id="shf-acc-id"></div>
+    <div class="acc-tabs" role="tablist">
+      <button type="button" role="tab" class="acc-tab active" data-acc-tab="profile" aria-selected="true"><i class="fas fa-id-card"></i> Profile &amp; Identity</button>
+      <button type="button" role="tab" class="acc-tab" data-acc-tab="security" aria-selected="false"><i class="fas fa-shield-halved"></i> Security &amp; Login</button>
     </div>
-    <div class="shf-modal-foot">
+    <div class="shf-modal-body acc-pane" data-acc-pane="profile">
+      <label class="shf-field"><span>Display Name</span><input type="text" id="shf-acc-name" maxlength="80" placeholder="Your name" /></label>
+      <label class="shf-field"><span>Email <em class="acc-ok"><i class="fas fa-circle-check"></i> Verified</em></span><input type="email" id="shf-acc-email" readonly /></label>
+      <label class="shf-field"><span>Phone / WhatsApp</span><input type="tel" id="shf-acc-phone" maxlength="16" placeholder="07XX XXX XXX or +255..." /><small class="acc-err" id="shf-acc-phone-err"></small></label>
+      <div class="acc-note"><i class="fas fa-lock"></i> Your phone number is shielded. It's only shared with verified contacts when you make an inquiry or accept a roommate request.</div>
+      <div id="shf-acc-role"></div>
+    </div>
+    <div class="shf-modal-body acc-pane" data-acc-pane="security" hidden>
+      <div class="acc-section"><i class="fas fa-key"></i> Change password</div>
+      <label class="shf-field"><span>Current Password</span><input type="password" id="shf-acc-pw-cur" autocomplete="current-password" /></label>
+      <label class="shf-field"><span>New Password</span><input type="password" id="shf-acc-pw-new" autocomplete="new-password" placeholder="At least 8 characters" /></label>
+      <label class="shf-field"><span>Confirm New Password</span><input type="password" id="shf-acc-pw-conf" autocomplete="new-password" /></label>
+      <button type="button" class="btn btn-primary acc-inline-btn" id="shf-acc-pw-save">Update Password</button>
+      <div class="acc-section" style="margin-top:.4rem;"><i class="fas fa-shield-halved"></i> Recovery security question</div>
+      <div class="acc-note" id="shf-acc-secq-current">Loading your current question…</div>
+      <label class="shf-field"><span>Question</span><select id="shf-acc-secq">
+        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+        <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+        <option value="What primary school did you attend?">What primary school did you attend?</option>
+        <option value="What is your favorite childhood nickname?">What is your favorite childhood nickname?</option>
+        <option value="What is the name of the street you grew up on?">What is the name of the street you grew up on?</option>
+      </select></label>
+      <label class="shf-field"><span>Answer</span><input type="text" id="shf-acc-seca" maxlength="80" autocomplete="off" /></label>
+      <button type="button" class="btn btn-outline acc-inline-btn" id="shf-acc-secq-save">Save Security Question</button>
+    </div>
+    <div class="shf-modal-foot" data-acc-foot>
       <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
       <button type="button" class="btn btn-primary" id="shf-acc-save">Save Changes</button>
     </div>
@@ -289,6 +314,33 @@
   .shf-link-btn { align-self: flex-start; background:none; border:none; color:var(--primary); font:inherit; font-weight:600; cursor:pointer; padding:.25rem 0; display:inline-flex; align-items:center; gap:.4rem; }
   .shf-link-btn:hover { text-decoration: underline; }
   .shf-modal-foot { display:flex; justify-content:flex-end; gap:.6rem; padding: .9rem 1.15rem; border-top: 1px solid var(--border); background: var(--bg); }
+  #shf-modal-account .shf-modal-card { max-width: 520px; border-radius: 22px; max-height: calc(100vh - 2rem); display:flex; flex-direction:column; }
+  #shf-modal-account .acc-pane { overflow-y:auto; }
+  #shf-modal-account .shf-field input, #shf-modal-account .shf-field select { border-radius: 999px; padding:.65rem 1rem; }
+  #shf-modal-account .shf-field select { appearance:none; -webkit-appearance:none; border:1px solid var(--border); background:var(--bg); color:var(--text); font:inherit; }
+  #shf-modal-account .shf-field span { display:flex; align-items:center; gap:.5rem; font-weight:600; }
+  #shf-modal-account input[readonly] { opacity:.75; cursor:not-allowed; }
+  .acc-ok { font-style:normal; font-size:.72rem; color:#059669; background:rgba(16,185,129,.12); padding:.1rem .5rem; border-radius:999px; }
+  .acc-id { display:flex; align-items:center; gap:.8rem; padding: 1rem 1.15rem .4rem; }
+  .acc-avatar { width:48px; height:48px; border-radius:50%; background: color-mix(in srgb, var(--primary) 15%, transparent); color:var(--primary); display:grid; place-items:center; font-weight:700; font-size:1.15rem; flex-shrink:0; }
+  .acc-id-name { font-weight:700; color:var(--text); }
+  .acc-pills { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.25rem; }
+  .acc-pill { font-size:.72rem; font-weight:600; padding:.15rem .6rem; border-radius:999px; background:var(--bg); border:1px solid var(--border); color:var(--text-muted); display:inline-flex; align-items:center; gap:.3rem; }
+  .acc-pill.g { color:#059669; border-color:rgba(16,185,129,.35); background:rgba(16,185,129,.1); }
+  .acc-pill.y { color:#b45309; border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.1); }
+  .acc-tabs { display:flex; gap:.25rem; margin: .5rem 1.15rem 0; padding:.25rem; border-radius:999px; background:var(--bg); border:1px solid var(--border); }
+  .acc-tab { flex:1; border:none; background:none; color:var(--text-muted); font:inherit; font-size:.82rem; font-weight:600; padding:.5rem .6rem; border-radius:999px; cursor:pointer; white-space:nowrap; transition: background .15s, color .15s; }
+  .acc-tab.active { background:var(--surface); color:var(--text); box-shadow:0 2px 8px -2px rgba(15,23,42,.15); }
+  .acc-note { font-size:.8rem; line-height:1.5; color:var(--text-muted); background: color-mix(in srgb, var(--primary) 7%, transparent); border:1px solid color-mix(in srgb, var(--primary) 20%, transparent); border-radius:14px; padding:.6rem .8rem; }
+  .acc-note i { color:var(--primary); margin-right:.3rem; }
+  .acc-err { color:#dc2626; font-size:.75rem; min-height:0; }
+  .acc-section { font-weight:700; font-size:.88rem; color:var(--text); display:flex; align-items:center; gap:.45rem; }
+  .acc-section i { color:var(--primary); }
+  .acc-inline-btn { align-self:flex-start; border-radius:999px; }
+  .acc-role { border:1px solid var(--border); border-radius:16px; padding:.8rem .9rem; display:flex; flex-direction:column; gap:.45rem; font-size:.85rem; color:var(--text); }
+  .acc-role a { color:var(--primary); font-weight:600; text-decoration:none; }
+  .acc-row { display:flex; justify-content:space-between; gap:.6rem; }
+  .acc-row span:first-child { color:var(--text-muted); }
   .shf-btn-green { background:#10b981; color:#fff; border:none; padding:.6rem 1.1rem; border-radius:8px; font:inherit; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; transition: background .15s ease; }
   .shf-btn-green:hover { background:#059669; }
   .shf-btn-green:disabled { opacity:.6; cursor:not-allowed; }
@@ -389,12 +441,67 @@
       const openModal = (id) => { const m = document.getElementById(id); if (m) m.style.display = 'flex'; if (dd) dd.style.display = 'none'; };
       const closeModal = (m) => { if (m) m.style.display = 'none'; };
 
+      const accEsc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const normPhone = (raw) => {
+        const d = String(raw || '').replace(/[\s\-()]/g, '');
+        if (!d) return '';
+        if (/^0[67]\d{8}$/.test(d)) return '+255' + d.slice(1);
+        if (/^\+?255[67]\d{8}$/.test(d)) return '+' + d.replace(/^\+/, '');
+        return null;
+      };
+
       if (e.target.closest('[data-account-settings]')) {
-        const nameInput = document.getElementById('shf-acc-name');
-        const phoneInput = document.getElementById('shf-acc-phone');
-        if (nameInput) nameInput.value = user.name || '';
-        if (phoneInput) phoneInput.value = user.phone || '';
+        document.getElementById('shf-acc-name').value = user.name || '';
+        document.getElementById('shf-acc-phone').value = user.phone || '';
+        document.getElementById('shf-acc-email').value = user.email || '';
+        document.getElementById('shf-acc-phone-err').textContent = '';
+        ['shf-acc-pw-cur','shf-acc-pw-new','shf-acc-pw-conf','shf-acc-seca'].forEach(id => { document.getElementById(id).value = ''; });
+        const tabBtn = document.querySelector('[data-acc-tab="profile"]'); if (tabBtn) tabBtn.click();
         openModal('shf-modal-account');
+        (async () => {
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { data: p } = await sb.from('profiles').select('full_name, role, verification_status, agency_status, university, home_campus, security_question').eq('id', user.id).maybeSingle();
+            const prof = p || {};
+            const role = prof.role || user.role || 'renter';
+            const verified = prof.verification_status === 'verified' || prof.verification_status === 'approved';
+            const name = prof.full_name || user.name || 'User';
+            const roleLabel = { landlord:'Landlord', agency:'Agency', student:'Student', renter:'Tenant', admin:'Admin' }[role] || 'Member';
+            const vPill = verified ? '<span class="acc-pill g"><i class="fas fa-circle-check"></i> Verified</span>' : '<span class="acc-pill y"><i class="fas fa-hourglass-half"></i> Verification ' + accEsc(prof.verification_status || 'pending') + '</span>';
+            document.getElementById('shf-acc-id').innerHTML =
+              '<div class="acc-avatar">' + accEsc(name.charAt(0).toUpperCase()) + '</div><div><div class="acc-id-name">' + accEsc(name) + '</div><div class="acc-pills"><span class="acc-pill">' + roleLabel + '</span>' + vPill + '</div></div>';
+            let roleHtml = '';
+            if (role === 'landlord' || role === 'agency') {
+              const host = role === 'agency' || prof.agency_status === 'approved' ? 'Approved Agency' : (verified ? 'Verified Landlord' : 'Individual Host');
+              roleHtml = '<div class="acc-role"><div class="acc-section"><i class="fas fa-building"></i> Host details</div>' +
+                '<div class="acc-row"><span>Host status</span><span class="acc-pill ' + (verified ? 'g' : 'y') + '">' + host + '</span></div>' +
+                '<div class="acc-row"><span>WhatsApp contact</span><span class="acc-pill ' + (user.phone ? 'g' : 'y') + '"><i class="fab fa-whatsapp"></i> ' + (user.phone ? 'Ready' : 'Add phone') + '</span></div>' +
+                (prof.agency_status === 'pending' ? '<div class="acc-row"><span>Agency upgrade</span><span class="acc-pill y">Under review</span></div>' : '') +
+                '<a href="/dashboard.html"><i class="fas fa-arrow-right"></i> Go to my listings</a></div>';
+            } else if (role === 'student') {
+              roleHtml = '<div class="acc-role"><div class="acc-section"><i class="fas fa-graduation-cap"></i> Student details</div>' +
+                '<div class="acc-row"><span>University</span><span>' + accEsc(prof.university || '—') + '</span></div>' +
+                '<div class="acc-row"><span>Home campus</span><span>' + accEsc(prof.home_campus || '—') + '</span></div>' +
+                '<a href="/student-portal.html"><i class="fas fa-user-group"></i> Open my roommate matching profile</a></div>';
+            }
+            document.getElementById('shf-acc-role').innerHTML = roleHtml;
+            const sq = document.getElementById('shf-acc-secq-current');
+            sq.innerHTML = prof.security_question ? '<i class="fas fa-circle-info"></i> Current question: <strong>' + accEsc(prof.security_question) + '</strong>' : '<i class="fas fa-triangle-exclamation"></i> No security question set yet. Add one so you can recover your account without email.';
+            const sel = document.getElementById('shf-acc-secq');
+            if (prof.security_question) {
+              if (![...sel.options].some(o => o.value === prof.security_question)) sel.add(new Option(prof.security_question, prof.security_question));
+              sel.value = prof.security_question;
+            }
+          } catch (_) {}
+        })();
+        return;
+      }
+      const accTab = e.target.closest('[data-acc-tab]');
+      if (accTab) {
+        const t = accTab.dataset.accTab;
+        document.querySelectorAll('[data-acc-tab]').forEach(b => { const on = b === accTab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
+        document.querySelectorAll('[data-acc-pane]').forEach(p => { p.hidden = p.dataset.accPane !== t; });
+        const foot = document.querySelector('[data-acc-foot]'); if (foot) foot.style.display = t === 'profile' ? 'flex' : 'none';
         return;
       }
       if (e.target.closest('[data-agency-request]')) {
@@ -409,12 +516,16 @@
           const btn = e.target.closest('#shf-acc-save');
           if (!window.SHFCloud) return;
           const name = document.getElementById('shf-acc-name').value.trim();
-          const phone = document.getElementById('shf-acc-phone').value.trim();
-          if (!name) { window.toast?.error('Name cannot be empty.'); return; }
+          const rawPhone = document.getElementById('shf-acc-phone').value.trim();
+          const errEl = document.getElementById('shf-acc-phone-err');
+          errEl.textContent = '';
+          if (!name || name.length > 80) { window.toast?.error('Please enter a name (max 80 characters).'); return; }
+          const phone = normPhone(rawPhone);
+          if (phone === null) { errEl.textContent = 'Use a Tanzanian number like 0713 686 105 or +255713686105.'; return; }
           btn.disabled = true;
           try {
             const sb = await window.SHFCloud.ready;
-            const { error } = await sb.from('profiles').update({ full_name: name, phone }).eq('id', user.id);
+            const { error } = await sb.from('profiles').update({ full_name: name, phone: phone || null }).eq('id', user.id);
             if (error) throw error;
             const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
             cached.name = name; cached.phone = phone;
@@ -428,17 +539,46 @@
         })();
         return;
       }
-      if (e.target.closest('#shf-acc-change-pw')) {
+      if (e.target.closest('#shf-acc-pw-save')) {
         (async () => {
-          if (!user.email || !window.SHFCloud) return;
+          const btn = e.target.closest('#shf-acc-pw-save');
+          const cur = document.getElementById('shf-acc-pw-cur').value;
+          const nw = document.getElementById('shf-acc-pw-new').value;
+          const cf = document.getElementById('shf-acc-pw-conf').value;
+          if (!cur) { window.toast?.error('Enter your current password.'); return; }
+          if (nw.length < 8 || nw.length > 72) { window.toast?.error('New password must be 8–72 characters.'); return; }
+          if (nw !== cf) { window.toast?.error('New passwords do not match.'); return; }
+          if (nw === cur) { window.toast?.error('New password must be different.'); return; }
+          btn.disabled = true;
           try {
             const sb = await window.SHFCloud.ready;
-            const { error } = await sb.auth.resetPasswordForEmail(user.email, {
-              redirectTo: window.location.origin + '/reset-password',
-            });
+            const { error: authErr } = await sb.auth.signInWithPassword({ email: user.email, password: cur });
+            if (authErr) throw new Error('Current password is incorrect.');
+            const { error } = await sb.auth.updateUser({ password: nw });
             if (error) throw error;
-            window.toast?.success('Password reset email sent.');
-          } catch (err) { window.toast?.error(err.message || 'Failed to send reset email.'); }
+            ['shf-acc-pw-cur','shf-acc-pw-new','shf-acc-pw-conf'].forEach(id => { document.getElementById(id).value = ''; });
+            window.toast?.success('Password updated.');
+          } catch (err) { window.toast?.error(err.message || 'Failed to update password.'); }
+          finally { btn.disabled = false; }
+        })();
+        return;
+      }
+      if (e.target.closest('#shf-acc-secq-save')) {
+        (async () => {
+          const btn = e.target.closest('#shf-acc-secq-save');
+          const q = document.getElementById('shf-acc-secq').value;
+          const a = document.getElementById('shf-acc-seca').value.trim();
+          if (a.length < 2 || a.length > 80) { window.toast?.error('Answer must be 2–80 characters.'); return; }
+          btn.disabled = true;
+          try {
+            const sb = await window.SHFCloud.ready;
+            const { error } = await sb.rpc('set_security_question', { _question: q, _answer: a });
+            if (error) throw error;
+            document.getElementById('shf-acc-seca').value = '';
+            document.getElementById('shf-acc-secq-current').innerHTML = '<i class="fas fa-circle-info"></i> Current question: <strong>' + accEsc(q) + '</strong>';
+            window.toast?.success('Security question saved.');
+          } catch (err) { window.toast?.error(err.message || 'Failed to save security question.'); }
+          finally { btn.disabled = false; }
         })();
         return;
       }
