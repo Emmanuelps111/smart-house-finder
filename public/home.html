@@ -42,7 +42,8 @@
   .lc-view:hover { text-decoration:underline; }
 
   /* ---- 3D Coverflow feature carousel ---- */
-  .cf { position:relative; margin-top:2rem; padding:0 3.2rem 3rem; }
+  .cf { position:relative; margin-top:2rem; padding:0 3.2rem 3rem; overflow:hidden; overflow:clip; }
+  html, body { overflow-x:hidden; overflow-x:clip; }
   .cf-stage { position:relative; height:300px; perspective:1400px; transform-style:preserve-3d; touch-action:pan-y; }
   .cf-card {
     position:absolute; top:0; left:50%; width:330px; max-width:82vw; height:275px;
