@@ -557,7 +557,9 @@ main > section:not(.hero), body > section:not(.hero) { position: relative; }
   box-shadow: 0 4px 20px -4px rgba(15,23,42,.1), 0 20px 40px -20px rgba(15,23,42,.25) !important;
 }
 .user-dropdown a, .user-dropdown button { border-radius: 12px; transition: background .15s; }
-.user-dropdown a:hover, .user-dropdown button:hover { background: color-mix(in oklab, #1E5FA8 10%, transparent); }
+.user-dropdown a, .user-dropdown button { display:flex !important; align-items:center; gap:.6rem; font-size:.92rem; }
+.user-dropdown a i, .user-dropdown button i { width:1.1rem; text-align:center; }
+.user-dropdown a:hover, .user-dropdown button:hover, .user-dropdown .ud-item:focus-visible { background: color-mix(in oklab, #1E5FA8 10%, transparent); }
 .shf-modal-backdrop { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .shf-modal-card { border-radius: 20px !important; box-shadow: 0 30px 60px -20px rgba(15,23,42,.35) !important; }
 .shf-modal-card input, .shf-modal-card select, .shf-modal-card textarea { border-radius: 999px; }
