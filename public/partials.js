@@ -254,7 +254,8 @@
     </div>
     <div class="shf-modal-body acc-pane" data-acc-pane="security" hidden>
       <div class="acc-section"><i class="fas fa-key"></i> Change password</div>
-      <label class="shf-field"><span>Current Password</span><input type="password" id="shf-acc-pw-cur" autocomplete="current-password" /></label>
+      <div class="acc-note" id="shf-acc-pw-hint" hidden><i class="fab fa-google"></i> You sign in with Google. Set a password here if you also want to sign in with your email.</div>
+      <label class="shf-field" id="shf-acc-pw-cur-wrap"><span>Current Password</span><input type="password" id="shf-acc-pw-cur" autocomplete="current-password" /></label>
       <label class="shf-field"><span>New Password</span><input type="password" id="shf-acc-pw-new" autocomplete="new-password" placeholder="At least 8 characters" /></label>
       <label class="shf-field"><span>Confirm New Password</span><input type="password" id="shf-acc-pw-conf" autocomplete="new-password" /></label>
       <button type="button" class="btn btn-primary acc-inline-btn" id="shf-acc-pw-save">Update Password</button>
@@ -317,6 +318,10 @@
   .shf-modal-foot { display:flex; justify-content:flex-end; gap:.6rem; padding: .9rem 1.15rem; border-top: 1px solid var(--border); background: var(--bg); }
   #shf-modal-account .shf-modal-card { max-width: 520px; border-radius: 22px; max-height: calc(100vh - 2rem); display:flex; flex-direction:column; }
   #shf-modal-account .acc-pane { overflow-y:auto; }
+  #shf-modal-account .acc-pane[hidden] { display:none !important; }
+  #shf-modal-account .shf-field select { padding-right:2.4rem !important; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important; background-repeat:no-repeat !important; background-position:right 1rem center !important; }
+  #shf-modal-account .shf-field select:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+  .acc-tab:not(.active):hover { color:var(--text); background:color-mix(in oklab, var(--primary) 8%, transparent); }
   #shf-modal-account .shf-field input, #shf-modal-account .shf-field select { border-radius: 999px; padding:.65rem 1rem; }
   #shf-modal-account .shf-field select { appearance:none; -webkit-appearance:none; border:1px solid var(--border); background:var(--bg); color:var(--text); font:inherit; }
   #shf-modal-account .shf-field span { display:flex; align-items:center; gap:.5rem; font-weight:600; }
@@ -462,6 +467,13 @@
         (async () => {
           try {
             const sb = await window.SHFCloud.ready;
+            const { data: { user: au } } = await sb.auth.getUser();
+            const provs = (au && au.app_metadata && au.app_metadata.providers) || [];
+            const noPw = provs.length > 0 && !provs.includes('email');
+            window.__shfAccNoPw = noPw;
+            document.getElementById('shf-acc-pw-hint').hidden = !noPw;
+            document.getElementById('shf-acc-pw-cur-wrap').style.display = noPw ? 'none' : '';
+            document.getElementById('shf-acc-pw-save').textContent = noPw ? 'Set Password' : 'Update Password';
             const { data: p } = await sb.from('profiles').select('full_name, role, verification_status, agency_status, university, home_campus, security_question').eq('id', user.id).maybeSingle();
             const prof = p || {};
             const role = prof.role || user.role || 'renter';
@@ -546,15 +558,18 @@
           const cur = document.getElementById('shf-acc-pw-cur').value;
           const nw = document.getElementById('shf-acc-pw-new').value;
           const cf = document.getElementById('shf-acc-pw-conf').value;
-          if (!cur) { window.toast?.error('Enter your current password.'); return; }
+          const noPw = !!window.__shfAccNoPw;
+          if (!noPw && !cur) { window.toast?.error('Enter your current password.'); return; }
           if (nw.length < 8 || nw.length > 72) { window.toast?.error('New password must be 8–72 characters.'); return; }
           if (nw !== cf) { window.toast?.error('New passwords do not match.'); return; }
-          if (nw === cur) { window.toast?.error('New password must be different.'); return; }
+          if (!noPw && nw === cur) { window.toast?.error('New password must be different.'); return; }
           btn.disabled = true;
           try {
             const sb = await window.SHFCloud.ready;
-            const { error: authErr } = await sb.auth.signInWithPassword({ email: user.email, password: cur });
-            if (authErr) throw new Error('Current password is incorrect.');
+            if (!noPw) {
+              const { error: authErr } = await sb.auth.signInWithPassword({ email: user.email, password: cur });
+              if (authErr) throw new Error('Current password is incorrect.');
+            }
             const { error } = await sb.auth.updateUser({ password: nw });
             if (error) throw error;
             ['shf-acc-pw-cur','shf-acc-pw-new','shf-acc-pw-conf'].forEach(id => { document.getElementById(id).value = ''; });
