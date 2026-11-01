@@ -324,6 +324,22 @@
   .acc-tab:not(.active):hover { color:var(--text); background:color-mix(in oklab, var(--primary) 8%, transparent); }
   #shf-modal-account .shf-field input, #shf-modal-account .shf-field select { border-radius: 999px; padding:.65rem 1rem; }
   #shf-modal-account .shf-field select { appearance:none; -webkit-appearance:none; border:1px solid var(--border); background:var(--bg); color:var(--text); font:inherit; }
+  /* Custom listbox for the account-settings question picker (matches the site's dropdown family) */
+  #shf-modal-account .cs-wrap { position: relative; }
+  #shf-modal-account .cs-wrap select { position:absolute !important; opacity:0; pointer-events:none; width:1px; height:1px; }
+  #shf-modal-account .cs-btn { width:100%; display:flex; align-items:center; justify-content:space-between; gap:.5rem; text-align:left; padding:.65rem 1rem; border:1px solid var(--border); border-radius:999px; background:var(--bg); color:var(--text); font:inherit; font-weight:500; cursor:pointer; transition:border-color .2s, box-shadow .2s; }
+  #shf-modal-account .cs-btn:hover { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
+  #shf-modal-account .cs-wrap.open .cs-btn, #shf-modal-account .cs-btn:focus-visible { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+  #shf-modal-account .cs-btn .fa-chevron-down { color:#64748b; font-size:.8rem; transition:transform .25s; }
+  #shf-modal-account .cs-wrap.open .cs-btn .fa-chevron-down { transform:rotate(180deg); }
+  #shf-modal-account .cs-btn span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #shf-modal-account .cs-list { position:absolute; left:0; right:0; top:calc(100% + .5rem); z-index:60; list-style:none; margin:0; padding:.4rem; background:var(--surface); border:1px solid var(--border); border-radius:18px; box-shadow:0 18px 40px -12px rgba(15,23,42,.25); opacity:0; transform:translateY(-6px) scale(.98); pointer-events:none; transition:opacity .18s, transform .18s; max-height:240px; overflow:auto; }
+  #shf-modal-account .cs-wrap.open .cs-list { opacity:1; transform:none; pointer-events:auto; }
+  #shf-modal-account .cs-list li { padding:.6rem .9rem; border-radius:12px; cursor:pointer; color:var(--text); font-size:.9rem; display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+  #shf-modal-account .cs-list li:hover, #shf-modal-account .cs-list li.hl { background: color-mix(in oklab, var(--primary) 10%, transparent); }
+  #shf-modal-account .cs-list li.sel { color:var(--primary); font-weight:600; }
+  #shf-modal-account .cs-list li.sel::after { content:"\f00c"; font-family:"Font Awesome 6 Free","Font Awesome 5 Free"; font-weight:900; }
+  [data-theme="dark"] #shf-modal-account .cs-list li.sel { color:#60a5fa; }
   #shf-modal-account .shf-field span { display:flex; align-items:center; gap:.5rem; font-weight:600; }
   #shf-modal-account input[readonly] { opacity:.75; cursor:not-allowed; }
   .acc-ok { font-style:normal; font-size:.72rem; color:#059669; background:rgba(16,185,129,.12); padding:.1rem .5rem; border-radius:999px; }
@@ -405,6 +421,72 @@
     const f = document.getElementById('footer-mount');
     if (h) h.outerHTML = header;
     if (f) f.outerHTML = footer;
+
+    // Custom themed listbox for the account-settings security question.
+    // The native select stays in the DOM as the source of truth for saving.
+    (function enhanceAccountSelects() {
+      const sel = document.getElementById('shf-acc-secq');
+      if (!sel || sel.dataset.csReady) return;
+      sel.dataset.csReady = '1';
+      const wrap = document.createElement('div');
+      wrap.className = 'cs-wrap';
+      sel.parentNode.insertBefore(wrap, sel);
+      wrap.appendChild(sel);
+      sel.tabIndex = -1;
+      sel.setAttribute('aria-hidden', 'true');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cs-btn';
+      btn.setAttribute('aria-haspopup', 'listbox');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = '<span></span><i class="fas fa-chevron-down" aria-hidden="true"></i>';
+      const list = document.createElement('ul');
+      list.className = 'cs-list';
+      list.setAttribute('role', 'listbox');
+      wrap.append(btn, list);
+      let rows = [];
+      let active = 0;
+      function render() {
+        btn.querySelector('span').textContent = sel.options[sel.selectedIndex]?.text || '';
+        list.innerHTML = '';
+        rows = [];
+        Array.prototype.forEach.call(sel.options, (o, i) => {
+          const li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          li.textContent = o.text;
+          if (i === sel.selectedIndex) li.classList.add('sel');
+          li.addEventListener('click', () => choose(i));
+          list.appendChild(li);
+          rows.push(li);
+        });
+      }
+      function close() { wrap.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+      function open() { wrap.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); highlight(sel.selectedIndex); }
+      function highlight(i) {
+        active = Math.max(0, Math.min(rows.length - 1, i));
+        rows.forEach((r, j) => r.classList.toggle('hl', j === active));
+        rows[active]?.scrollIntoView({ block: 'nearest' });
+      }
+      function choose(i) {
+        sel.selectedIndex = i;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        render(); close(); btn.focus();
+      }
+      btn.addEventListener('click', () => { wrap.classList.contains('open') ? close() : open(); });
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { close(); return; }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') {
+          e.preventDefault();
+          if (!wrap.classList.contains('open')) { open(); return; }
+          highlight(e.key === 'Home' ? 0 : e.key === 'End' ? rows.length - 1 : active + (e.key === 'ArrowDown' ? 1 : -1));
+        } else if ((e.key === 'Enter' || e.key === ' ') && wrap.classList.contains('open')) {
+          e.preventDefault(); choose(active);
+        }
+      });
+      document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) close(); });
+      sel.addEventListener('change', render);
+      render();
+    })();
 
 
     // User menu interactions
@@ -504,6 +586,7 @@
             if (prof.security_question) {
               if (![...sel.options].some(o => o.value === prof.security_question)) sel.add(new Option(prof.security_question, prof.security_question));
               sel.value = prof.security_question;
+              sel.dispatchEvent(new Event('change', { bubbles: true }));
             }
           } catch (_) {}
         })();
