@@ -398,25 +398,7 @@
       document.head.appendChild(s);
     }
 
-    if (!document.querySelector('.bg-slideshow')) {
-      const bg = document.createElement('div');
-      bg.className = 'bg-slideshow';
-      bg.setAttribute('aria-hidden', 'true');
-      const imgs = [
-        '/assets/bg-house.jpg',
-        '/assets/bg-house-2.jpg',
-        '/assets/bg-house-3.jpg',
-        '/assets/bg-house-4.jpg',
-        '/assets/bg-house-5.jpg',
-        '/assets/bg-house-6.jpg',
-        '/assets/bg-house-7.jpg',
-        '/assets/bg-house-8.jpg',
-        '/assets/bg-house-9.jpg',
-        '/assets/bg-house-10.jpg',
-      ];
-      bg.innerHTML = imgs.map(src => `<div class="bg-slide" style="background-image:url('${src}')"></div>`).join('');
-      document.body.prepend(bg);
-    }
+    // Background slideshow removed for speed (saved ~3 MB per page).
 
     const h = document.getElementById('header-mount');
     const f = document.getElementById('footer-mount');

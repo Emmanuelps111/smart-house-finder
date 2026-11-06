@@ -3,10 +3,22 @@
   'use strict';
 
   // Preloader
-  window.addEventListener('load', () => {
-    const p = document.getElementById('preloader');
-    if (p) setTimeout(() => p.classList.add('hidden'), 300);
-  });
+  const hidePre = () => { const p = document.getElementById('preloader'); if (p) p.classList.add('hidden'); };
+  if (document.readyState !== 'loading') hidePre(); else document.addEventListener('DOMContentLoaded', hidePre, { once: true });
+  setTimeout(hidePre, 800);
+
+  // Prefetch same-site pages on hover/touch for near-instant navigation
+  const prefetched = new Set();
+  const prefetch = (e) => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a || a.target === '_blank' || a.origin !== location.origin) return;
+    const url = a.pathname + a.search;
+    if (url === location.pathname + location.search || prefetched.has(url) || !/\.html$|\/$/.test(a.pathname)) return;
+    prefetched.add(url);
+    const l = document.createElement('link'); l.rel = 'prefetch'; l.href = url; document.head.appendChild(l);
+  };
+  document.addEventListener('pointerover', prefetch, { passive: true });
+  document.addEventListener('touchstart', prefetch, { passive: true });
 
   // Theme
   const THEME_KEY = 'shf-theme';
