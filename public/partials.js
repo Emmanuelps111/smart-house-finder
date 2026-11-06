@@ -347,7 +347,7 @@
   .acc-id { display:flex; align-items:center; gap:.8rem; padding: 1rem 1.15rem .4rem; }
   .acc-avatar { width:48px; height:48px; border-radius:50%; background: color-mix(in srgb, var(--primary) 15%, transparent); color:var(--primary); display:grid; place-items:center; font-weight:700; font-size:1.15rem; flex-shrink:0; }
   .acc-id-name { font-weight:700; color:var(--text); }
-  .acc-pills { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.25rem; }
+  .acc-pills { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.4rem; }
   .acc-pill { font-size:.72rem; font-weight:600; padding:.15rem .6rem; border-radius:999px; background:var(--bg); border:1px solid var(--border); color:var(--text-muted); display:inline-flex; align-items:center; gap:.3rem; }
   .acc-pill.g { color:#059669; border-color:rgba(16,185,129,.35); background:rgba(16,185,129,.1); }
   .acc-pill.y { color:#b45309; border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.1); }
