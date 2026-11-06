@@ -140,6 +140,11 @@ function sortListings() {
 sortListings();
 
 // === Load landlord-submitted properties from Lovable Cloud ===
+// Instant render from cached listings; fresh data replaces it when it arrives.
+try {
+  const c = JSON.parse(sessionStorage.getItem('shf-listings-cache') || 'null');
+  if (Array.isArray(c) && c.length) window.SHF_LISTINGS = c;
+} catch (e) {}
 window.SHF.fetchDbListings = async function () {
   if (!window.SHFCloud || !window.SHFCloud.ready) return;
   try {
@@ -201,6 +206,7 @@ window.SHF.fetchDbListings = async function () {
     window.SHF_LISTINGS = window.SHF_LISTINGS.filter(l => !(typeof l.id === 'string' && l.id.startsWith('db-')));
     window.SHF_LISTINGS = window.SHF_LISTINGS.concat(mapped);
     sortListings();
+    try { sessionStorage.setItem('shf-listings-cache', JSON.stringify(mapped.map(m => ({ ...m, contact_phone: undefined })))); } catch (e) {}
     window.dispatchEvent(new CustomEvent('shf:listings-updated', { detail: { added: mapped.length } }));
   } catch (e) {
     console.warn('[SHF] fetchDbListings error:', e);
