@@ -492,7 +492,7 @@ function AdminPage() {
               <CardContent>
                 {profiles.length === 0 ? <p className="text-sm text-muted-foreground">No users yet.</p> : (
                   <Table>
-                    <TableHeader><TableRow className="bg-muted/50 hover:bg-muted/50"><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>National ID</TableHead><TableHead>Role</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow className="bg-muted/50 hover:bg-muted/50"><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Phone</TableHead><TableHead>National ID</TableHead><TableHead>Role</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {profiles.map((u) => {
                         const roles = rolesByUser[u.id];
