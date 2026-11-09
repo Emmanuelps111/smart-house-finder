@@ -192,20 +192,52 @@ function AdminPage() {
   }, []);
 
 
+  const checkAccess = useCallback(async (isActive: () => boolean = () => true) => {
+    let { data: userData } = await supabase.auth.getUser();
+    // Fallback: session written by the static login page directly to localStorage
+    if (!userData.user && typeof window !== "undefined") {
+      try {
+        const key = Object.keys(window.localStorage).find((k) => /^sb-.*-auth-token$/.test(k));
+        const raw = key ? window.localStorage.getItem(key) : null;
+        const parsed = raw ? JSON.parse(raw) : null;
+        const s = parsed?.currentSession || parsed;
+        if (s?.access_token && s?.refresh_token) {
+          await supabase.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+          ({ data: userData } = await supabase.auth.getUser());
+        }
+      } catch { /* ignore */ }
+    }
+    if (!isActive()) return;
+    if (!userData.user) { setAuthState("unauthenticated"); return; }
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
+    if (!isActive()) return;
+    if (!isAdmin) { setAuthState("forbidden"); return; }
+    setAuthState("ok");
+    await loadData();
+  }, [loadData]);
+
   useEffect(() => {
     let active = true;
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!active) return;
-      if (!userData.user) { setAuthState("unauthenticated"); return; }
-      const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
-      if (!active) return;
-      if (!isAdmin) { setAuthState("forbidden"); return; }
-      setAuthState("ok");
-      await loadData();
-    })();
-    return () => { active = false; };
-  }, [loadData]);
+    void checkAccess(() => active);
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") void checkAccess(() => active);
+      if (event === "SIGNED_OUT") setAuthState("unauthenticated");
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, [checkAccess]);
+
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoggingIn(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail.trim(), password: loginPass });
+    setLoggingIn(false);
+    if (error) { toast.error(error.message); return; }
+    setLoginPass("");
+    await checkAccess();
+  };
 
   const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
   const openProperty = async (p: Property) => {
@@ -312,8 +344,13 @@ function AdminPage() {
   if (authState === "unauthenticated") return (
     <div className="flex min-h-screen items-center justify-center px-4 bg-background">
       <Card className="max-w-md rounded-[20px] border-border shadow-[0_4px_20px_-4px_rgba(15,23,42,.08)]"><CardHeader><CardTitle>Sign in required</CardTitle></CardHeader>
-        <CardContent><p className="text-sm text-muted-foreground mb-4">You need to sign in to access the admin dashboard.</p>
-          <Button asChild className="rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95"><a href="/login.html">Go to login</a></Button>
+        <CardContent><p className="text-sm text-muted-foreground mb-4">Sign in with your admin account to continue.</p>
+          <form onSubmit={handleAdminLogin} className="space-y-3">
+            <input type="email" required autoComplete="email" placeholder="Email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring" />
+            <input type="password" required autoComplete="current-password" placeholder="Password" value={loginPass} onChange={(e) => setLoginPass(e.target.value)} className="w-full rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring" />
+            <Button type="submit" disabled={loggingIn} className="w-full rounded-full bg-brand text-white hover:bg-brand/90 active:scale-95">{loggingIn ? "Signing in…" : "Sign in"}</Button>
+          </form>
+          <p className="mt-4 text-center text-xs text-muted-foreground">Or use the <a href="/login.html" className="underline">main login page</a></p>
         </CardContent>
       </Card>
     </div>
