@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { deleteUserAccount } from "@/lib/admin-user.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -130,6 +132,24 @@ function AdminPage() {
   const [selected, setSelected] = useState<Property | null>(null);
   const [selectedLandlord, setSelectedLandlord] = useState<Profile | null>(null);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
+  const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const deleteUserFn = useServerFn(deleteUserAccount);
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeletingUser(true);
+    try {
+      await deleteUserFn({ data: { userId: userToDelete.id } });
+      setProfiles((arr) => arr.filter((p) => p.id !== userToDelete.id));
+      toast.success(`${userToDelete.full_name ?? "User"} was deleted`);
+      if (selectedUser?.id === userToDelete.id) setSelectedUser(null);
+      setUserToDelete(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeletingUser(false);
+    }
+  };
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [roommates, setRoommates] = useState<RoommateRequest[]>([]);
   const [roommateToDelete, setRoommateToDelete] = useState<RoommateRequest | null>(null);
@@ -459,6 +479,9 @@ function AdminPage() {
                             <TableCell className="text-right">
                               <Button size="sm" variant="outline" className="rounded-full active:scale-95" onClick={() => setSelectedUser(u)}>
                                 View more
+                              </Button>
+                              <Button size="sm" variant="outline" className="ml-2 rounded-full border-destructive/40 text-destructive hover:bg-destructive/10 active:scale-95" onClick={() => setUserToDelete(u)}>
+                                Delete
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -844,8 +867,26 @@ function AdminPage() {
                 )}
               </div>
 
+              <div className="border-t pt-4 space-y-2">
+                <h4 className="font-semibold text-destructive">Danger zone</h4>
+                <p className="text-xs text-muted-foreground">Permanently remove this account and its login.</p>
+                <Button size="sm" variant="destructive" className="rounded-full active:scale-95" onClick={() => setUserToDelete(selectedUser)}>Delete account</Button>
+              </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!userToDelete} onOpenChange={(o) => { if (!o && !deletingUser) setUserToDelete(null); }}>
+        <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border border-border rounded-3xl">
+          <DialogHeader><DialogTitle className="text-foreground">Delete this account?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This permanently deletes <strong className="text-foreground">{userToDelete?.full_name ?? "this user"}</strong>&apos;s account, profile and login. This cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" className="rounded-full" disabled={deletingUser} onClick={() => setUserToDelete(null)}>Cancel</Button>
+            <Button variant="destructive" className="rounded-full" disabled={deletingUser} onClick={confirmDeleteUser}>{deletingUser ? "Deleting…" : "Delete account"}</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
