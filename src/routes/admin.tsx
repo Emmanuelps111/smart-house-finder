@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteUserAccount } from "@/lib/admin-user.functions";
+import { listUserEmails } from "@/lib/admin-emails.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -135,6 +136,8 @@ function AdminPage() {
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
   const deleteUserFn = useServerFn(deleteUserAccount);
+  const listEmailsFn = useServerFn(listUserEmails);
+  const [emails, setEmails] = useState<Record<string, string>>({});
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
     setDeletingUser(true);
@@ -189,7 +192,8 @@ function AdminPage() {
     if (agencies) setPendingAgencies(agencies);
     const { data: tData } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { order: (col: string, o: { ascending: boolean }) => Promise<{ data: Testimonial[] | null }> } } }).from("testimonials").select("*").order("created_at", { ascending: false });
     if (tData) setTestimonials(tData);
-  }, []);
+    try { setEmails(await listEmailsFn()); } catch (e) { console.error("emails", e); }
+  }, [listEmailsFn]);
 
 
   const checkAccess = useCallback(async (isActive: () => boolean = () => true) => {
@@ -502,6 +506,7 @@ function AdminPage() {
                                 {u.full_name ?? "—"}
                               </div>
                             </TableCell>
+                            <TableCell className="text-muted-foreground text-xs break-all">{emails[u.id] ?? "—"}</TableCell>
                             <TableCell className="text-muted-foreground">{u.phone ?? "—"}</TableCell>
                             <TableCell className="text-muted-foreground font-mono text-xs">{u.national_id ?? "—"}</TableCell>
                             <TableCell>
@@ -860,6 +865,7 @@ function AdminPage() {
                 <div className="flex-1 grid grid-cols-2 gap-3">
                   <Field label="Full name">{selectedUser.full_name ?? "—"}</Field>
                   <Field label="Role(s)">{displayRoles(rolesByUser[selectedUser.id], selectedUser.role)}</Field>
+                  <Field label="Email">{emails[selectedUser.id] ?? "—"}</Field>
                   <Field label="Phone">{selectedUser.phone ?? "—"}</Field>
                   <Field label="National ID">{selectedUser.national_id ?? "—"}</Field>
                   <Field label="Cleanliness">{selectedUser.cleanliness_preference ?? "—"}</Field>
@@ -918,7 +924,7 @@ function AdminPage() {
         <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border border-border rounded-3xl">
           <DialogHeader><DialogTitle className="text-foreground">Delete this account?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            This permanently deletes <strong className="text-foreground">{userToDelete?.full_name ?? "this user"}</strong>&apos;s account, profile and login. This cannot be undone.
+            This permanently deletes <strong className="text-foreground">{userToDelete?.full_name ?? "this user"}</strong>{userToDelete && emails[userToDelete.id] ? ` (${emails[userToDelete.id]})` : ""}&apos;s account, profile and login. This cannot be undone.
           </p>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" className="rounded-full" disabled={deletingUser} onClick={() => setUserToDelete(null)}>Cancel</Button>
