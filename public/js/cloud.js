@@ -42,6 +42,34 @@
   toast.info = (m) => toast(m, 'info');
 
   // --- Supabase client (lazy-load from CDN) ---------------------------------
+  // In the Lovable editor preview, mirror auth writes to the editor's session
+  // broker so the React pages (e.g. /admin) see the same login.
+  function makeStorage() {
+    const ls = window.localStorage;
+    let projectId = null, framed = false;
+    try {
+      framed = window.parent && window.parent !== window;
+      const m = /^(?:id-preview(?:-[a-z0-9]+)?|project)--([0-9a-f-]{36})(?:-dev)?(?=\.|$)/i.exec(location.hostname);
+      projectId = m && m[1];
+    } catch (_) {}
+    if (!framed || !projectId) return ls;
+    const origins = ['https://lovable.dev'];
+    try {
+      const anc = location.ancestorOrigins && location.ancestorOrigins[0];
+      if (anc && /^https:\/\/([a-z0-9-]+\.)*(lovable\.dev|gptengineer\.app)$/.test(anc)) origins[0] = anc;
+    } catch (_) {}
+    const post = (type, key, value) => {
+      const msg = { type, requestId: Math.random().toString(36).slice(2), projectId, key };
+      if (value !== undefined) msg.value = value;
+      origins.forEach((o) => { try { window.parent.postMessage(msg, o); } catch (_) {} });
+    };
+    return {
+      getItem: (k) => ls.getItem(k),
+      setItem: (k, v) => { ls.setItem(k, v); if (/^sb-.*-auth-token$/.test(k)) post('lovable-preview-auth:set', k, v); },
+      removeItem: (k) => { const old = ls.getItem(k); ls.removeItem(k); if (/^sb-.*-auth-token$/.test(k)) post('lovable-preview-auth:remove', k, old ?? undefined); },
+    };
+  }
+
   let clientPromise = null;
   function getClient() {
     if (clientPromise) return clientPromise;
