@@ -57,10 +57,10 @@ window.SHF.universityForEmail = function (email) {
 try {
   const saved = localStorage.getItem('shf-campus');
   const found = window.SHF.CAMPUSES.find(c => c.key === saved);
-  window.SHF.CAMPUS = found || window.SHF.CAMPUSES[1];
-} catch (e) { window.SHF.CAMPUS = window.SHF.CAMPUSES[1]; }
+  window.SHF.CAMPUS = found || window.SHF.CAMPUSES[0];
+} catch (e) { window.SHF.CAMPUS = window.SHF.CAMPUSES[0]; }
 window.SHF.setCampus = function (key) {
-  const c = window.SHF.CAMPUSES.find(x => x.key === key) || window.SHF.CAMPUSES[1];
+  const c = window.SHF.CAMPUSES.find(x => x.key === key) || window.SHF.CAMPUSES[0];
   window.SHF.CAMPUS = c;
   try { localStorage.setItem('shf-campus', c.key); } catch(e){}
   window.dispatchEvent(new CustomEvent('shf:campus-changed', { detail: c }));
