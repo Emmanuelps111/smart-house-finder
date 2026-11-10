@@ -31,13 +31,29 @@ window.SHF.timeAgo = function (date) {
 };
 
 // === Proximity & Commute Cost Calculator ===
-window.SHF.CAMPUSES = [
-  { key: 'all',     name: 'All Locations',          lat: null,     lng: null },
-  { key: 'mlimani', name: 'Main Campus (Mlimani)',  lat: -6.7749,  lng: 39.2026 },
-  { key: 'coict',   name: "COICT Kijitonyama",       lat: -6.7645,  lng: 39.2435 },
-  { key: 'muhas',   name: 'MUHAS Upanga',           lat: -6.8062,  lng: 39.2721 },
-  { key: 'duce',    name: "DUCE Chang'ombe",         lat: -6.8412,  lng: 39.2743 },
+// Supported universities. `domains` = official student email domains that get instant verification.
+window.SHF.UNIVERSITIES = [
+  { key: 'udsm',  name: 'University of Dar es Salaam (UDSM)', domains: ['student.udsm.ac.tz', 'udsm.ac.tz', 'duce.ac.tz'] },
+  { key: 'ardhi', name: 'Ardhi University', domains: ['aru.ac.tz', 'student.aru.ac.tz'] },
+  { key: 'ifm',   name: 'Institute of Finance Management (IFM)', domains: ['ifm.ac.tz', 'student.ifm.ac.tz'] },
+  { key: 'muhas', name: 'Muhimbili University (MUHAS)', domains: ['muhas.ac.tz', 'student.muhas.ac.tz'] },
+  { key: 'cbe',   name: 'College of Business Education (CBE)', domains: ['cbe.ac.tz', 'student.cbe.ac.tz'] },
 ];
+window.SHF.CAMPUSES = [
+  { key: 'all',     name: 'All Campuses',              lat: null,     lng: null },
+  { key: 'mlimani', name: 'UDSM Main Campus (Mlimani)', uni: 'udsm',  lat: -6.7749,  lng: 39.2026 },
+  { key: 'coict',   name: 'UDSM COICT Kijitonyama',     uni: 'udsm',  lat: -6.7645,  lng: 39.2435 },
+  { key: 'duce',    name: "UDSM DUCE Chang'ombe",       uni: 'udsm',  lat: -6.8412,  lng: 39.2743 },
+  { key: 'ardhi',   name: 'Ardhi University',           uni: 'ardhi', lat: -6.7671,  lng: 39.2147 },
+  { key: 'ifm',     name: 'IFM City Centre',            uni: 'ifm',   lat: -6.8148,  lng: 39.2908 },
+  { key: 'muhas',   name: 'MUHAS Upanga',               uni: 'muhas', lat: -6.8062,  lng: 39.2721 },
+  { key: 'cbe',     name: 'CBE Dar es Salaam',          uni: 'cbe',   lat: -6.8167,  lng: 39.2797 },
+];
+// Returns the university for an official email, or null for personal emails.
+window.SHF.universityForEmail = function (email) {
+  const dom = String(email || '').toLowerCase().split('@')[1] || '';
+  return window.SHF.UNIVERSITIES.find(u => u.domains.includes(dom)) || null;
+};
 try {
   const saved = localStorage.getItem('shf-campus');
   const found = window.SHF.CAMPUSES.find(c => c.key === saved);
@@ -78,7 +94,8 @@ window.SHF.proximityBadges = function (lat, lng) {
   // Student-only feature: hide commute/walk/distance from renters & landlords
   try {
     const u = JSON.parse(localStorage.getItem('shf-user') || 'null');
-    if (!u || u.role !== 'student') return '';
+    // Guests and students see commute info; renters/landlords don't.
+    if (u && u.role !== 'student') return '';
   } catch (e) { return ''; }
   const c = window.SHF.CAMPUS;
   if (!c || c.lat == null || c.lng == null) return '';
