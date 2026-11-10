@@ -15,8 +15,38 @@
   <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#3B82F6;"></i>
   <p id="msg" style="color:#374151;">Finishing sign-in…</p>
 </div>
+<script src="/js/data.js"></script>
 <script src="/js/cloud.js"></script>
 <script>
+function askForStudentId(sb, uid) {
+  return new Promise(() => {
+    const box = document.getElementById('msg').parentElement;
+    box.innerHTML = `
+      <div style="max-width:26rem;width:92%;background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:1.6rem;box-shadow:0 20px 50px rgba(15,23,42,.08);text-align:center;">
+        <i class="fas fa-id-badge" style="font-size:2.4rem;color:#3B82F6;"></i>
+        <h2 style="margin:.6rem 0 .3rem;">Upload your Student ID</h2>
+        <p style="color:#64748b;font-size:.92rem;margin:0 0 1rem;">You signed up with a personal email, so our team will check your Student ID. This usually takes less than a day.</p>
+        <input id="sid" type="file" accept="image/*" style="width:100%;margin-bottom:.8rem;" />
+        <p id="sidErr" style="color:#ef4444;font-size:.85rem;min-height:1em;margin:0 0 .6rem;"></p>
+        <button id="sidBtn" class="btn btn-primary" style="width:100%;">Submit for review</button>
+        <a href="/listings.html" style="display:block;margin-top:.8rem;font-size:.85rem;color:#64748b;">Skip for now — browse listings</a>
+      </div>`;
+    document.getElementById('sidBtn').onclick = async () => {
+      const f = document.getElementById('sid').files?.[0];
+      const err = document.getElementById('sidErr');
+      if (!f) { err.textContent = 'Choose a photo of your Student ID.'; return; }
+      if (f.size > 5*1024*1024) { err.textContent = 'File must be under 5MB.'; return; }
+      const btn = document.getElementById('sidBtn'); btn.disabled = true; btn.textContent = 'Uploading…';
+      const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${uid}/student-id-${Date.now()}.${ext}`;
+      const { error } = await sb.storage.from('property-photos').upload(path, f, { contentType: f.type || 'image/jpeg', upsert: true });
+      if (error) { err.textContent = 'Upload failed. Check your connection and try again.'; btn.disabled = false; btn.textContent = 'Submit for review'; return; }
+      const { data: pub } = sb.storage.from('property-photos').getPublicUrl(path);
+      await sb.from('profiles').update({ student_id_url: pub.publicUrl }).eq('id', uid);
+      box.innerHTML = '<div style="text-align:center;max-width:26rem;"><i class="fas fa-circle-check" style="font-size:2.6rem;color:#10b981;"></i><h2>Submitted for review</h2><p style="color:#64748b;">We\'ll notify you once approved. You can browse listings meanwhile.</p><a class="btn btn-primary" href="/listings.html">Browse listings</a></div>';
+    };
+  });
+}
 (async function () {
   const msg = document.getElementById('msg');
   try {
@@ -48,36 +78,41 @@
     if (role === 'student') {
       try {
         const { data: prof } = await sb.from('profiles')
-          .select('verification_status, phone, university, student_reg_no')
+          .select('verification_status, phone, university, student_reg_no, home_campus, student_id_url')
           .eq('id', uid)
           .maybeSingle();
-        if (!prof || prof.verification_status !== 'approved') {
+        const dom = email.split('@')[1] || '';
+        const institutional = (window.SHF.UNIVERSITIES || []).some(u => u.domains.includes(dom));
+        const update = {};
+        if (!prof?.phone && meta.phone) update.phone = meta.phone;
+        if (!prof?.university && meta.university) update.university = meta.university;
+        if (!prof?.student_reg_no && meta.student_reg_no) update.student_reg_no = meta.student_reg_no;
+        if (!prof?.home_campus && meta.home_campus) update.home_campus = meta.home_campus;
+        if (institutional && (!prof || prof.verification_status !== 'approved')) {
           msg.textContent = 'Activating your student account…';
-          const update = {
-            verification_status: 'approved',
-            verified_at: new Date().toISOString(),
-          };
-          if (!prof?.phone && meta.phone) update.phone = meta.phone;
-          if (!prof?.university && meta.university) update.university = meta.university;
-          if (!prof?.student_reg_no && meta.student_reg_no) update.student_reg_no = meta.student_reg_no;
-          await sb.from('profiles').update(update).eq('id', uid);
-
-          // Apply pending security question captured during signup (same device)
-          try {
-            const raw = localStorage.getItem('shf-pending-secq');
-            if (raw) {
-              const stash = JSON.parse(raw);
-              if (stash && stash.email === email && stash.question && stash.answer) {
-                await sb.rpc('set_security_question', {
-                  _question: stash.question,
-                  _answer: stash.answer,
-                });
-              }
-              localStorage.removeItem('shf-pending-secq');
-            }
-          } catch (_) {}
+          update.verification_status = 'approved';
+          update.verified_at = new Date().toISOString();
         }
-      } catch (e) { console.warn('student auto-approve skipped:', e); }
+        if (Object.keys(update).length) await sb.from('profiles').update(update).eq('id', uid);
+
+        try {
+          const raw = localStorage.getItem('shf-pending-secq');
+          if (raw) {
+            const stash = JSON.parse(raw);
+            if (stash && stash.email === email && stash.question && stash.answer) {
+              await sb.rpc('set_security_question', { _question: stash.question, _answer: stash.answer });
+            }
+            localStorage.removeItem('shf-pending-secq');
+          }
+        } catch (_) {}
+
+        // Personal-email students: collect Student ID for admin review.
+        if (!institutional && prof?.verification_status !== 'approved' && !prof?.student_id_url) {
+          await window.SHFCloud.syncLocalUser(sb, session);
+          await askForStudentId(sb, uid);
+          return;
+        }
+      } catch (e) { console.warn('student setup skipped:', e); }
     }
 
     await window.SHFCloud.syncLocalUser(sb, session);
