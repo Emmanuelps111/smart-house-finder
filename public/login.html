@@ -463,19 +463,19 @@
       </div>`;
   }
 
-  function showStudentCheckEmailPanel(email) {
+  function showStudentCheckEmailPanel(email, personal) {
     document.querySelector('.auth-card').innerHTML = `
       <div style="text-align:center; padding:1.5rem 0;">
         <div style="display:inline-flex; width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#3B82F6,#8b5cf6); align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(59,130,246,.35);">
           <i class="fas fa-envelope-open-text" style="font-size:2rem; color:white;"></i>
         </div>
-        <h2 style="margin-top:.9rem;">Check your UDSM inbox</h2>
+        <h2 style="margin-top:.9rem;">Check your inbox</h2>
         <p style="color:#475569; font-size:.95rem; max-width:26rem; margin:.5rem auto 1rem;">
           We sent a confirmation link to <strong>${email}</strong>. Open the email from MakaziLink and click the confirmation link to activate your student account.
         </p>
         <div style="background:rgba(255,255,255,.85); backdrop-filter:blur(8px); border:1px solid rgba(226,232,240,.6); border-radius:14px; padding:1rem 1.1rem; margin:.5rem auto 1rem; max-width:26rem; text-align:left; font-size:.85rem; color:#475569;">
           <p style="margin:0 0 .35rem;"><i class="fas fa-circle-info" style="color:#3B82F6; margin-right:.4rem;"></i> Didn't receive it within a few minutes? Check your spam or promotions folder.</p>
-          <p style="margin:0;"><i class="fas fa-shield-halved" style="color:#3B82F6; margin-right:.4rem;"></i> Only official <code>@student.udsm.ac.tz</code> and <code>@udsm.ac.tz</code> addresses are accepted.</p>
+          <p style="margin:0;"><i class="fas fa-shield-halved" style="color:#3B82F6; margin-right:.4rem;"></i> ${personal ? 'After confirming, you will be asked to upload your Student ID for our team to review.' : 'Official university emails are verified instantly once confirmed.'}</p>
         </div>
         <a href="/login.html" class="btn btn-primary" style="margin-top:.5rem;">Back to sign in</a>
       </div>`;
@@ -868,6 +868,10 @@
           ...landlordMeta,
           ...(isStudent ? {
             is_student_pending_approval: true,
+            university: studentMeta.university,
+            home_campus: studentMeta.home_campus,
+            student_reg_no: studentMeta.student_reg_no,
+            student_email_type: studentMeta.student_email_type,
           } : {}),
         };
         const { data: signupData, error } = await sb.auth.signUp({
@@ -948,7 +952,19 @@
               }));
             }
           } catch (_) {}
-          showStudentCheckEmailPanel(emailEl.value.trim());
+          // Personal email: upload the Student ID now if we already have a session.
+          if (studentMeta.student_email_type === 'personal' && signupData?.session) {
+            const f = document.getElementById('st-id-file')?.files?.[0];
+            const url = await uploadVerifFile(sb, signupData.user.id, f, 'student-id');
+            if (url) await sb.from('profiles').update({
+              student_id_url: url, university: studentMeta.university,
+              home_campus: studentMeta.home_campus, student_reg_no: studentMeta.student_reg_no, phone: studentMeta.phone,
+            }).eq('id', signupData.user.id);
+            await sb.auth.signOut();
+            showFinalPanel('Student ID submitted', 'Our team will review your Student ID shortly. You can sign in and browse while you wait — booking unlocks once you are approved.', 'id-badge');
+            return;
+          }
+          showStudentCheckEmailPanel(emailEl.value.trim(), studentMeta.student_email_type === 'personal');
           return;
         }
 
@@ -989,7 +1005,7 @@
         const msg = (error.message || '').toLowerCase();
         const code = (error.code || '').toLowerCase();
         const unconfirmed = code === 'email_not_confirmed' || msg.includes('not confirmed') || msg.includes('confirm');
-        const isUdsm = /@(student\.udsm\.ac\.tz|udsm\.ac\.tz)$/i.test(signinEmail);
+        const isUdsm = true;
         if (unconfirmed && isUdsm && role === 'student') {
           showPendingBanner(signinEmail);
           btn.disabled = false;
