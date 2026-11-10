@@ -333,17 +333,28 @@
   });
 
   initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
-  initDropdown('sort',  sortOptions,  'newest', (v) => { sortEl.value = v; render(); });
+  const sortDd = initDropdown('sort',  sortOptions,  'newest', (v) => {
+    if (v === 'distance' && (!window.SHF.CAMPUS || window.SHF.CAMPUS.lat == null)) {
+      window.toast && window.toast.info && window.toast.info('Pick a campus first to sort by distance.');
+      sortDd && sortDd.setValue(sortEl.value || 'newest');
+      return;
+    }
+    sortEl.value = v; render();
+  });
   function isStudent() {
     try { const u = JSON.parse(localStorage.getItem('shf-user')||'null'); return !!u && u.role === 'student'; }
     catch(e){ return false; }
   }
-  if (isStudent()) {
+  function isGuest() {
+    try { return !JSON.parse(localStorage.getItem('shf-user')||'null'); } catch(e){ return true; }
+  }
+  // Campus is context (commute badges + "Closest to campus" sort option), never overrides the chosen sort.
+  if (isStudent() || isGuest()) {
     const wrap = document.getElementById('campusDdWrap');
     if (wrap) wrap.style.display = '';
-    initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'mlimani', (v) => {
+    initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'all', (v) => {
       window.SHF.setCampus(v);
-      if (v !== 'all') { sortEl.value = 'distance'; }
+      if (v === 'all' && sortEl.value === 'distance') { sortEl.value = 'newest'; sortDd && sortDd.setValue('newest'); }
       render();
     });
   }

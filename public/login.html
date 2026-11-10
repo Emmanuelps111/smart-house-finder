@@ -145,9 +145,29 @@
           <input id="st-phone" type="tel" autocomplete="tel" placeholder="+255759996841" pattern="^\+255\d{9}$" maxlength="13" />
           <span class="error"></span>
         </div>
-        <div style="background: rgba(255,255,255,.85); backdrop-filter: blur(8px); border:1px solid rgba(226,232,240,.6); border-left:3px solid var(--primary,#3B82F6); padding:.75rem 1rem; border-radius:12px; font-size:.85rem; margin: .5rem 0 1rem; color:#1e293b;">
+        <div class="form-row">
+          <label for="st-campus">Your university &amp; campus</label>
+          <select id="st-campus"><option value="">Select your campus</option></select>
+          <span class="error"></span>
+        </div>
+        <div class="form-row">
+          <label for="st-regno">Registration number</label>
+          <input id="st-regno" type="text" placeholder="e.g. 2023-04-01234" maxlength="40" />
+          <span class="error"></span>
+        </div>
+        <div id="st-verify-note" style="background: rgba(255,255,255,.85); backdrop-filter: blur(8px); border:1px solid rgba(226,232,240,.6); border-left:3px solid var(--primary,#3B82F6); padding:.75rem 1rem; border-radius:12px; font-size:.85rem; margin: .5rem 0 1rem; color:#1e293b;">
           <i class="fas fa-envelope-circle-check" style="color:var(--primary,#3B82F6);"></i>
-          You'll be verified instantly via your official UDSM email address. We'll email you a confirmation link — click it from your campus inbox to activate your account.
+          Using your official university email? You'll be verified instantly. Using a personal email (Gmail etc.)? Upload your Student ID below and our team will review it.
+        </div>
+        <div class="form-row" id="st-id-row">
+          <label>Student ID photo (required for personal emails)</label>
+          <label class="file-input-wrap" for="st-id-file">
+            <i class="fas fa-id-badge" style="font-size:1.5rem; color:var(--primary,#3B82F6);"></i>
+            <div>Click to upload — JPG or PNG (max 5MB)</div>
+            <span class="file-name" id="st-id-file-name">No file selected</span>
+            <input id="st-id-file" type="file" accept="image/*" />
+          </label>
+          <span class="error"></span>
         </div>
       </div>
 
@@ -291,6 +311,7 @@
 </div>
 
 <div id="footer-mount"></div>
+<script src="/js/data.js"></script>
 <script src="/js/cloud.js"></script>
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
@@ -391,6 +412,19 @@
   bindFile('ll-nid-file', 'll-nid-file-name');
   bindFile('ll-selfie', 'll-selfie-name');
   bindFile('ll-deed', 'll-deed-name');
+  bindFile('st-id-file', 'st-id-file-name');
+  (function fillCampuses(){
+    const sel = document.getElementById('st-campus');
+    if (!sel || !window.SHF || !window.SHF.CAMPUSES) return;
+    const unis = window.SHF.UNIVERSITIES || [];
+    unis.forEach(u => {
+      const g = document.createElement('optgroup'); g.label = u.name;
+      window.SHF.CAMPUSES.filter(c => c.uni === u.key).forEach(c => {
+        const o = document.createElement('option'); o.value = c.key; o.textContent = c.name; g.appendChild(o);
+      });
+      sel.appendChild(g);
+    });
+  })();
 
   function showInstitutionalGateError() {
     const em = document.getElementById('au-email');
@@ -429,19 +463,19 @@
       </div>`;
   }
 
-  function showStudentCheckEmailPanel(email) {
+  function showStudentCheckEmailPanel(email, personal) {
     document.querySelector('.auth-card').innerHTML = `
       <div style="text-align:center; padding:1.5rem 0;">
         <div style="display:inline-flex; width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#3B82F6,#8b5cf6); align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(59,130,246,.35);">
           <i class="fas fa-envelope-open-text" style="font-size:2rem; color:white;"></i>
         </div>
-        <h2 style="margin-top:.9rem;">Check your UDSM inbox</h2>
+        <h2 style="margin-top:.9rem;">Check your inbox</h2>
         <p style="color:#475569; font-size:.95rem; max-width:26rem; margin:.5rem auto 1rem;">
           We sent a confirmation link to <strong>${email}</strong>. Open the email from MakaziLink and click the confirmation link to activate your student account.
         </p>
         <div style="background:rgba(255,255,255,.85); backdrop-filter:blur(8px); border:1px solid rgba(226,232,240,.6); border-radius:14px; padding:1rem 1.1rem; margin:.5rem auto 1rem; max-width:26rem; text-align:left; font-size:.85rem; color:#475569;">
           <p style="margin:0 0 .35rem;"><i class="fas fa-circle-info" style="color:#3B82F6; margin-right:.4rem;"></i> Didn't receive it within a few minutes? Check your spam or promotions folder.</p>
-          <p style="margin:0;"><i class="fas fa-shield-halved" style="color:#3B82F6; margin-right:.4rem;"></i> Only official <code>@student.udsm.ac.tz</code> and <code>@udsm.ac.tz</code> addresses are accepted.</p>
+          <p style="margin:0;"><i class="fas fa-shield-halved" style="color:#3B82F6; margin-right:.4rem;"></i> ${personal ? 'After confirming, you will be asked to upload your Student ID for our team to review.' : 'Official university emails are verified instantly once confirmed.'}</p>
         </div>
         <a href="/login.html" class="btn btn-primary" style="margin-top:.5rem;">Back to sign in</a>
       </div>`;
@@ -781,13 +815,24 @@
     if (tab === 'signup' && role === 'student') {
       const phone = document.getElementById('st-phone').value.trim();
       const emVal = (emailEl.value || '').trim().toLowerCase();
-      if (!/@(student\.udsm\.ac\.tz|udsm\.ac\.tz)$/.test(emVal)) {
-        setError('au-email','');
-        showInstitutionalGateError();
-        ok = false;
-      }
+      const campusKey = document.getElementById('st-campus').value;
+      const campus = (window.SHF.CAMPUSES || []).find(c => c.key === campusKey);
+      const uni = campus ? (window.SHF.UNIVERSITIES || []).find(u => u.key === campus.uni) : null;
+      const regno = document.getElementById('st-regno').value.trim();
+      const emailUni = window.SHF.universityForEmail(emVal);
+      const idFile = document.getElementById('st-id-file').files?.[0];
       if (!/^\+255\d{9}$/.test(phone)) { setError('st-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
-      studentMeta = { phone };
+      if (!campus) { setError('st-campus','Select your campus.'); ok = false; }
+      if (regno.length < 4) { setError('st-regno','Enter your registration number.'); ok = false; }
+      if (!emailUni) {
+        if (!idFile) { setError('st-id-file','Personal emails need a Student ID photo for admin review.'); ok = false; }
+        else if (idFile.size > 5*1024*1024) { setError('st-id-file','File must be under 5MB.'); ok = false; }
+      }
+      studentMeta = {
+        phone, home_campus: campus ? campus.name : '', university: uni ? uni.name : '',
+        student_reg_no: regno, student_email_type: emailUni ? 'institutional' : 'personal',
+      };
+      if (campus) { try { window.SHF.setCampus(campus.key); } catch(e){} }
     }
 
     if (tab === 'signup' && role === 'renter') {
@@ -823,6 +868,10 @@
           ...landlordMeta,
           ...(isStudent ? {
             is_student_pending_approval: true,
+            university: studentMeta.university,
+            home_campus: studentMeta.home_campus,
+            student_reg_no: studentMeta.student_reg_no,
+            student_email_type: studentMeta.student_email_type,
           } : {}),
         };
         const { data: signupData, error } = await sb.auth.signUp({
@@ -903,7 +952,19 @@
               }));
             }
           } catch (_) {}
-          showStudentCheckEmailPanel(emailEl.value.trim());
+          // Personal email: upload the Student ID now if we already have a session.
+          if (studentMeta.student_email_type === 'personal' && signupData?.session) {
+            const f = document.getElementById('st-id-file')?.files?.[0];
+            const url = await uploadVerifFile(sb, signupData.user.id, f, 'student-id');
+            if (url) await sb.from('profiles').update({
+              student_id_url: url, university: studentMeta.university,
+              home_campus: studentMeta.home_campus, student_reg_no: studentMeta.student_reg_no, phone: studentMeta.phone,
+            }).eq('id', signupData.user.id);
+            await sb.auth.signOut();
+            showFinalPanel('Student ID submitted', 'Our team will review your Student ID shortly. You can sign in and browse while you wait — booking unlocks once you are approved.', 'id-badge');
+            return;
+          }
+          showStudentCheckEmailPanel(emailEl.value.trim(), studentMeta.student_email_type === 'personal');
           return;
         }
 
@@ -944,7 +1005,7 @@
         const msg = (error.message || '').toLowerCase();
         const code = (error.code || '').toLowerCase();
         const unconfirmed = code === 'email_not_confirmed' || msg.includes('not confirmed') || msg.includes('confirm');
-        const isUdsm = /@(student\.udsm\.ac\.tz|udsm\.ac\.tz)$/i.test(signinEmail);
+        const isUdsm = true;
         if (unconfirmed && isUdsm && role === 'student') {
           showPendingBanner(signinEmail);
           btn.disabled = false;
