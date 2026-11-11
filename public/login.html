@@ -964,6 +964,7 @@
             showFinalPanel('Student ID submitted', 'Our team will review your Student ID shortly. You can sign in and browse while you wait — booking unlocks once you are approved.', 'id-badge');
             return;
           }
+          if (signupData?.session) { try { await sb.auth.signOut(); localStorage.removeItem('shf-user'); } catch(_){} }
           showStudentCheckEmailPanel(emailEl.value.trim(), studentMeta.student_email_type === 'personal');
           return;
         }
@@ -1048,6 +1049,44 @@
   });
 
 
+
+
+  // ============ Already signed in: don't show an empty form ============
+  (async function alreadySignedIn() {
+    try {
+      const sb = await window.SHFCloud.ready;
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return;
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return;
+      const { data: roleRows } = await sb.from('user_roles').select('role').eq('user_id', user.id);
+      const roles = (roleRows || []).map(r => r.role);
+      const sp = new URLSearchParams(location.search);
+      const next = sp.get('next') || sp.get('redirect');
+      const target = next || (roles.includes('admin') ? '/admin'
+        : (roles.includes('landlord') || roles.includes('agency')) ? '/dashboard.html' : '/listings.html');
+      if (next) { location.replace(target); return; }
+      const cached = JSON.parse(localStorage.getItem('shf-user') || '{}');
+      const name = cached.name || user.user_metadata?.full_name || user.email;
+      const esc = (t) => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      const label = target === '/admin' ? 'Go to admin dashboard' : target === '/dashboard.html' ? 'Go to my dashboard' : 'Browse listings';
+      document.querySelector('.auth-card').innerHTML = `
+        <div style="text-align:center; padding:1.5rem 0;">
+          <div style="display:inline-flex; width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#10b981,#3B82F6); align-items:center; justify-content:center;">
+            <i class="fas fa-user-check" style="font-size:1.8rem; color:white;"></i>
+          </div>
+          <h2 style="margin-top:.9rem;">You're already signed in</h2>
+          <p style="color:#64748b; margin:.4rem 0 1.2rem;">Signed in as <strong>${esc(name)}</strong></p>
+          <a href="${target}" class="btn btn-primary" style="width:100%; justify-content:center;">${label}</a>
+          <button id="switchAcctBtn" class="btn btn-outline" style="margin-top:.6rem; width:100%; justify-content:center;"><i class="fas fa-right-from-bracket"></i> Log out to switch accounts</button>
+        </div>`;
+      document.getElementById('switchAcctBtn').onclick = async () => {
+        try { await sb.auth.signOut(); } catch(_){}
+        localStorage.removeItem('shf-user');
+        location.reload();
+      };
+    } catch (e) { console.warn('session check skipped', e); }
+  })();
 
   // ============ Unverified student: pending banner + resend ============
   const pendingBanner = document.getElementById('pendingBanner');
