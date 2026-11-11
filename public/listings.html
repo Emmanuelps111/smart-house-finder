@@ -189,6 +189,7 @@
         <div class="shf-dd-panel" data-dd-panel></div>
       </div>
 
+      <button type="button" id="clearFilters" class="shf-dd-btn" style="display:none;"><i class="fas fa-rotate-left" style="margin-right:.4rem;"></i>Clear filters</button>
       <select id="bedFilter" style="display:none;"><option value=""></option></select>
       <input type="hidden" id="priceFilter" value="" />
       <input type="hidden" id="sortBy" value="newest" />
@@ -287,10 +288,8 @@
   ];
   const sortOptions = [
     { v: 'newest',     label: 'Newest first' },
-    { v: 'oldest',     label: 'Oldest first' },
     { v: 'price_asc',  label: 'Price: Low to High' },
     { v: 'price_desc', label: 'Price: High to Low' },
-    { v: 'beds_desc',  label: 'Most bedrooms' },
     { v: 'distance',   label: 'Closest to campus' },
   ];
   const campusOptions = (window.SHF.CAMPUSES || []).map(c => ({ v: c.key, label: c.name }));
@@ -332,7 +331,7 @@
     }
   });
 
-  initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
+  const priceDd = initDropdown('price', priceOptions, '', (v) => { priceF.value = v; render(); });
   const sortDd = initDropdown('sort',  sortOptions,  'newest', (v) => {
     if (v === 'distance' && (!window.SHF.CAMPUS || window.SHF.CAMPUS.lat == null)) {
       window.toast && window.toast.info && window.toast.info('Pick a campus first to sort by distance.');
@@ -352,14 +351,27 @@
   if (isStudent() || isGuest()) {
     const wrap = document.getElementById('campusDdWrap');
     if (wrap) wrap.style.display = '';
-    initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'all', (v) => {
+    window.__campusDd = initDropdown('campus', campusOptions, (window.SHF.CAMPUS && window.SHF.CAMPUS.key) || 'all', (v) => {
       window.SHF.setCampus(v);
-      if (v === 'all' && sortEl.value === 'distance') { sortEl.value = 'newest'; sortDd && sortDd.setValue('newest'); }
+      const ns = v === 'all' ? 'newest' : 'distance';
+      sortEl.value = ns; sortDd && sortDd.setValue(ns);
       render();
     });
   }
+  var campusDd = window.__campusDd;
 
+  if (window.SHF.CAMPUS && window.SHF.CAMPUS.lat != null && document.getElementById('campusDdWrap').style.display !== 'none') {
+    sortEl.value = 'distance'; sortDd && sortDd.setValue('distance');
+  }
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    search.value = ''; priceF.value = ''; priceDd && priceDd.setValue('');
+    if (window.__campusDd) { window.SHF.setCampus('all'); window.__campusDd.setValue('all'); }
+    sortEl.value = 'newest'; sortDd && sortDd.setValue('newest');
+    render();
+  });
   function render() {
+    const cf = document.getElementById('clearFilters');
+    if (cf) cf.style.display = (search.value.trim() || priceF.value || (window.SHF.CAMPUS && window.SHF.CAMPUS.key !== 'all' && window.__campusDd) || sortEl.value !== (window.SHF.CAMPUS && window.SHF.CAMPUS.lat != null && window.__campusDd ? 'distance' : 'newest')) ? '' : 'none';
     const admin = isAdmin();
     const q = search.value.trim().toLowerCase();
     const minBed = parseInt(bedF.value) || 0;
