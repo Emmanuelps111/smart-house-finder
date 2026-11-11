@@ -162,34 +162,34 @@
 <section style="padding-top:2rem;">
   <div class="container">
     <div class="filter-bar" style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
-      <input id="searchInput" type="text" placeholder="Search by city or title..." style="flex:1; min-width:240px; padding:.75rem 1.2rem; border:1px solid var(--border); border-radius:9999px; background:var(--bg); color:var(--text);" />
+      <div class="fb-search"><i class="fas fa-magnifying-glass"></i><input id="searchInput" type="text" placeholder="Search by city or title..." style="border-radius:9999px; color:var(--text);" /></div>
 
       <div class="shf-dd" data-dd="campus" id="campusDdWrap" style="position:relative; display:none;">
         <button type="button" class="shf-dd-btn" data-dd-btn>
-          <i class="fas fa-graduation-cap" style="margin-right:.4rem;opacity:.7;"></i>
+          <span class="fb-ic"><i class="fas fa-graduation-cap"></i></span>
           <span data-dd-label>All campuses</span>
-          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+          <i class="fas fa-chevron-down fb-chev"></i>
         </button>
         <div class="shf-dd-panel" data-dd-panel></div>
       </div>
 
       <div class="shf-dd" data-dd="price" style="position:relative;">
         <button type="button" class="shf-dd-btn" data-dd-btn>
-          <span data-dd-label>Any price</span>
-          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+          <span class="fb-ic"><i class="fas fa-tag"></i></span><span data-dd-label>Any price</span>
+          <i class="fas fa-chevron-down fb-chev"></i>
         </button>
         <div class="shf-dd-panel" data-dd-panel></div>
       </div>
 
       <div class="shf-dd" data-dd="sort" style="position:relative;">
         <button type="button" class="shf-dd-btn" data-dd-btn>
-          <span data-dd-label>Newest first</span>
-          <i class="fas fa-chevron-down" style="font-size:.7rem;margin-left:.5rem;opacity:.7;"></i>
+          <span class="fb-ic"><i class="fas fa-arrow-down-wide-short"></i></span><span data-dd-label>Newest first</span>
+          <i class="fas fa-chevron-down fb-chev"></i>
         </button>
         <div class="shf-dd-panel" data-dd-panel></div>
       </div>
 
-      <button type="button" id="clearFilters" class="shf-dd-btn" style="display:none;"><i class="fas fa-rotate-left" style="margin-right:.4rem;"></i>Clear filters</button>
+      <button type="button" id="clearFilters" style="display:none;"><i class="fas fa-rotate-left"></i>Clear filters<span class="fb-count" id="fbCount">0</span></button>
       <select id="bedFilter" style="display:none;"><option value=""></option></select>
       <input type="hidden" id="priceFilter" value="" />
       <input type="hidden" id="sortBy" value="newest" />
@@ -201,39 +201,47 @@
 </section>
 
 <style>
-  .shf-dd-btn {
-    display:inline-flex; align-items:center; justify-content:space-between;
-    padding:.75rem 1.2rem; min-width:180px;
-    border:1px solid var(--border); border-radius:9999px;
-    background:var(--bg); color:var(--text);
-    font: inherit; font-size:.9rem; cursor:pointer;
-    transition:border-color .18s, box-shadow .18s;
-  }
-  .shf-dd-btn:hover { border-color:#3B82F6; }
-  .shf-dd.open .shf-dd-btn { border-color:#3B82F6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
-  .shf-dd-panel {
-    position:absolute; top:calc(100% + .5rem); left:0;
-    min-width:100%; max-width:300px; z-index:100;
-    background:var(--bg); border:1px solid var(--border);
-    border-radius:1rem; padding:.4rem;
-    box-shadow:0 12px 32px -8px rgba(0,0,0,.18), 0 4px 12px -4px rgba(0,0,0,.08);
-    opacity:0; transform:translateY(-6px); pointer-events:none;
-    transition:opacity .18s ease, transform .18s ease;
-    max-height:320px; overflow-y:auto;
-  }
-  .shf-dd.open .shf-dd-panel { opacity:1; transform:translateY(0); pointer-events:auto; }
-  .shf-dd-item {
-    display:block; width:100%; text-align:left;
-    padding:.7rem 1rem; border:none; background:transparent;
-    color:var(--text); font:inherit; font-size:.88rem;
-    border-radius:.65rem; cursor:pointer;
-    transition:background .15s, color .15s;
-    white-space:nowrap;
-  }
-  .shf-dd-item:hover, .shf-dd-item:focus-visible {
-    background:rgba(59,130,246,.12); color:#1E40AF; outline:none;
-  }
-  .shf-dd-item.active { background:rgba(59,130,246,.18); color:#1E40AF; font-weight:600; }
+  .filter-bar { padding:.6rem; border:1px solid color-mix(in srgb,var(--border) 80%,transparent); border-radius:1.4rem;
+    background:color-mix(in srgb,var(--surface) 85%,transparent); backdrop-filter:blur(14px); box-shadow:var(--shadow); gap:.55rem !important; }
+  .fb-search { position:relative; flex:1; min-width:220px; }
+  .fb-search > i { position:absolute; left:1.05rem; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:.85rem; pointer-events:none; }
+  #searchInput { width:100%; padding:.8rem 1.1rem .8rem 2.6rem !important; border:1px solid transparent !important; background:var(--bg) !important;
+    box-shadow:var(--shadow-sm); transition:border-color .18s, box-shadow .18s; font:inherit; font-size:.9rem; outline:none; }
+  #searchInput:focus { border-color:var(--primary) !important; box-shadow:0 0 0 4px rgba(59,130,246,.15); }
+  .shf-dd-btn { display:inline-flex; align-items:center; gap:.5rem; padding:.7rem 1rem .7rem .75rem;
+    border:1px solid transparent; border-radius:9999px; background:var(--bg); color:var(--text);
+    font:inherit; font-size:.88rem; font-weight:500; cursor:pointer; box-shadow:var(--shadow-sm);
+    transition:border-color .18s, box-shadow .18s, transform .18s, background .18s; white-space:nowrap; }
+  .shf-dd-btn .fb-ic { width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    background:var(--primary-light); color:var(--primary-dark); font-size:.75rem; }
+  .shf-dd-btn .fb-chev { font-size:.65rem; opacity:.6; transition:transform .2s; margin-left:.15rem; }
+  .shf-dd-btn:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
+  .shf-dd.open .shf-dd-btn { border-color:var(--primary); box-shadow:0 0 0 4px rgba(59,130,246,.15); }
+  .shf-dd.open .fb-chev { transform:rotate(180deg); }
+  .shf-dd.is-set .shf-dd-btn { border-color:color-mix(in srgb,var(--primary) 45%,transparent); background:color-mix(in srgb,var(--primary) 8%,var(--bg)); color:var(--primary-dark); font-weight:600; }
+  .shf-dd.is-set .fb-ic { background:var(--primary); color:#fff; }
+  [data-theme="dark"] .shf-dd.is-set .shf-dd-btn, [data-theme="dark"] .shf-dd-item.active, [data-theme="dark"] .shf-dd-item:hover { color:#93c5fd; }
+  .shf-dd-panel { position:absolute; top:calc(100% + .55rem); left:0; min-width:100%; max-width:300px; z-index:100;
+    background:color-mix(in srgb,var(--bg) 92%,transparent); backdrop-filter:blur(16px);
+    border:1px solid var(--border); border-radius:1.1rem; padding:.4rem; box-shadow:var(--shadow-lg);
+    opacity:0; transform:translateY(-6px) scale(.98); transform-origin:top left; pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease; max-height:320px; overflow-y:auto; }
+  .shf-dd.open .shf-dd-panel { opacity:1; transform:none; pointer-events:auto; }
+  .shf-dd-item { display:flex; align-items:center; justify-content:space-between; gap:1rem; width:100%; text-align:left;
+    padding:.65rem .9rem; border:none; background:transparent; color:var(--text); font:inherit; font-size:.87rem;
+    border-radius:.7rem; cursor:pointer; transition:background .15s, color .15s; white-space:nowrap; }
+  .shf-dd-item:hover, .shf-dd-item:focus-visible { background:rgba(59,130,246,.1); color:var(--primary-dark); outline:none; }
+  .shf-dd-item.active { background:rgba(59,130,246,.14); color:var(--primary-dark); font-weight:600; }
+  .shf-dd-item.active::after { content:"\f00c"; font-family:"Font Awesome 6 Free","Font Awesome 5 Free"; font-weight:900; font-size:.75rem; }
+  #clearFilters { display:inline-flex; align-items:center; gap:.45rem; padding:.7rem 1rem; border-radius:9999px;
+    border:1px dashed rgba(220,38,38,.45); background:rgba(239,68,68,.07); color:#DC2626; font:inherit; font-size:.85rem; font-weight:600;
+    cursor:pointer; transition:background .18s, transform .18s; animation:fbIn .22s ease; }
+  #clearFilters:hover { background:rgba(239,68,68,.14); transform:translateY(-1px); }
+  #clearFilters:hover i { transform:rotate(-180deg); }
+  #clearFilters i { transition:transform .35s; }
+  #clearFilters .fb-count { min-width:20px; height:20px; padding:0 .35rem; border-radius:9999px; background:#DC2626; color:#fff; font-size:.7rem; display:inline-flex; align-items:center; justify-content:center; }
+  @keyframes fbIn { from { opacity:0; transform:scale(.9); } }
+  @media (max-width:640px){ .filter-bar{ border-radius:1.1rem; } .shf-dd{ flex:1 1 calc(50% - .3rem); } .shf-dd-btn{ width:100%; } #clearFilters{ flex:1 1 100%; justify-content:center; } }
 </style>
 
 <div id="footer-mount"></div>
@@ -372,6 +380,14 @@
   function render() {
     const cf = document.getElementById('clearFilters');
     if (cf) cf.style.display = (search.value.trim() || priceF.value || (window.SHF.CAMPUS && window.SHF.CAMPUS.key !== 'all' && window.__campusDd) || sortEl.value !== (window.SHF.CAMPUS && window.SHF.CAMPUS.lat != null && window.__campusDd ? 'distance' : 'newest')) ? '' : 'none';
+    try {
+      const campusSet = !!(window.__campusDd && window.SHF.CAMPUS && window.SHF.CAMPUS.key !== 'all');
+      const defSort = (window.SHF.CAMPUS && window.SHF.CAMPUS.lat != null && window.__campusDd) ? 'distance' : 'newest';
+      const sets = { campus: campusSet, price: !!priceF.value, sort: sortEl.value !== defSort };
+      Object.keys(sets).forEach(k => { const w = document.querySelector(`.shf-dd[data-dd="${k}"]`); if (w) w.classList.toggle('is-set', sets[k]); });
+      const n = Object.values(sets).filter(Boolean).length + (search.value.trim() ? 1 : 0);
+      const c = document.getElementById('fbCount'); if (c) c.textContent = n;
+    } catch(e){}
     const admin = isAdmin();
     const q = search.value.trim().toLowerCase();
     const minBed = parseInt(bedF.value) || 0;
