@@ -150,7 +150,7 @@
           <select id="st-campus"><option value="">Select your campus</option></select>
           <span class="error"></span>
         </div>
-        <div class="form-row">
+        <div class="form-row" id="st-regno-row">
           <label for="st-regno">Registration number</label>
           <input id="st-regno" type="text" placeholder="e.g. 2023-04-01234" maxlength="40" />
           <span class="error"></span>
@@ -823,14 +823,14 @@
       const idFile = document.getElementById('st-id-file').files?.[0];
       if (!/^\+255\d{9}$/.test(phone)) { setError('st-phone','Phone must be +255 followed by exactly 9 digits.'); ok = false; }
       if (!campus) { setError('st-campus','Select your campus.'); ok = false; }
-      if (regno.length < 4) { setError('st-regno','Enter your registration number.'); ok = false; }
       if (!emailUni) {
+        if (regno.length < 4) { setError('st-regno','Enter your registration number.'); ok = false; }
         if (!idFile) { setError('st-id-file','Personal emails need a Student ID photo for admin review.'); ok = false; }
         else if (idFile.size > 5*1024*1024) { setError('st-id-file','File must be under 5MB.'); ok = false; }
       }
       studentMeta = {
         phone, home_campus: campus ? campus.name : '', university: uni ? uni.name : '',
-        student_reg_no: regno, student_email_type: emailUni ? 'institutional' : 'personal',
+        student_reg_no: emailUni ? '' : regno, student_email_type: emailUni ? 'institutional' : 'personal',
       };
       if (campus) { try { window.SHF.setCampus(campus.key); } catch(e){} }
     }
@@ -1108,12 +1108,15 @@ var i=document.createElement('i');i.className='fas '+m[id]+' auth-ico';host.inse
 .cs-list li{padding:.65rem .9rem;border-radius:12px;cursor:pointer;color:var(--text);font-size:.92rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
 .cs-list li:hover,.cs-list li.hl{background:color-mix(in oklab,#1E5FA8 10%,transparent)}
 .cs-list li.sel{color:#1E5FA8;font-weight:600}
+.cs-list li.cs-grp{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700;cursor:default;padding:.6rem .9rem .3rem}
+.cs-list li.cs-grp:hover{background:none}
 .cs-list li.sel::after{content:"\f00c";font-family:"Font Awesome 6 Free","Font Awesome 5 Free";font-weight:900}
 [data-theme="dark"] .cs-list li.sel{color:#60a5fa}
 </style>
 <script>
 (function(){
-  var sel=document.getElementById('au-secq'); if(!sel) return;
+  ['au-secq','st-campus'].forEach(function(id){
+  var sel=document.getElementById(id); if(!sel) return;
   var wrap=document.createElement('div'); wrap.className='cs-wrap';
   sel.parentNode.insertBefore(wrap,sel); wrap.appendChild(sel);
   var btn=document.createElement('button'); btn.type='button'; btn.className='cs-btn'; btn.setAttribute('aria-haspopup','listbox');
@@ -1124,6 +1127,7 @@ var i=document.createElement('i');i.className='fas '+m[id]+' auth-ico';host.inse
     btn.querySelector('span').textContent=sel.options[sel.selectedIndex].text;
     list.innerHTML='';
     Array.prototype.forEach.call(sel.options,function(o,i){
+      if(o.parentNode&&o.parentNode.tagName==='OPTGROUP'&&o.parentNode.firstElementChild===o){var h=document.createElement('li');h.className='cs-grp';h.textContent=o.parentNode.label;list.appendChild(h);}
       var li=document.createElement('li'); li.setAttribute('role','option'); li.textContent=o.text;
       if(i===sel.selectedIndex) li.className='sel';
       li.onclick=function(){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}));render();close();btn.focus();};
@@ -1136,6 +1140,25 @@ var i=document.createElement('i');i.className='fas '+m[id]+' auth-ico';host.inse
   document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
   sel.addEventListener('change',render);
   render();
+  });
+})();
+(function(){
+  var em=document.getElementById('au-email'),note=document.getElementById('st-verify-note'),
+      reg=document.getElementById('st-regno-row'),idr=document.getElementById('st-id-row'),camp=document.getElementById('st-campus');
+  if(!em||!reg||!idr) return;
+  var def=note?note.innerHTML:'';
+  function upd(){
+    var v=(em.value||'').trim().toLowerCase();
+    var uni=(v.indexOf('@')>0&&window.SHF&&window.SHF.universityForEmail)?window.SHF.universityForEmail(v):null;
+    reg.style.display=uni?'none':''; idr.style.display=uni?'none':'';
+    if(note){
+      if(uni){note.style.borderLeftColor='#16a34a';note.innerHTML='<i class="fas fa-circle-check" style="color:#16a34a;"></i> Official university email detected — instant verification. No registration number or ID photo needed.';}
+      else if(/@.+\..+/.test(v)){note.style.borderLeftColor='#f59e0b';note.innerHTML='<i class="fas fa-id-badge" style="color:#f59e0b;"></i> Personal email — enter your registration number and upload your Student ID so our team can verify you.';}
+      else {note.style.borderLeftColor='';note.innerHTML=def;}
+    }
+    if(uni&&camp&&!camp.value&&window.SHF.CAMPUSES){var c=window.SHF.CAMPUSES.find(function(c){return c.uni===(uni.key||uni);});if(c){camp.value=c.key;camp.dispatchEvent(new Event('change'));}}
+  }
+  em.addEventListener('input',upd); upd();
 })();
 </script>
 </body>
