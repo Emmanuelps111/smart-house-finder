@@ -107,7 +107,8 @@ export const verifyIdentity = createServerFn({ method: "POST" })
     try {
       ocr = await runGeminiOcr(apiKey, images, data.expected_name, data.expected_nid);
     } catch (e) {
-      await supabase
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin
         .from("profiles")
         .update({ ocr_attempts: attempts, ocr_data: { error: String(e) } })
         .eq("id", userId);
@@ -126,8 +127,8 @@ export const verifyIdentity = createServerFn({ method: "POST" })
     let message = "";
 
     if (passed) {
-      nextStatus = "approved";
-      message = "Identity verified successfully.";
+      nextStatus = "pending";
+      message = "Your ID checks look good. An admin will confirm your verification shortly.";
     } else if (attempts >= 3) {
       // 3 trials → keep pending, admin review
       nextStatus = "pending";
@@ -146,10 +147,10 @@ export const verifyIdentity = createServerFn({ method: "POST" })
       verification_status: nextStatus,
       nid_front_url: data.nid_front_url,
       nid_back_url: data.nid_back_url ?? null,
-      ...(nextStatus === "approved" ? { verified_at: new Date().toISOString() } : {}),
     };
 
-    const { error: uErr } = await supabase.from("profiles").update(updatePatch as never).eq("id", userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: uErr } = await supabaseAdmin.from("profiles").update(updatePatch as never).eq("id", userId);
     if (uErr) throw uErr;
 
     return {

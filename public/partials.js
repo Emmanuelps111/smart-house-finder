@@ -1,5 +1,6 @@
 // Header & footer injectors
 (function () {
+  const hEsc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const path = location.pathname.split('/').pop() || 'home.html';
 
   let user = null;
@@ -27,14 +28,14 @@
     ? `<div class="user-menu" style="position:relative;">
          <button class="btn btn-outline" data-user-toggle style="padding:.5rem .9rem; display:inline-flex; align-items:center; gap:.5rem;">
            <i class="fas fa-user-circle"></i>
-           <span style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${user.name || user.email}</span>
+           <span style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${hEsc(user.name || user.email)}</span>
            <i class="fas fa-chevron-down" style="font-size:.7rem;"></i>
          </button>
          <div class="user-dropdown" style="display:none; position:absolute; right:0; top:calc(100% + .5rem); background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 10px 30px -10px rgba(0,0,0,.2); min-width:200px; z-index:1000;">
            <div style="padding:.75rem 1rem; border-bottom:1px solid var(--border);">
-             <div style="font-weight:600; font-size:.9rem;">${user.name || 'Account'}</div>
-             <div style="font-size:.8rem; color:var(--text-muted);">${user.email}</div>
-             <div style="font-size:.75rem; color:var(--primary); margin-top:.2rem; text-transform:capitalize;"><i class="fas fa-circle-check"></i> ${user.role}</div>
+             <div style="font-weight:600; font-size:.9rem;">${hEsc(user.name || 'Account')}</div>
+             <div style="font-size:.8rem; color:var(--text-muted);">${hEsc(user.email)}</div>
+             <div style="font-size:.75rem; color:var(--primary); margin-top:.2rem; text-transform:capitalize;"><i class="fas fa-circle-check"></i> ${hEsc(user.role)}</div>
            </div>
            <a href="/notifications.html" class="ud-item" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-bell"></i> Notifications</a>
            ${user.role === 'landlord' ? `<a href="/dashboard.html" class="ud-item" style="display:block; padding:.6rem 1rem; color:var(--text); text-decoration:none;"><i class="fas fa-gauge-high"></i> Landlord dashboard</a>` : ''}

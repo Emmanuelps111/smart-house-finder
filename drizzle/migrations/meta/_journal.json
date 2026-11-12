@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794470833082,
+      "tag": "0000_harden_profiles_reviews_roommates_contact",
+      "breakpoints": true
+    }
+  ]
+}

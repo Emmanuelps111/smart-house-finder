@@ -311,9 +311,10 @@ export const Route = createFileRoute("/api/verify-id")({
           try {
             ocr = await runGeminiOcr(LOVABLE_API_KEY, images, body.role);
           } catch (e) {
-            await supabase
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            await supabaseAdmin
               .from("profiles")
-              .update({ ocr_attempts: attempts, ocr_data: { error: String(e) } } as never)
+              .update({ ocr_attempts: attempts, ocr_data: { error: "ocr_failed" } } as never)
               .eq("id", userId);
             return Response.json(
               {
@@ -357,12 +358,12 @@ export const Route = createFileRoute("/api/verify-id")({
           }
 
           const passed = rules.every((r) => r.passed);
-          let nextStatus: "approved" | "pending" = "pending";
+          let nextStatus: "pending" = "pending";
           let message = "";
 
           if (passed) {
-            nextStatus = "approved";
-            message = "All checks passed — you are verified!";
+            nextStatus = "pending";
+            message = "Your ID checks look good. An admin will confirm your verification shortly (usually within 24h).";
           } else if (attempts >= MAX) {
             message = `Automatic verification couldn't confirm your ID after ${MAX} attempts. Your account has been sent to admin for manual review (24–48h). You can browse listings in the meantime.`;
           } else {
@@ -378,9 +379,8 @@ export const Route = createFileRoute("/api/verify-id")({
             nid_back_url: body.id_back_url ?? null,
           };
           if (body.role === "student") patch.student_id_url = body.id_front_url;
-          if (nextStatus === "approved") patch.verified_at = new Date().toISOString();
-
-          const { error: uErr } = await supabase
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { error: uErr } = await supabaseAdmin
             .from("profiles")
             .update(patch as never)
             .eq("id", userId);

@@ -6,7 +6,6 @@ import type { Database } from '@/integrations/supabase/types';
 const bodySchema = z.object({
   email: z.string().trim().email().max(255),
   answer: z.string().min(1).max(200),
-  new_password: z.string().min(8).max(128),
 });
 
 export const Route = createFileRoute('/api/public/reset-password')({
@@ -19,7 +18,7 @@ export const Route = createFileRoute('/api/public/reset-password')({
           if (!parsed.success) {
             return Response.json({ ok: false, error: 'Invalid input.' }, { status: 400 });
           }
-          const { email, answer, new_password } = parsed.data;
+          const { email, answer } = parsed.data;
 
           const url = process.env.SUPABASE_URL!;
           const publishable = process.env.SUPABASE_PUBLISHABLE_KEY!;
@@ -64,13 +63,15 @@ export const Route = createFileRoute('/api/public/reset-password')({
             );
           }
 
-          // Verified — use admin API to update password
-          const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
-          const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId as string, {
-            password: new_password,
+          // Verified answer alone is not enough: send a one-time reset link to the
+          // account's email so only the mailbox owner can set a new password.
+          const origin = new URL(request.url).origin;
+          const { error: mailErr } = await pub.auth.resetPasswordForEmail(email, {
+            redirectTo: `${origin}/reset-password.html`,
           });
-          if (updErr) {
-            return Response.json({ ok: false, error: 'Could not update password.' }, { status: 500 });
+          if (mailErr) {
+            console.error('[reset-password] email send failed', mailErr);
+            return Response.json({ ok: false, error: 'Could not send the reset email. Please try again.' }, { status: 500 });
           }
 
           return Response.json({ ok: true });

@@ -90,10 +90,9 @@ function askForStudentId(sb, uid) {
         if (!prof?.home_campus && meta.home_campus) update.home_campus = meta.home_campus;
         if (institutional && (!prof || prof.verification_status !== 'approved')) {
           msg.textContent = 'Activating your student account…';
-          update.verification_status = 'approved';
-          update.verified_at = new Date().toISOString();
         }
         if (Object.keys(update).length) await sb.from('profiles').update(update).eq('id', uid);
+        if (institutional) { const { data: st } = await sb.rpc('auto_verify_self'); if (prof && st === 'approved') prof.verification_status = 'approved'; }
 
         try {
           const raw = localStorage.getItem('shf-pending-secq');

@@ -560,6 +560,7 @@ export type Database = {
     Functions: {
       accept_roommate_connect: { Args: { _sender: string }; Returns: undefined }
       approve_agency: { Args: { _user_id: string }; Returns: undefined }
+      auto_verify_self: { Args: never; Returns: string }
       check_security_answer: {
         Args: { _answer: string; _email: string }
         Returns: Json
