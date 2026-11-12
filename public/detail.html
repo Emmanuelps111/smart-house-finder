@@ -226,6 +226,11 @@
             .rm-money{display:inline-flex !important; align-items:center; gap:.4rem; border-radius:999px !important; padding:.4rem .85rem !important; background:color-mix(in oklab,#10b981 12%,transparent) !important; color:#059669 !important; border:1px solid color-mix(in oklab,#10b981 35%,transparent) !important;}
             .rm-quote{background:var(--bg) !important; color:var(--text) !important; border-left:3px solid var(--primary); border-radius:12px !important;}
             .rm-quote i{color:var(--primary); opacity:.6; margin-right:.35rem; font-size:.75rem;}
+            .rm-habits{display:flex !important; flex-wrap:wrap; gap:.45rem !important;}
+            .rm-habit{display:inline-flex !important; width:auto; border-radius:999px !important; padding:.4rem .8rem !important; white-space:nowrap; word-break:normal; overflow-wrap:normal;}
+            .rm-habit strong{font-weight:700;}
+            .rm-summary{font-weight:500 !important; color:var(--text-muted); font-size:.85rem !important;}
+            .rm-money{white-space:nowrap; max-width:100%;}
             .rm-del{display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; padding:.5rem 1.1rem; border-radius:9999px; background:color-mix(in oklab,#dc2626 10%,transparent); color:#dc2626; border:1px solid color-mix(in oklab,#dc2626 35%,transparent); font-weight:600; cursor:pointer; transition:background .18s ease;}
             .rm-del:hover{background:color-mix(in oklab,#dc2626 18%,transparent);}
           </style>
@@ -455,8 +460,10 @@
             `<span class="rm-chip"><i class="fa-solid fa-venus-mars"></i> ${escapeHtml(gender)}</span>`,
             budget ? `<span class="rm-chip rm-chip-money"><i class="fa-solid fa-wallet"></i> ≤ TSh ${budget}</span>` : '',
           ].filter(Boolean).join(' ');
-          const rulesText = /no|non|never/i.test(smoking) ? '<i class="fa-solid fa-ban-smoking"></i> No smoking/drinking' : `<i class="fa-solid fa-wine-glass"></i> Smoking/Drinking: <strong>${smoking}</strong>`;
-          const summary = `${escapeHtml(gender)} student looking for ${escapeHtml(String(needed))} co-tenant (${escapeHtml(pref)})`;
+          const rulesText = /no|non|never/i.test(smoking) ? '<i class="fa-solid fa-ban-smoking"></i><span>Non-smoker</span>' : `<i class="fa-solid fa-wine-glass"></i><span>Smoking: <strong>${smoking}</strong></span>`;
+          const prefLabel = /same/i.test(pref) ? (/female/i.test(gender) ? 'female ' : (/male/i.test(gender) ? 'male ' : '')) : '';
+          const nNeed = escapeHtml(String(needed));
+          const summary = `Looking for ${nNeed} ${prefLabel}roommate${String(needed)==='1'?'':'s'}`;
           const action = isMe
             ? `<button type="button" data-delete-req="${r.id}" class="rm-del"><i class="fa-solid fa-trash-can"></i> Take down my request</button>`
             : `<button class="btn btn-primary" data-connect="${r.student_id}" style="font-size:.85rem; padding:.5rem 1rem; border-radius:9999px;"><i class="fa-solid fa-handshake"></i> Request to Team Up</button>`;
@@ -481,8 +488,8 @@
                 </div>
               </div>
               <div class="rm-habits">
-                <div class="rm-habit"><i class="fa-solid fa-broom"></i> Cleanliness: <strong>${clean}</strong></div>
-                <div class="rm-habit"><i class="fa-solid fa-moon"></i> Sleep: <strong>${sleep}</strong></div>
+                <div class="rm-habit"><i class="fa-solid fa-broom"></i><span><strong>${clean}</strong> cleanliness</span></div>
+                <div class="rm-habit"><i class="fa-solid fa-moon"></i><span><strong>${sleep}</strong> sleeper</span></div>
                 <div class="rm-habit">${rulesText}</div>
               </div>
               ${budget ? `<div class="rm-money"><i class="fa-solid fa-wallet"></i> Rent contribution limit: ≤ TSh ${budget}</div>` : ''}
