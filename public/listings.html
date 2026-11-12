@@ -201,7 +201,7 @@
 </section>
 
 <style>
-  .filter-bar { padding:.6rem; border:1px solid color-mix(in srgb,var(--border) 80%,transparent); border-radius:1.4rem;
+  .filter-bar { position:relative; z-index:60; padding:.6rem; border:1px solid color-mix(in srgb,var(--border) 80%,transparent); border-radius:1.4rem;
     background:color-mix(in srgb,var(--surface) 85%,transparent); backdrop-filter:blur(14px); box-shadow:var(--shadow); gap:.55rem !important; }
   .fb-search { position:relative; flex:1; min-width:220px; }
   .fb-search > i { position:absolute; left:1.05rem; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:.85rem; pointer-events:none; }
@@ -222,7 +222,7 @@
   .shf-dd.is-set .fb-ic { background:var(--primary); color:#fff; }
   [data-theme="dark"] .shf-dd.is-set .shf-dd-btn, [data-theme="dark"] .shf-dd-item.active, [data-theme="dark"] .shf-dd-item:hover { color:#93c5fd; }
   .shf-dd-panel { position:absolute; top:calc(100% + .55rem); left:0; min-width:100%; max-width:300px; z-index:100;
-    background:color-mix(in srgb,var(--bg) 92%,transparent); backdrop-filter:blur(16px);
+    background:var(--bg);
     border:1px solid var(--border); border-radius:1.1rem; padding:.4rem; box-shadow:var(--shadow-lg);
     opacity:0; transform:translateY(-6px) scale(.98); transform-origin:top left; pointer-events:none;
     transition:opacity .18s ease, transform .18s ease; max-height:320px; overflow-y:auto; }
@@ -241,7 +241,7 @@
   #clearFilters i { transition:transform .35s; }
   #clearFilters .fb-count { min-width:20px; height:20px; padding:0 .35rem; border-radius:9999px; background:#DC2626; color:#fff; font-size:.7rem; display:inline-flex; align-items:center; justify-content:center; }
   @keyframes fbIn { from { opacity:0; transform:scale(.9); } }
-  @media (max-width:640px){ .filter-bar{ border-radius:1.1rem; } .shf-dd{ flex:1 1 calc(50% - .3rem); } .shf-dd-btn{ width:100%; } #clearFilters{ flex:1 1 100%; justify-content:center; } }
+  @media (max-width:640px){ .filter-bar{ border-radius:1.1rem; } .filter-bar .fb-search{ flex:1 1 100%; min-width:0; } .filter-bar .shf-dd{ flex:1 1 calc(50% - .3rem); min-width:0; } .filter-bar .shf-dd-btn{ width:100%; } .filter-bar .shf-dd-btn [data-dd-label]{ flex:1; overflow:hidden; text-overflow:ellipsis; } .filter-bar .shf-dd-panel{ max-width:calc(100vw - 3rem); } .filter-bar .shf-dd[data-dd="sort"] .shf-dd-panel{ left:auto; right:0; } #clearFilters{ flex:1 1 100%; justify-content:center; } }
 </style>
 
 <div id="footer-mount"></div>
