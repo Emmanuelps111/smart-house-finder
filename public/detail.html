@@ -231,6 +231,29 @@
             .rm-habit strong{font-weight:700;}
             .rm-summary{font-weight:500 !important; color:var(--text-muted); font-size:.85rem !important;}
             .rm-money{white-space:nowrap; max-width:100%;}
+            .rm-match{border:1px solid var(--border); border-radius:14px; padding:.65rem .8rem; margin:.5rem 0; background:var(--bg);}
+            .rm-match-top{display:flex; align-items:baseline; gap:.5rem;}
+            .rm-match-pct{font-size:1.25rem; font-weight:800;}
+            .rm-match-lbl{font-size:.82rem; font-weight:600; color:var(--text-muted);}
+            .rm-match-bar{height:6px; border-radius:999px; background:color-mix(in oklab,var(--text-muted) 18%,transparent); margin:.4rem 0 .5rem; overflow:hidden;}
+            .rm-match-bar span{display:block; height:100%; border-radius:999px; transition:width .6s ease;}
+            .rm-good .rm-match-pct{color:#059669} .rm-good .rm-match-bar span{background:linear-gradient(90deg,#10b981,#34d399)}
+            .rm-ok .rm-match-pct{color:#d97706} .rm-ok .rm-match-bar span{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+            .rm-low .rm-match-pct{color:#dc2626} .rm-low .rm-match-bar span{background:linear-gradient(90deg,#ef4444,#f87171)}
+            .rm-mbits{display:flex; flex-wrap:wrap; gap:.35rem;}
+            .rm-mbit{display:inline-flex; align-items:center; gap:.3rem; font-size:.74rem; font-weight:600; padding:.2rem .6rem; border-radius:999px; white-space:nowrap;}
+            .rm-mbit.y{background:color-mix(in oklab,#10b981 14%,transparent); color:#059669}
+            .rm-mbit.m{background:color-mix(in oklab,#f59e0b 16%,transparent); color:#b45309}
+            .rm-mbit.n{background:color-mix(in oklab,#ef4444 14%,transparent); color:#dc2626}
+            .rm-split{border:1px solid var(--border); border-radius:14px; padding:.65rem .8rem; margin:.5rem 0; background:var(--bg);}
+            .rm-split-head{display:flex; align-items:center; gap:.4rem; font-weight:700; font-size:.85rem;}
+            .rm-split-head i{color:var(--primary)} .rm-split-head span{margin-left:auto; font-size:.74rem; font-weight:600; color:var(--text-muted);}
+            .rm-split-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem; margin:.5rem 0;}
+            .rm-split-row small{display:block; font-size:.7rem; color:var(--text-muted); white-space:nowrap;}
+            .rm-split-row b{font-size:.86rem; white-space:nowrap;} .rm-split-row b.hi{color:var(--primary)} .rm-split-row b.sv{color:#059669}
+            .rm-split-bar{display:flex; gap:3px; height:8px;} .rm-split-bar span{flex:1; border-radius:999px; background:color-mix(in oklab,var(--text-muted) 22%,transparent);} .rm-split-bar span.me{background:var(--primary);}
+            .rm-fit{display:inline-flex; align-items:center; gap:.3rem; margin-top:.5rem; font-size:.76rem; font-weight:600;} .rm-fit.y{color:#059669} .rm-fit.n{color:#dc2626}
+            @media (max-width:420px){ .rm-split-row b{font-size:.78rem} }
             .rm-del{display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; padding:.5rem 1.1rem; border-radius:9999px; background:color-mix(in oklab,#dc2626 10%,transparent); color:#dc2626; border:1px solid color-mix(in oklab,#dc2626 35%,transparent); font-weight:600; cursor:pointer; transition:background .18s ease;}
             .rm-del:hover{background:color-mix(in oklab,#dc2626 18%,transparent);}
           </style>
@@ -431,6 +454,41 @@
       }
 
       const countLabel = document.getElementById('roommateCountLabel');
+      let myPrefs = null; // viewer's own habits for compatibility
+      const LV = { clean:{High:3,Medium:2,Flexible:1}, sleep:{'Early Bird':1,'Flexible':2,'Night Owl':3} };
+      function smokeKey(v){ v=String(v||''); return /^no smok/i.test(v)?0:(/outside/i.test(v)?1:(v?2:null)); }
+      function matchScore(me, d){
+        if (!me) return null;
+        const parts = [];
+        const c1=LV.clean[me.cleanliness], c2=LV.clean[d.cleanliness];
+        if (c1&&c2) parts.push({k:'Cleanliness', v: c1===c2?1:(Math.abs(c1-c2)===1?.6:.15)});
+        const s1=LV.sleep[me.sleep], s2=LV.sleep[d.sleep];
+        if (s1&&s2) parts.push({k:'Sleep', v: s1===s2?1:((s1===2||s2===2)?.7:.1)});
+        const m1=smokeKey(me.smoking), m2=smokeKey(d.smoking);
+        if (m1!=null&&m2!=null) parts.push({k:'Smoking', v: (m1===2||m2===2||m1===m2)?1:(Math.abs(m1-m2)===1?.5:.1)});
+        if (!parts.length) return null;
+        const pct = Math.round(parts.reduce((a,b)=>a+b.v,0)/parts.length*100);
+        return { pct, parts };
+      }
+      function matchHtml(d){
+        const m = matchScore(myPrefs, d);
+        if (!m) return '';
+        const tone = m.pct>=80?'good':(m.pct>=55?'ok':'low');
+        const label = m.pct>=80?'Great match':(m.pct>=55?'Good match':'Different habits');
+        const bits = m.parts.map(p=>`<span class="rm-mbit ${p.v>=.9?'y':(p.v>=.5?'m':'n')}"><i class="fa-solid ${p.v>=.9?'fa-check':(p.v>=.5?'fa-minus':'fa-xmark')}"></i>${p.k}</span>`).join('');
+        return `<div class="rm-match rm-${tone}"><div class="rm-match-top"><span class="rm-match-pct">${m.pct}%</span><span class="rm-match-lbl">${label}</span></div><div class="rm-match-bar"><span style="width:${m.pct}%"></span></div><div class="rm-mbits">${bits}</div></div>`;
+      }
+      function splitHtml(d){
+        const rent = Number(l.price)||0; if (!rent) return '';
+        const n = Math.max(1, parseInt(d.roommates_needed||'1',10)||1) + 1;
+        const share = Math.round(rent/n), save = rent-share;
+        const fmt = v => 'TSh ' + v.toLocaleString('en-TZ');
+        const cap = Number(d.max_budget)||0;
+        const fits = cap ? (share<=cap ? '<span class="rm-fit y"><i class="fa-solid fa-circle-check"></i> Fits their budget</span>' : '<span class="rm-fit n"><i class="fa-solid fa-circle-exclamation"></i> Above their budget</span>') : '';
+        return `<div class="rm-split"><div class="rm-split-head"><i class="fa-solid fa-scale-balanced"></i> Rent split <span>${n} people</span></div>
+          <div class="rm-split-row"><div><small>Full rent</small><b>${fmt(rent)}</b></div><div><small>Your share</small><b class="hi">${fmt(share)}</b></div><div><small>You save</small><b class="sv">${fmt(save)}</b></div></div>
+          <div class="rm-split-bar">${Array.from({length:n},(_,i)=>`<span class="${i===0?'me':''}"></span>`).join('')}</div>${fits}</div>`;
+      }
 
       function renderCards(rows){
         if (!rows || !rows.length){
@@ -492,6 +550,8 @@
                 <div class="rm-habit"><i class="fa-solid fa-moon"></i><span><strong>${sleep}</strong> sleeper</span></div>
                 <div class="rm-habit">${rulesText}</div>
               </div>
+              ${isMe ? '' : matchHtml(d)}
+              ${splitHtml(d)}
               ${budget ? `<div class="rm-money"><i class="fa-solid fa-wallet"></i> Rent contribution limit: ≤ TSh ${budget}</div>` : ''}
               <div class="rm-quote"><i class="fa-solid fa-quote-left"></i> ${bio}</div>
               <div style="margin-top:.5rem;">${action}</div>
@@ -662,6 +722,13 @@
             .eq('status', 'searching')
             .order('created_at', { ascending: false });
           if (error){ listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load roommate requests.</div>'; return; }
+          const mine = cached && data && data.find(r => r.student_id === cached.id);
+          if (mine && mine.details) myPrefs = { cleanliness: mine.details.cleanliness, sleep: mine.details.sleep, smoking: mine.details.smoking };
+          else if (cached && !myPrefs){
+            try { const { data: pf } = await sb.from('profiles').select('cleanliness_preference, sleep_schedule').eq('id', cached.id).maybeSingle();
+              if (pf && (pf.cleanliness_preference||pf.sleep_schedule)) myPrefs = { cleanliness: pf.cleanliness_preference, sleep: pf.sleep_schedule };
+            } catch(_){}
+          }
           renderCards(data);
           const onList = cached && data && data.some(r => r.student_id === cached.id);
           if (onList){
