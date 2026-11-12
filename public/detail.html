@@ -180,13 +180,13 @@
 
           <div class="info-card" id="roommateSection" style="margin-top:1.5rem;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-              <h3 style="margin:0;">🤝 Roommate Requests</h3>
-              <button id="findRoommateBtn" class="btn btn-primary"><i class="fas fa-hand"></i> 🙋‍♂️ Find a Roommate to Split Cost</button>
+              <h3 style="margin:0; display:flex; align-items:center; gap:.6rem;"><span class="rm-ico"><i class="fa-solid fa-people-roof"></i></span> Roommate Requests</h3>
+              <button id="findRoommateBtn" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Find a Roommate to Split Cost</button>
             </div>
             <details id="roommateAccordion" open style="margin-top:.85rem; border:1px solid var(--border); border-radius:12px; background:var(--surface); overflow:hidden;">
               <summary id="roommateAccordionSummary" style="cursor:pointer; padding:.85rem 1rem; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:.75rem; list-style:none; user-select:none;">
-                <span>👥 Roommate Requests <span id="roommateCountLabel" style="color:var(--text-muted); font-weight:500;">(0 Students Looking)</span></span>
-                <span style="color:var(--text-muted); font-size:.85rem;">▾</span>
+                <span style="display:inline-flex; align-items:center; gap:.5rem;"><i class="fa-solid fa-users" style="color:var(--primary);"></i> Students looking <span id="roommateCountLabel" style="color:var(--text-muted); font-weight:500;">(0 Students Looking)</span></span>
+                <i class="fa-solid fa-chevron-down rm-acc-caret"></i>
               </summary>
               <div id="roommateList" style="display:flex; flex-direction:column; gap:.5rem; padding:.5rem .75rem .85rem;">
                 <div style="color:var(--text-muted); font-size:.9rem; padding:.5rem;">Loading…</div>
@@ -194,8 +194,7 @@
             </details>
           </div>
           <style>
-            #roommateAccordion summary::-webkit-details-marker{display:none;}
-            .rm-row{border:1px solid var(--border); border-radius:10px; background:#fff; overflow:hidden; transition:box-shadow .2s;}
+            .rm-row{border:1px solid var(--border); border-radius:10px; background:var(--surface); overflow:hidden; transition:box-shadow .2s;}
             .rm-row:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
             .rm-head{display:flex; align-items:center; gap:.65rem; padding:.6rem .75rem; cursor:pointer; user-select:none;}
             .rm-head .rm-caret{margin-left:auto; color:var(--text-muted); transition:transform .25s ease;}
@@ -213,6 +212,22 @@
             .rm-quote{background:#F9FAFB; border-left:3px solid var(--primary); padding:.6rem .8rem; border-radius:6px; font-style:italic; color:#374151; font-size:.88rem; line-height:1.4; margin:.5rem 0;}
             .rm-summary{font-weight:600; font-size:.92rem; margin:.35rem 0 .5rem;}
             .rm-own{display:inline-block; padding:.4rem .7rem; border-radius:8px; background:#F3F4F6; color:var(--text-muted); font-size:.82rem; font-weight:500;}
+            #roommateAccordion summary::-webkit-details-marker{display:none;}
+            .rm-ico{width:34px;height:34px;border-radius:11px;display:inline-grid;place-items:center;font-size:.95rem;color:var(--primary);background:color-mix(in oklab,var(--primary) 14%,transparent);}
+            .rm-acc-caret{color:var(--text-muted);font-size:.8rem;transition:transform .25s ease;}
+            #roommateAccordion:not([open]) .rm-acc-caret{transform:rotate(-90deg);}
+            .rm-row{border:1px solid var(--border); border-radius:14px; background:var(--surface); overflow:hidden; transition:box-shadow .2s, border-color .2s;}
+            .rm-row:hover{box-shadow:0 6px 18px -8px rgba(15,23,42,.18); border-color:color-mix(in oklab,var(--primary) 35%,var(--border));}
+            .rm-head .rm-caret{margin-left:auto; color:var(--text-muted); font-size:.8rem; transition:transform .25s ease;}
+            .rm-chip{display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .6rem; border-radius:999px; background:color-mix(in oklab,var(--primary) 12%,transparent); color:var(--primary); font-size:.72rem; font-weight:600;}
+            .rm-chip-money{background:color-mix(in oklab,#10b981 14%,transparent); color:#059669;}
+            .rm-habit{display:flex; align-items:center; gap:.4rem; background:var(--bg) !important; border:1px solid var(--border); border-radius:12px !important; padding:.55rem .7rem !important; font-size:.8rem;}
+            .rm-habit i{color:var(--primary); width:1rem; text-align:center;}
+            .rm-money{display:inline-flex !important; align-items:center; gap:.4rem; border-radius:999px !important; padding:.4rem .85rem !important; background:color-mix(in oklab,#10b981 12%,transparent) !important; color:#059669 !important; border:1px solid color-mix(in oklab,#10b981 35%,transparent) !important;}
+            .rm-quote{background:var(--bg) !important; color:var(--text) !important; border-left:3px solid var(--primary); border-radius:12px !important;}
+            .rm-quote i{color:var(--primary); opacity:.6; margin-right:.35rem; font-size:.75rem;}
+            .rm-del{display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; padding:.5rem 1.1rem; border-radius:9999px; background:color-mix(in oklab,#dc2626 10%,transparent); color:#dc2626; border:1px solid color-mix(in oklab,#dc2626 35%,transparent); font-weight:600; cursor:pointer; transition:background .18s ease;}
+            .rm-del:hover{background:color-mix(in oklab,#dc2626 18%,transparent);}
           </style>
 
           <div class="info-card" id="reviewsSection" style="margin-top:1.5rem;">
@@ -433,18 +448,18 @@
           const courseMajor = escapeHtml(d.course_major || '');
           const homeCampus = escapeHtml(d.home_campus || '');
           const acadLine = (courseMajor || homeCampus)
-            ? `<div class="rm-acad" style="font-size:.8rem; color:#64748b; margin-top:.15rem; display:flex; align-items:center; gap:.35rem; flex-wrap:wrap;"><i class="fas fa-graduation-cap" style="color:#3B82F6;"></i><span>${[courseMajor, homeCampus].filter(Boolean).join(' — ')}</span></div>`
+            ? `<div class="rm-acad" style="font-size:.8rem; color:var(--text-muted); margin-top:.15rem; display:flex; align-items:center; gap:.35rem; flex-wrap:wrap;"><i class="fa-solid fa-graduation-cap" style="color:var(--primary);"></i><span>${[courseMajor, homeCampus].filter(Boolean).join(' — ')}</span></div>`
             : '';
           const isMe = cached && cached.id === r.student_id;
           const compactTags = [
-            `<span class="rm-chip">👤 ${escapeHtml(gender)}</span>`,
-            budget ? `<span class="rm-chip">💰 ≤ TSh ${budget}</span>` : '',
+            `<span class="rm-chip"><i class="fa-solid fa-venus-mars"></i> ${escapeHtml(gender)}</span>`,
+            budget ? `<span class="rm-chip rm-chip-money"><i class="fa-solid fa-wallet"></i> ≤ TSh ${budget}</span>` : '',
           ].filter(Boolean).join(' ');
-          const rulesText = /no|non|never/i.test(smoking) ? '🚫 No Smoking/Drinking' : `🍃 Smoking/Drinking: ${smoking}`;
+          const rulesText = /no|non|never/i.test(smoking) ? '<i class="fa-solid fa-ban-smoking"></i> No smoking/drinking' : `<i class="fa-solid fa-wine-glass"></i> Smoking/Drinking: <strong>${smoking}</strong>`;
           const summary = `${escapeHtml(gender)} student looking for ${escapeHtml(String(needed))} co-tenant (${escapeHtml(pref)})`;
           const action = isMe
-            ? `<button type="button" data-delete-req="${r.id}" style="font-size:.85rem; padding:.5rem 1.1rem; border-radius:9999px; background:rgba(254,226,226,.9); color:#dc2626; border:1px solid rgba(220,38,38,.35); font-weight:600; cursor:pointer; transition:background .18s ease;" onmouseover="this.style.background='rgba(254,202,202,.95)'" onmouseout="this.style.background='rgba(254,226,226,.9)'">🗑️ Delete / Take Down Request</button>`
-            : `<button class="btn btn-primary" data-connect="${r.student_id}" style="font-size:.85rem; padding:.5rem .85rem;">🤝 Request to Team Up</button>`;
+            ? `<button type="button" data-delete-req="${r.id}" class="rm-del"><i class="fa-solid fa-trash-can"></i> Take down my request</button>`
+            : `<button class="btn btn-primary" data-connect="${r.student_id}" style="font-size:.85rem; padding:.5rem 1rem; border-radius:9999px;"><i class="fa-solid fa-handshake"></i> Request to Team Up</button>`;
           return `<div class="rm-row" data-rm-idx="${idx}">
             <div class="rm-head" data-rm-toggle>
               ${avatarHtml(d.name||'Student', r.student_id)}
@@ -455,7 +470,7 @@
                 </div>
                 ${acadLine}
               </div>
-              <span class="rm-caret">▾</span>
+              <i class="fa-solid fa-chevron-down rm-caret"></i>
             </div>
             <div class="rm-body">
               <div style="display:flex; align-items:center; gap:.75rem; margin-top:.4rem;">
@@ -466,12 +481,12 @@
                 </div>
               </div>
               <div class="rm-habits">
-                <div class="rm-habit">🧼 Cleanliness: <strong>${clean}</strong></div>
-                <div class="rm-habit">🌙 Sleep: <strong>${sleep}</strong></div>
+                <div class="rm-habit"><i class="fa-solid fa-broom"></i> Cleanliness: <strong>${clean}</strong></div>
+                <div class="rm-habit"><i class="fa-solid fa-moon"></i> Sleep: <strong>${sleep}</strong></div>
                 <div class="rm-habit">${rulesText}</div>
               </div>
-              ${budget ? `<div class="rm-money">💰 Rent Contribution Limit: ≤ TSh ${budget}</div>` : ''}
-              <div class="rm-quote">“${bio}”</div>
+              ${budget ? `<div class="rm-money"><i class="fa-solid fa-wallet"></i> Rent contribution limit: ≤ TSh ${budget}</div>` : ''}
+              <div class="rm-quote"><i class="fa-solid fa-quote-left"></i> ${bio}</div>
               <div style="margin-top:.5rem;">${action}</div>
             </div>
           </div>`;
@@ -499,7 +514,7 @@
           const existingTags = new Set(existing?.habit_tags || []);
           overlay.innerHTML = `
             <div style="background:rgba(255,255,255,.96); border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.6rem; max-width:520px; width:100%; box-shadow:0 30px 80px rgba(15,23,42,.35); max-height:92vh; overflow-y:auto;">
-              <h3 style="margin:0 0 .35rem; font-size:1.25rem; display:flex; align-items:center; gap:.5rem;">🎨 Complete Your Student Card</h3>
+              <h3 style="margin:0 0 .35rem; font-size:1.25rem; display:flex; align-items:center; gap:.5rem;"><span class="rm-ico"><i class="fa-solid fa-id-card"></i></span> Complete Your Student Card</h3>
               <p style="margin:0 0 1.2rem; color:#64748b; font-size:.88rem; line-height:1.5;">Complete Your Student Card! Before you can team up with other peers, please take 10 seconds to confirm your University Course, Gender, and Room Habits so they know who they are connecting with.</p>
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;">Gender</label>
               <select id="jit_gender" style="${pill} margin-bottom:.85rem;">
@@ -570,7 +585,7 @@
           overlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:10000; padding:1rem;';
           overlay.innerHTML = `
             <div style="background:rgba(255,255,255,.97); border:1px solid rgba(148,163,184,.4); border-radius:24px; padding:1.5rem 1.6rem; max-width:440px; width:100%; box-shadow:0 30px 80px rgba(15,23,42,.35);">
-              <h3 style="margin:0 0 .5rem; font-size:1.15rem; display:flex; align-items:center; gap:.5rem;">🗑️ <span data-i18n>Take down request?</span></h3>
+              <h3 style="margin:0 0 .5rem; font-size:1.15rem; display:flex; align-items:center; gap:.5rem;"><i class="fa-solid fa-trash-can" style="color:#dc2626;"></i> <span data-i18n>Take down request?</span></h3>
               <p style="margin:0 0 1.2rem; color:#64748b; font-size:.9rem; line-height:1.5;" data-i18n>Are you sure you want to take down your roommate request?</p>
               <div style="display:flex; gap:.5rem; justify-content:flex-end;">
                 <button type="button" id="del_cancel" class="btn btn-outline" style="border-radius:9999px;" data-i18n>Cancel</button>
@@ -594,7 +609,7 @@
             // Immediately flip local ownership state so the pill + count update without waiting for refetch
             try {
               if (typeof btn !== 'undefined' && btn){
-                btn.innerHTML = '<i class="fas fa-hand"></i> 🙋‍♂️ Find a Roommate to Split Cost';
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Find a Roommate to Split Cost';
                 btn.disabled = false;
                 btn.classList.add('btn-primary'); btn.classList.remove('btn-outline');
               }
@@ -647,7 +662,7 @@
             btn.disabled = true;
             btn.classList.add('btn-outline'); btn.classList.remove('btn-primary');
           } else {
-            btn.innerHTML = '<i class="fas fa-hand"></i> 🙋‍♂️ Find a Roommate to Split Cost';
+            btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Find a Roommate to Split Cost';
             btn.disabled = false;
             btn.classList.add('btn-primary'); btn.classList.remove('btn-outline');
           }
@@ -669,7 +684,7 @@
           const pillTextareaStyle = "width:100%; padding:.7rem 1rem; border:1px solid rgba(148,163,184,.6); border-radius:20px; background:rgba(255,255,255,.85); color:#0f172a; resize:vertical; font-family:inherit;";
           overlay.innerHTML = `
             <div style="background:var(--surface,#fff); border-radius:20px; padding:1.5rem; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:92vh; overflow-y:auto;">
-              <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;">🙋 <span data-i18n>Find a Roommate</span></h3>
+              <h3 style="margin:0 0 .25rem; display:flex; align-items:center; gap:.5rem;"><span class="rm-ico"><i class="fa-solid fa-user-plus"></i></span> <span data-i18n>Find a Roommate</span></h3>
               <p style="margin:0 0 1rem; color:var(--text-muted); font-size:.88rem;">Set your preferences. Your phone is saved privately to your profile and is <strong>never shown</strong> to other students — it's only shared when both of you accept a connect request.</p>
 
               <label style="display:block; font-weight:600; font-size:.85rem; margin-bottom:.35rem;" data-i18n>Your name</label>
