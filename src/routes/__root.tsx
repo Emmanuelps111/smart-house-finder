@@ -85,8 +85,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "MakaziLink — your housing guide" },
       { name: "twitter:description", content: "MakaziLink is a real estate platform for renting houses, featuring student and landlord portals." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1RFrp4pcylY8h0XEd0pnF3PmTmH3/social-images/social-1782642123246-house.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1RFrp4pcylY8h0XEd0pnF3PmTmH3/social-images/social-1782642123246-house.webp" },
     ],
     links: [
       {

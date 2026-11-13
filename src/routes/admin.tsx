@@ -9,6 +9,7 @@ import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { House, UserRound, Phone, BrushCleaning, Moon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteUserAccount } from "@/lib/admin-user.functions";
@@ -17,8 +18,12 @@ import { listUserEmails } from "@/lib/admin-emails.functions";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin Dashboard" },
-      { name: "description", content: "Moderate properties and manage users." },
+      { title: "Administration · MakaziLink" },
+      { name: "description", content: "Manage MakaziLink properties, users and roommate requests." },
+      { property: "og:title", content: "Administration · MakaziLink" },
+      { property: "og:description", content: "Manage MakaziLink properties, users and roommate requests." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
     scripts: [
@@ -608,7 +613,7 @@ function AdminPage() {
                         return (
                           <div key={key} className="border border-border rounded-2xl overflow-hidden bg-card">
                             <div className="bg-muted/50 border-b border-border px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
-                              <div className="font-semibold">🏠 {title}</div>
+                              <div className="font-semibold flex items-center gap-2"><House className="size-4 shrink-0" aria-hidden="true" />{title}</div>
                               <div className="text-xs rounded-full bg-card border border-border px-2.5 py-0.5 text-muted-foreground">{searching.length} searching · {matched.length} matched</div>
                             </div>
                             <div className="divide-y divide-border">
@@ -620,17 +625,17 @@ function AdminPage() {
                                   <div key={r.id} className={`p-3 flex items-start gap-3 transition-all duration-300 ${removing ? 'opacity-0 translate-x-8' : 'opacity-100'}`}>
                                     {prof?.selfie_url
                                       ? <img src={prof.selfie_url} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-border" />
-                                      : <div className="w-12 h-12 rounded-full bg-muted grid place-items-center text-muted-foreground">👤</div>}
+                                      : <div className="w-12 h-12 rounded-full bg-muted grid place-items-center text-muted-foreground shrink-0"><UserRound className="size-5" aria-hidden="true" /></div>}
                                     <div className="flex-1 text-sm min-w-0">
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <strong className="text-foreground">{d.name || prof?.full_name || '—'}</strong>
                                         <Badge className={r.status === 'matched'
                                           ? 'rounded-full bg-brand text-white hover:bg-brand font-medium tracking-tight'
                                           : 'rounded-full bg-muted text-foreground hover:bg-muted font-medium tracking-tight'}>{r.status}</Badge>
-                                        {d.cleanliness && <Badge variant="outline" className="text-xs">🧹 {d.cleanliness}</Badge>}
-                                        {d.sleep && <Badge variant="outline" className="text-xs">😴 {d.sleep}</Badge>}
+                                        {d.cleanliness && <Badge variant="outline" className="text-xs gap-1"><BrushCleaning className="size-3" aria-hidden="true" />{d.cleanliness}</Badge>}
+                                        {d.sleep && <Badge variant="outline" className="text-xs gap-1"><Moon className="size-3" aria-hidden="true" />{d.sleep}</Badge>}
                                       </div>
-                                      <div className="text-xs text-muted-foreground mt-0.5">📞 {d.phone || prof?.phone || '—'} · {new Date(r.created_at).toLocaleString()}</div>
+                                      <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1 flex-wrap"><Phone className="size-3" aria-hidden="true" />{d.phone || prof?.phone || '—'} · {new Date(r.created_at).toLocaleString()}</div>
                                       {d.bio && <div className="text-xs mt-1 italic text-muted-foreground">"{d.bio}"</div>}
                                       {d.notes && <div className="text-xs mt-1 text-foreground"><strong>Notes:</strong> {d.notes}</div>}
                                     </div>
@@ -652,7 +657,7 @@ function AdminPage() {
             <Dialog open={!!roommateToDelete} onOpenChange={(o) => { if (!o) setRoommateToDelete(null); }}>
               <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-xl border border-border rounded-3xl">
                 <DialogHeader>
-                  <DialogTitle className="text-foreground">🗑️ Delete roommate request?</DialogTitle>
+                  <DialogTitle className="text-foreground flex items-center gap-2"><Trash2 className="size-5 text-destructive" aria-hidden="true" />Delete roommate request?</DialogTitle>
                 </DialogHeader>
                 <p className="text-sm text-muted-foreground">
                   This permanently removes <strong>{roommateToDelete?.details?.name || "this student"}</strong>&apos;s roommate

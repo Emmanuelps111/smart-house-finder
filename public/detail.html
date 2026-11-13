@@ -108,6 +108,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/js/cloud.js"></script>
 <script src="/js/data.js"></script>
+<script src="/js/roommate-math.js"></script>
 <script src="/partials.js"></script>
 <script src="/js/app.js"></script>
 <script>
@@ -201,7 +202,7 @@
             .rm-row.open .rm-caret{transform:rotate(180deg);}
             .rm-body{max-height:0; overflow:hidden; transition:max-height .35s ease, padding .25s ease; padding:0 .9rem;}
             .rm-row.open .rm-body{max-height:1000px; padding:.25rem .9rem 1rem;}
-            .rm-avatar{width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:.95rem; flex-shrink:0; letter-spacing:.5px;}
+            .rm-avatar{width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:.95rem; flex-shrink:0; letter-spacing:0;}
             .rm-avatar-lg{width:52px; height:52px; font-size:1.25rem;}
             .rm-name{font-weight:600; font-size:.95rem;}
             .rm-inline-tags{display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; font-size:.75rem; color:var(--text-muted);}
@@ -220,10 +221,10 @@
             .rm-row:hover{box-shadow:0 6px 18px -8px rgba(15,23,42,.18); border-color:color-mix(in oklab,var(--primary) 35%,var(--border));}
             .rm-head .rm-caret{margin-left:auto; color:var(--text-muted); font-size:.8rem; transition:transform .25s ease;}
             .rm-chip{display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .6rem; border-radius:999px; background:color-mix(in oklab,var(--primary) 12%,transparent); color:var(--primary); font-size:.72rem; font-weight:600;}
-            .rm-chip-money{background:color-mix(in oklab,#10b981 14%,transparent); color:#059669;}
+            .rm-chip-money{background:color-mix(in oklab,var(--positive) 14%,transparent); color:var(--positive);}
             .rm-habit{display:flex; align-items:center; gap:.4rem; background:var(--bg) !important; border:1px solid var(--border); border-radius:12px !important; padding:.55rem .7rem !important; font-size:.8rem;}
             .rm-habit i{color:var(--primary); width:1rem; text-align:center;}
-            .rm-money{display:inline-flex !important; align-items:center; gap:.4rem; border-radius:999px !important; padding:.4rem .85rem !important; background:color-mix(in oklab,#10b981 12%,transparent) !important; color:#059669 !important; border:1px solid color-mix(in oklab,#10b981 35%,transparent) !important;}
+            .rm-money{display:inline-flex !important; align-items:center; gap:.4rem; border-radius:999px !important; padding:.4rem .85rem !important; background:color-mix(in oklab,var(--positive) 12%,transparent) !important; color:var(--positive) !important; border:1px solid color-mix(in oklab,var(--positive) 35%,transparent) !important;}
             .rm-quote{background:var(--bg) !important; color:var(--text) !important; border-left:3px solid var(--primary); border-radius:12px !important;}
             .rm-quote i{color:var(--primary); opacity:.6; margin-right:.35rem; font-size:.75rem;}
             .rm-habits{display:flex !important; flex-wrap:wrap; gap:.45rem !important;}
@@ -232,30 +233,38 @@
             .rm-summary{font-weight:500 !important; color:var(--text-muted); font-size:.85rem !important;}
             .rm-money{white-space:nowrap; max-width:100%;}
             .rm-match{border:1px solid var(--border); border-radius:14px; padding:.65rem .8rem; margin:.5rem 0; background:var(--bg);}
-            .rm-match-top{display:flex; align-items:baseline; gap:.5rem;}
+            .rm-match-top{display:flex; flex-wrap:wrap; align-items:baseline; gap:.5rem;}
             .rm-match-pct{font-size:1.25rem; font-weight:800;}
             .rm-match-lbl{font-size:.82rem; font-weight:600; color:var(--text-muted);}
             .rm-match-bar{height:6px; border-radius:999px; background:color-mix(in oklab,var(--text-muted) 18%,transparent); margin:.4rem 0 .5rem; overflow:hidden;}
             .rm-match-bar span{display:block; height:100%; border-radius:999px; transition:width .6s ease;}
-            .rm-good .rm-match-pct{color:#059669} .rm-good .rm-match-bar span{background:linear-gradient(90deg,#10b981,#34d399)}
-            .rm-ok .rm-match-pct{color:#d97706} .rm-ok .rm-match-bar span{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
-            .rm-low .rm-match-pct{color:#dc2626} .rm-low .rm-match-bar span{background:linear-gradient(90deg,#ef4444,#f87171)}
+            .rm-good .rm-match-pct{color:var(--positive)} .rm-good .rm-match-bar span{background:linear-gradient(90deg,var(--positive),var(--positive))}
+            .rm-ok .rm-match-pct{color:var(--caution)} .rm-ok .rm-match-bar span{background:linear-gradient(90deg,var(--caution),var(--caution))}
+            .rm-low .rm-match-pct{color:var(--danger)} .rm-low .rm-match-bar span{background:linear-gradient(90deg,var(--danger),var(--danger))}
             .rm-mbits{display:flex; flex-wrap:wrap; gap:.35rem;}
             .rm-mbit{display:inline-flex; align-items:center; gap:.3rem; font-size:.74rem; font-weight:600; padding:.2rem .6rem; border-radius:999px; white-space:nowrap;}
-            .rm-mbit.y{background:color-mix(in oklab,#10b981 14%,transparent); color:#059669}
-            .rm-mbit.m{background:color-mix(in oklab,#f59e0b 16%,transparent); color:#b45309}
-            .rm-mbit.n{background:color-mix(in oklab,#ef4444 14%,transparent); color:#dc2626}
+            .rm-mbit.y{background:color-mix(in oklab,var(--positive) 14%,transparent); color:var(--positive)}
+            .rm-mbit.m{background:color-mix(in oklab,var(--caution) 16%,transparent); color:var(--caution)}
+            .rm-mbit.n{background:color-mix(in oklab,var(--danger) 14%,transparent); color:var(--danger)}
             .rm-split{border:1px solid var(--border); border-radius:14px; padding:.65rem .8rem; margin:.5rem 0; background:var(--bg);}
-            .rm-split-head{display:flex; align-items:center; gap:.4rem; font-weight:700; font-size:.85rem;}
+            .rm-split-head{display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; font-weight:700; font-size:.85rem;}
             .rm-split-head i{color:var(--primary)} .rm-split-head span{margin-left:auto; font-size:.74rem; font-weight:600; color:var(--text-muted);}
-            .rm-split-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem; margin:.5rem 0;}
+            .rm-split-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr)); gap:.4rem; margin:.5rem 0;}
             .rm-split-row small{display:block; font-size:.7rem; color:var(--text-muted); white-space:nowrap;}
-            .rm-split-row b{font-size:.86rem; white-space:nowrap;} .rm-split-row b.hi{color:var(--primary)} .rm-split-row b.sv{color:#059669}
+            .rm-split-row b{font-size:.86rem; white-space:nowrap;} .rm-split-row b.hi{color:var(--primary)} .rm-split-row b.sv{color:var(--positive)}
             .rm-split-bar{display:flex; gap:3px; height:8px;} .rm-split-bar span{flex:1; border-radius:999px; background:color-mix(in oklab,var(--text-muted) 22%,transparent);} .rm-split-bar span.me{background:var(--primary);}
-            .rm-fit{display:inline-flex; align-items:center; gap:.3rem; margin-top:.5rem; font-size:.76rem; font-weight:600;} .rm-fit.y{color:#059669} .rm-fit.n{color:#dc2626}
-            @media (max-width:420px){ .rm-split-row b{font-size:.78rem} }
-            .rm-del{display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; padding:.5rem 1.1rem; border-radius:9999px; background:color-mix(in oklab,#dc2626 10%,transparent); color:#dc2626; border:1px solid color-mix(in oklab,#dc2626 35%,transparent); font-weight:600; cursor:pointer; transition:background .18s ease;}
-            .rm-del:hover{background:color-mix(in oklab,#dc2626 18%,transparent);}
+            .rm-fit{display:inline-flex; align-items:center; gap:.3rem; margin-top:.5rem; font-size:.76rem; font-weight:600;} .rm-fit.y{color:var(--positive)} .rm-fit.n{color:var(--danger)}
+            .rm-match-context{display:block; color:var(--text-muted); font-size:.72rem; margin-top:.15rem;}
+            .rm-name,.rm-summary,.rm-acad,.rm-quote{word-break:normal; overflow-wrap:break-word;}
+            .rm-head,.rm-body{min-width:0;}
+            .rm-money{white-space:normal; word-break:normal; overflow-wrap:normal;}
+            .rm-habit,.rm-mbit{max-width:100%; white-space:normal; word-break:normal; overflow-wrap:normal;}
+            .rm-habit i,.rm-mbit i,.rm-money i{flex-shrink:0;}
+            #roommateAccordionSummary>span{flex-wrap:wrap;}
+            [data-rm-toggle]:focus-visible{outline:2px solid var(--primary); outline-offset:-2px;}
+            @media(prefers-reduced-motion:reduce){.rm-body,.rm-match-bar span,.rm-caret,.rm-row{transition:none;}}
+            .rm-del{display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; padding:.5rem 1.1rem; border-radius:9999px; background:color-mix(in oklab,var(--danger) 10%,transparent); color:var(--danger); border:1px solid color-mix(in oklab,var(--danger) 35%,transparent); font-weight:600; cursor:pointer; transition:background .18s ease;}
+            .rm-del:hover{background:color-mix(in oklab,var(--danger) 18%,transparent);}
           </style>
 
           <div class="info-card" id="reviewsSection" style="margin-top:1.5rem;">
@@ -455,38 +464,22 @@
 
       const countLabel = document.getElementById('roommateCountLabel');
       let myPrefs = null; // viewer's own habits for compatibility
-      const LV = { clean:{High:3,Medium:2,Flexible:1}, sleep:{'Early Bird':1,'Flexible':2,'Night Owl':3} };
-      function smokeKey(v){ v=String(v||''); return /^no smok/i.test(v)?0:(/outside/i.test(v)?1:(v?2:null)); }
-      function matchScore(me, d){
-        if (!me) return null;
-        const parts = [];
-        const c1=LV.clean[me.cleanliness], c2=LV.clean[d.cleanliness];
-        if (c1&&c2) parts.push({k:'Cleanliness', v: c1===c2?1:(Math.abs(c1-c2)===1?.6:.15)});
-        const s1=LV.sleep[me.sleep], s2=LV.sleep[d.sleep];
-        if (s1&&s2) parts.push({k:'Sleep', v: s1===s2?1:((s1===2||s2===2)?.7:.1)});
-        const m1=smokeKey(me.smoking), m2=smokeKey(d.smoking);
-        if (m1!=null&&m2!=null) parts.push({k:'Smoking', v: (m1===2||m2===2||m1===m2)?1:(Math.abs(m1-m2)===1?.5:.1)});
-        if (!parts.length) return null;
-        const pct = Math.round(parts.reduce((a,b)=>a+b.v,0)/parts.length*100);
-        return { pct, parts };
-      }
+      const { matchScore, rentSplit } = window.SHFRoommateMath;
       function matchHtml(d){
         const m = matchScore(myPrefs, d);
         if (!m) return '';
         const tone = m.pct>=80?'good':(m.pct>=55?'ok':'low');
         const label = m.pct>=80?'Great match':(m.pct>=55?'Good match':'Different habits');
         const bits = m.parts.map(p=>`<span class="rm-mbit ${p.v>=.9?'y':(p.v>=.5?'m':'n')}"><i class="fa-solid ${p.v>=.9?'fa-check':(p.v>=.5?'fa-minus':'fa-xmark')}"></i>${p.k}</span>`).join('');
-        return `<div class="rm-match rm-${tone}"><div class="rm-match-top"><span class="rm-match-pct">${m.pct}%</span><span class="rm-match-lbl">${label}</span></div><div class="rm-match-bar"><span style="width:${m.pct}%"></span></div><div class="rm-mbits">${bits}</div></div>`;
+        return `<div class="rm-match rm-${tone}"><div class="rm-match-top"><span class="rm-match-pct">${m.pct}%</span><span class="rm-match-lbl">${label}</span></div><small class="rm-match-context">Habit match · ${m.parts.length} of 3 preferences compared</small><div class="rm-match-bar"><span style="width:${m.pct}%"></span></div><div class="rm-mbits">${bits}</div></div>`;
       }
       function splitHtml(d){
-        const rent = Number(l.price)||0; if (!rent) return '';
-        const n = Math.max(1, parseInt(d.roommates_needed||'1',10)||1) + 1;
-        const share = Math.round(rent/n), save = rent-share;
+        const split = rentSplit(l.price, d); if (!split) return '';
+        const { rent, people: n, share, save, approximate } = split;
         const fmt = v => 'TSh ' + v.toLocaleString('en-TZ');
-        const cap = Number(d.max_budget)||0;
-        const fits = cap ? (share<=cap ? '<span class="rm-fit y"><i class="fa-solid fa-circle-check"></i> Fits their budget</span>' : '<span class="rm-fit n"><i class="fa-solid fa-circle-exclamation"></i> Above their budget</span>') : '';
-        return `<div class="rm-split"><div class="rm-split-head"><i class="fa-solid fa-scale-balanced"></i> Rent split <span>${n} people</span></div>
-          <div class="rm-split-row"><div><small>Full rent</small><b>${fmt(rent)}</b></div><div><small>Your share</small><b class="hi">${fmt(share)}</b></div><div><small>You save</small><b class="sv">${fmt(save)}</b></div></div>
+        const fits = split.fits === null ? '' : (split.fits ? '<span class="rm-fit y"><i class="fa-solid fa-circle-check"></i> Fits their stated budget</span>' : '<span class="rm-fit n"><i class="fa-solid fa-circle-exclamation"></i> Above their stated budget</span>');
+        return `<div class="rm-split"><div class="rm-split-head"><i class="fa-solid fa-scale-balanced"></i> Rent split <span>${approximate ? "5+ people · estimate" : `${n} people`}</span></div>
+          <div class="rm-split-row"><div><small>Full rent / month</small><b>${fmt(rent)}</b></div><div><small>Each share / month</small><b class="hi">${fmt(share)}</b></div><div><small>Less than full rent</small><b class="sv">${fmt(save)}</b></div></div>
           <div class="rm-split-bar">${Array.from({length:n},(_,i)=>`<span class="${i===0?'me':''}"></span>`).join('')}</div>${fits}</div>`;
       }
 
@@ -526,7 +519,7 @@
             ? `<button type="button" data-delete-req="${r.id}" class="rm-del"><i class="fa-solid fa-trash-can"></i> Take down my request</button>`
             : `<button class="btn btn-primary" data-connect="${r.student_id}" style="font-size:.85rem; padding:.5rem 1rem; border-radius:9999px;"><i class="fa-solid fa-handshake"></i> Request to Team Up</button>`;
           return `<div class="rm-row" data-rm-idx="${idx}">
-            <div class="rm-head" data-rm-toggle>
+            <div class="rm-head" data-rm-toggle role="button" tabindex="0" aria-expanded="false" aria-label="View ${name} roommate request">
               ${avatarHtml(d.name||'Student', r.student_id)}
               <div style="min-width:0; display:flex; flex-direction:column; gap:.2rem; flex:1;">
                 <div style="display:flex; flex-wrap:wrap; align-items:center; gap:.4rem;">
@@ -552,17 +545,18 @@
               </div>
               ${isMe ? '' : matchHtml(d)}
               ${splitHtml(d)}
-              ${budget ? `<div class="rm-money"><i class="fa-solid fa-wallet"></i> Rent contribution limit: ≤ TSh ${budget}</div>` : ''}
+              ${budget ? `<div class="rm-money"><i class="fa-solid fa-wallet"></i> Rent contribution limit: Budget: TSh ${budget}</div>` : ''}
               <div class="rm-quote"><i class="fa-solid fa-quote-left"></i> ${bio}</div>
               <div style="margin-top:.5rem;">${action}</div>
             </div>
           </div>`;
         }).join('');
 
-        listEl.querySelectorAll('[data-rm-toggle]').forEach(h => h.addEventListener('click', (e) => {
-          if (e.target.closest('button,a')) return;
-          h.parentElement.classList.toggle('open');
-        }));
+        listEl.querySelectorAll('[data-rm-toggle]').forEach(h => {
+          const toggle = () => { const open = h.parentElement.classList.toggle('open'); h.setAttribute('aria-expanded', String(open)); };
+          h.addEventListener('click', (e) => { if (!e.target.closest('button,a')) toggle(); });
+          h.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        });
 
         async function sendConnect(target, b){
           b.disabled = true;
@@ -722,6 +716,7 @@
             .eq('status', 'searching')
             .order('created_at', { ascending: false });
           if (error){ listEl.innerHTML = '<div style="color:var(--text-muted); font-size:.9rem;">Could not load roommate requests.</div>'; return; }
+          myPrefs = null;
           const mine = cached && data && data.find(r => r.student_id === cached.id);
           if (mine && mine.details) myPrefs = { cleanliness: mine.details.cleanliness, sleep: mine.details.sleep, smoking: mine.details.smoking };
           else if (cached && !myPrefs){

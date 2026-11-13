@@ -1,5 +1,9 @@
 /* MakaziLink - Design System */
 :root {
+  --positive: oklch(0.48 0.13 160);
+  --caution: oklch(0.5 0.12 75);
+  --danger: oklch(0.53 0.2 28);
+  --on-primary: oklch(1 0 0);
   --primary: #3B82F6;
   --primary-dark: #2563EB;
   --primary-light: #DBEAFE;
@@ -17,6 +21,9 @@
   --transition: 200ms ease;
 }
 [data-theme="dark"] {
+  --positive: oklch(0.77 0.14 160);
+  --caution: oklch(0.8 0.13 75);
+  --danger: oklch(0.75 0.15 28);
   --bg: #0b1220;
   --surface: #111a2e;
   --text: #e2e8f0;

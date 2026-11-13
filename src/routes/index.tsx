@@ -2,6 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
+  head: () => ({ meta: [
+    { title: "MakaziLink · Find a home in Tanzania" },
+    { name: "description", content: "Find rentals and student housing with MakaziLink in Tanzania." },
+    { property: "og:title", content: "MakaziLink · Find a home in Tanzania" },
+    { property: "og:description", content: "Find rentals and student housing with MakaziLink in Tanzania." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Index,
 });
 
